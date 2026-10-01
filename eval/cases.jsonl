@@ -1,0 +1,13 @@
+{"id": "q-exact-1", "text": "قال تعالى: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا إِنْ جَاءَكُمْ فَاسِقٌ بِنَبَإٍ فَتَبَيَّنُوا﴾ (الحجرات: 6)", "expected": [{"type": "quran", "status": "verified", "ref": "49:6", "reference_ok": true}]}
+{"id": "q-misquote-1", "text": "قال تعالى: ﴿يا أيها الذين آمنوا إذا جاءكم فاسق بخبر فتبينوا﴾", "expected": [{"type": "quran", "status": "differs", "ref": "49:6"}]}
+{"id": "q-wrongref-1", "text": "قال تعالى: ﴿إن مع العسر يسرا﴾ (البقرة: 286)", "expected": [{"type": "quran", "status": "verified", "ref": "94:5", "reference_ok": false}]}
+{"id": "q-unmarked-1", "text": "ومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسب، فلا تيأسوا.", "expected": [{"type": "quran", "status": "verified", "ref": "65:2-3"}]}
+{"id": "q-span-1", "text": "قال الله تعالى: ﴿قل هو الله أحد الله الصمد لم يلد ولم يولد ولم يكن له كفوا أحد﴾", "expected": [{"type": "quran", "status": "verified", "ref": "112:1-4"}]}
+{"id": "q-notquran-1", "text": "قال الله تعالى: «النظافة من الإيمان»", "expected": [{"type": "quran", "status": "not_in_mushaf"}]}
+{"id": "q-en-1", "text": "Allah says in the Quran: \"O you who have believed, if there comes to you a disobedient one with information, investigate\" (49:6)", "expected": [{"type": "quran", "status": "verified", "ref": "49:6", "reference_ok": true}]}
+{"id": "q-en-wrongref", "text": "Allah says: \"Allah does not charge a soul except with that within its capacity\" (2:255)", "expected": [{"type": "quran", "status": "verified", "ref": "2:286", "reference_ok": false}]}
+{"id": "h-sahih-1", "text": "قال رسول الله ﷺ: «إنما الأعمال بالنيات»", "expected": [{"type": "hadith", "status": "graded", "scholars_any": ["bukhari", "muslim"]}]}
+{"id": "h-sahih-2", "text": "قال النبي ﷺ: «الدين النصيحة»", "expected": [{"type": "hadith", "status": "graded"}]}
+{"id": "h-fabricated-1", "text": "وفي الحديث: «اطلبوا العلم ولو بالصين»", "expected": [{"type": "hadith", "status": "graded", "fabricated": true}]}
+{"id": "h-invented-1", "text": "قال رسول الله ﷺ: «من نشر هذه الرسالة لعشرة أشخاص فتح الله له أبواب الرزق»", "expected": [{"type": "hadith", "status": "not_found"}]}
+{"id": "none-1", "text": "القراءة عادة جميلة تنمي العقل وتوسع المدارك.", "expected": []}

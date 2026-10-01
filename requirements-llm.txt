@@ -1,0 +1,3 @@
+# Optional: run ALLaM in-process (TATHABBUT_LLM=llamacpp)
+llama-cpp-python>=0.3
+huggingface_hub>=0.23

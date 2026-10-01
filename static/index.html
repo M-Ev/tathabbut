@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تثبّت · مدقق الاستشهادات الشرعية</title>
+<meta name="description" content="تثبّت: يتتبع كل آية وحديث في النص إلى مصدره العربي، وينقل أحكام علماء الحديث المعتمدين حرفيًا، ويحيل إلى المختص عند عدم الوجود.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-row">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">ت</span>
+      <div>
+        <h1 data-i18n="title">تثبّت</h1>
+        <p class="tag" data-i18n="tagline">مدقق ذكي للاستشهادات الشرعية</p>
+      </div>
+    </div>
+    <button id="lang" class="ghost" type="button" aria-label="Switch language">English</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <p data-i18n="intro">الصق منشورًا أو درسًا أو إجابة روبوت محادثة. يستخرج تثبّت كل آية وحديث، ويتتبع كل واحد إلى مصدره العربي، وينقل أحكام علماء الحديث المعتمدين كما هي، ويقول بوضوح إن لم يجد ويحيل إلى المختص.</p>
+  </section>
+
+  <section class="card input">
+    <label for="text" class="label" data-i18n="inputLabel">النص المراد فحصه</label>
+    <textarea id="text" rows="8" maxlength="8000" data-i18n-ph="placeholder" placeholder="الصق النص هنا…"></textarea>
+    <div class="row">
+      <div class="samples">
+        <span data-i18n="tryLabel">جرّب مثالًا:</span>
+        <button type="button" class="chip" data-sample="ar" data-i18n="sampleAr">منشور عربي</button>
+        <button type="button" class="chip" data-sample="en" data-i18n="sampleEn">English post</button>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="deep">
+        <span data-i18n="deep">تحليل أعمق بالنموذج اللغوي علّام (أبطأ)</span>
+      </label>
+    </div>
+    <div class="row end">
+      <span id="counter" class="muted">0 / 8000</span>
+      <button id="go" class="primary" type="button" data-i18n="check">تحقّق</button>
+    </div>
+  </section>
+
+  <section id="status" class="status" aria-live="polite"></section>
+  <section id="summary" class="summary" hidden></section>
+  <section id="leveld" class="notice warn" hidden></section>
+  <section id="results" class="results"></section>
+
+  <section class="card about">
+    <h2 data-i18n="howTitle">كيف يعمل تثبّت؟</h2>
+    <ol>
+      <li data-i18n="how1">يستخرج الآيات والأحاديث من النص بقواعد ثابتة، ويمكن أن يستعين بنموذج علّام. وكل ما يقترحه النموذج يجب أن يوجد حرفيًا في نصك وإلا يُحذف.</li>
+      <li data-i18n="how2">يطابق الآيات مع نص مصحف مجمع الملك فهد، ويبيّن الكلمات المخالفة والعزو الخطأ. نص القرآن لا يُولَّد أبدًا.</li>
+      <li data-i18n="how3">يبحث عن الأحاديث في الموسوعة الحديثية للدرر السنية، ويعرض أحكام أئمة الحديث ثم أحكام المحققين المعاصرين كما هي، مع اسم قائل كل حكم، دون ترجيح آلي.</li>
+      <li data-i18n="how4">إن لم يجد حكمًا لأحد علماء الحديث المعتمدين قال ذلك صراحة وأحال إلى المختص.</li>
+    </ol>
+    <p class="muted" data-i18n="privacy">الخصوصية: لا نحفظ نصك. لا يُرسل إلى الدرر إلا لفظ الحديث المستخرج.</p>
+    <p class="muted" data-i18n="disclosure">تثبّت أداة آلية مدعومة بالذكاء الاصطناعي، وليست عالمًا ولا مفتيًا. أحكام الأحاديث منقولة من مصادرها، والفتوى لأهلها.</p>
+    <p class="muted"><a href="/docs" data-i18n="apiLink">واجهة برمجية (API) لفحص إجابات روبوتات المحادثة</a></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span data-i18n="footer">فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي</span>
+  </div>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
