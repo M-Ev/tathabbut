@@ -1,0 +1,50 @@
+# Publishes the app to the Hugging Face Space on every push to main.
+# Needs one repository secret: HF_TOKEN (a Hugging Face token with write access).
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-space
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.25"
+      - name: Upload to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SPACE_ID: 3rb/tathabbut
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
+              folder_path=".",
+              repo_id=os.environ["SPACE_ID"],
+              repo_type="space",
+              ignore_patterns=[".git/*", ".github/*", "tests/*", "eval/*", "scripts/*", "docs/screenshots/*", "index.py", "vercel.json"],
+              delete_patterns=["app/**", "static/**", "data/**", "docs/**"],
+              commit_message=f"Deploy {os.environ.get('GITHUB_SHA', '')[:7]} from GitHub",
+          )
+          PY
