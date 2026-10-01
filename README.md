@@ -1,7 +1,7 @@
 ---
 title: Tathabbut
 emoji: 📖
-colorFrom: indigo
+colorFrom: blue
 colorTo: green
 sdk: docker
 app_port: 7860
@@ -19,6 +19,28 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 - **إن لم يجد** قال ذلك صراحة وأحال إلى المختص. وأسئلة الفتوى الشخصية تُحال إلى الرئاسة العامة للبحوث العلمية والإفتاء.
 
 النموذج اللغوي (علّام من سدايا) يستخرج ويطابق فقط، ولا يُصدر حكمًا ولا فتوى. وكل استشهاد يقترحه يجب أن يوجد حرفيًا في نص المستخدم وإلا يُحذف.
+
+![واجهة تثبّت: آية منقولة بخطأ في كلمتين مع عزو خطأ، وحديث بأحكام العلماء](docs/screenshots/ui-ar.png)
+
+### حالة الدليل لكل استشهاد
+
+| الحالة | معناها |
+|---|---|
+| **موثّق المصدر** | آية مطابقة للمصحف، أو حديث وُجدت له أحكام العلماء المعتمدين |
+| **يحتاج مزيدًا من التحقق** | لفظ مختلف، أو عزو خطأ، أو لفظ مقارب |
+| **يُحال إلى مختص** | لم يوجد في المصدر، أو سؤال فتوى شخصية |
+
+وتحت كل استشهاد «سبب الحكم»: كيف عرفت الأداة ما قالته، ورابط المصدر، وزر «أبلغ عن خطأ في هذه النتيجة».
+
+## ما يعمل الآن وما يُبنى في أيام التحدي · Status
+
+| يعمل الآن (نسخة البداية) | يُبنى من 4 إلى 6 أكتوبر |
+|---|---|
+| استخراج الآيات والأحاديث بالعربية والإنجليزية | التحقق الحي من الدرر السنية |
+| مطابقة كل آية مع المصحف، وفروق الكلمات، وخطأ العزو | تشغيل علّام على الاستضافة وقياس سرعته |
+| البحث في الدرر مقيدًا بالعلماء المعتمدين، بمجموعتين | أرقام التقييم على مجموعة المختصة الشرعية |
+| حالة الدليل وسبب الحكم والإحالة | الأردية والإندونيسية والفرنسية |
+| واجهة عربية وإنجليزية، والواجهة البرمجية | عرض فحص إجابات روبوتات المحادثة |
 
 ## Tathabbut in English
 
@@ -59,7 +81,7 @@ Docker / Hugging Face Space: `docker build -t tathabbut . && docker run -p 7860:
 
 `POST /api/check` with `{"text": "...", "deep": false}` returns every citation with its status, source, verbatim gradings and any referral. Use it to check an Islamic chatbot's answer before it is shown.
 
-Statuses: `verified` (matches the Mushaf), `differs` (wording differs, see `diff`), `not_in_mushaf`, `graded` (found with approved gradings), `found_similar` (similar wording), `not_found` (referred), `needs_model`, `source_error`.
+Each citation carries `tier`: `documented`, `verify` or `refer` (the track's evidence-status criterion). Statuses: `verified` (matches the Mushaf), `differs` (wording differs, see `diff`), `not_in_mushaf`, `graded` (found with approved gradings), `found_similar` (similar wording), `not_found` (referred), `needs_model`, `source_error`.
 
 ## الاختبارات والتقييم · Tests and evaluation
 
@@ -82,6 +104,16 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | `static/` | Arabic/English web interface in the challenge identity |
 | `data/quran.json` | Mushaf text and Saheeh International translation |
 | `eval/` | synthetic evaluation set and runner |
+
+## التوثيق · Documentation
+
+| الملف | المحتوى |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | مسار الفحص، والمبدأ الحاكم، وحالة الدليل، والوحدات |
+| [docs/operations.md](docs/operations.md) | الاستضافة والتكلفة، والتعطل والبدائل، والأدوار، وخطة الاستمرار |
+| [docs/limitations.md](docs/limitations.md) | القيود المعروفة وكيف نتعامل معها |
+| [docs/design-system.md](docs/design-system.md) | نظام التصميم |
+| [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |
 
 See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, tool and license, and [STARTING_VERSION.md](STARTING_VERSION.md) for what existed before the challenge's build days.
 
