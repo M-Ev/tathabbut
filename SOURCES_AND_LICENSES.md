@@ -11,8 +11,6 @@ Items marked ⚠ still need confirmation by the team before final submission.
 | الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached, requests spaced out; fallback to the public `dorar_api.json` | ⚠ No published API license. Permission to display gradings automatically has been requested / is to be requested from Dorar |
 | Saheeh International English translation, via Tanzil | English display and matching of English verse quotes | Bundled from `quran-json` 3.1.2 | ⚠ Tanzil translation terms (verbatim, with attribution) |
 | الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Referral point for personal fatwa questions (level د) | Link only | — |
-| الموقع الرسمي للشيخ عبدالعزيز بن باز (binbaz.org.sa) | Further reading linked beside the fatwa referral | Link only, no content copied | — |
-| الموقع الرسمي للشيخ محمد بن صالح العثيمين (binothaimeen.net) | Further reading linked beside the fatwa referral | Link only, no content copied | — |
 
 ## Model
 

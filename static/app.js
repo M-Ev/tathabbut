@@ -57,7 +57,6 @@ const T = {
     brackets: "الحكم بين المعقوفين [ ] هو اصطلاح الدرر السنية لحكم مستفاد من كتاب العالِم أو منهجه، لا من نص كلامه على هذه الرواية.", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
-    leveldRefs: "ولقراءة فتاوى أهل العلم في المسائل العامة:",
     why: "سبب الحكم",
     tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     tierLbl: "حالة الدليل",
@@ -150,7 +149,6 @@ const T = {
     brackets: "A grading in square brackets [ ] is how Dorar marks a grading drawn from the scholar's book or method, not his exact words on this narration.", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
     leveld: (b) => `The text seems to include a personal fatwa question. Tathabbut does not issue fatwas; please ask ${b}.`,
-    leveldRefs: "To read scholars' fatwas on general questions:",
     why: "Why this result",
     tier: { documented: "Traced to source", verify: "Needs more verification", refer: "Refer to a specialist" },
     tierLbl: "Evidence status",
@@ -415,10 +413,7 @@ function render(r) {
   ld.hidden = !r.level_d;
   if (r.level_d) {
     const b = r.level_d.body;
-    const refs = (r.level_d.references || []).map((x) =>
-      `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
-    ld.innerHTML = `<p>${esc(t().leveld(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></p>`
-      + (refs ? `<p class="refs-h">${esc(t().leveldRefs)}</p><ul class="refs">${refs}</ul>` : "");
+    ld.innerHTML = `<p>${esc(t().leveld(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></p>`;
   }
   $("results").innerHTML = r.citations.map(renderEntry).join("");
 }

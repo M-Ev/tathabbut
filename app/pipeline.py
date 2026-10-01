@@ -25,11 +25,6 @@ FATWA_BODY = {
     "en": "The General Presidency of Scholarly Research and Ifta (Saudi Arabia)",
     "url": "https://www.alifta.gov.sa",
 }
-# Where the user can read what the scholars said. The tool links to these; it never quotes or picks a fatwa.
-FATWA_REFERENCES = [
-    {"ar": "الموقع الرسمي للشيخ عبدالعزيز بن باز", "en": "Official site of Shaykh Abd al-Aziz ibn Baz", "url": "https://binbaz.org.sa"},
-    {"ar": "الموقع الرسمي للشيخ محمد بن صالح العثيمين", "en": "Official site of Shaykh Muhammad ibn Salih al-Uthaymeen", "url": "https://binothaimeen.net"},
-]
 PERSONAL_FATWA = re.compile(
     r"هل يجوز لي|هل يحل لي|هل علي|ما حكم (?:ما فعلت|زواجي|طلاقي|صلاتي|صيامي)|أنا في (?:دولة|بلد)|"
     r"is it (?:halal|haram|permissible|allowed) for me|am i allowed to|can i (?:marry|divorce)|my (?:husband|wife) (?:said|did)",
@@ -285,7 +280,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
     fatwa = bool(PERSONAL_FATWA.search(text))
     return {
         "citations": results,
-        "level_d": {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES} if fatwa else None,
+        "level_d": {"detected": True, "body": FATWA_BODY} if fatwa else None,
         "summary": _summary(results),
         "model": {"backend": llm.backend.name, "used": deep and llm.available(), "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
