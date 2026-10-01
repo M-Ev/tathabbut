@@ -3,19 +3,19 @@
 :root {
   /* brand (challenge identity) */
   --brand-navy: #12183F;
-  --brand-purple: #6150EA;
-  --brand-purple-hover: #4E3DD8;
+  --brand-blue: #1F5C8C;        /* petrol blue: between the identity navy and turquoise */
+  --brand-blue-hover: #174A73;
   --brand-turq: #2EF2C2;
-  --brand-light: #F2F4FF;
+  --brand-light: #EDF3F8;
   /* neutrals */
-  --canvas: #F8F9FE;
+  --canvas: #F7F9FB;
   --surface: #FFFFFF;
   --ink: #12183F;
   --ink-2: #3D4370;
   --ink-3: #5F6489;
-  --line: #DCDFF0;
+  --line: #D8E1EA;
   --on-brand: #FFFFFF;
-  --accent: var(--brand-purple);
+  --accent: var(--brand-blue);
   /* semantic */
   --ok: #0B7A5E;   --ok-tint: #E3F7F0;
   --warn: #8F5200; --warn-tint: #FFF1DA;
@@ -37,9 +37,9 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0D1130; --surface: #12183F; --brand-light: #161C47;
+    --canvas: #0D1130; --surface: #12183F; --brand-light: #15213F;
     --ink: #ECEEFF; --ink-2: #C3C7E8; --ink-3: #9499C2; --line: #2A3164;
-    --accent: #8D80F2; --brand-purple-hover: #7466F0;
+    --accent: #8FB4E8; --brand-blue-hover: #2A6FA6;
     --ok: #3EE6BC; --ok-tint: #0F3330;
     --warn: #FFC266; --warn-tint: #3A2C10;
     --bad: #FF8F85; --bad-tint: #3D1716;
@@ -88,7 +88,7 @@ textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 v
   padding: 0 var(--s-5); min-height: var(--touch); font-weight: 500; cursor: pointer;
   transition: background-color var(--dur-1) var(--ease);
 }
-.primary:hover { background: var(--brand-purple-hover); }
+.primary:hover { background: var(--brand-blue-hover); }
 .primary:disabled { cursor: progress; background: var(--brand-navy); }
 .primary:disabled::after {  /* busy bar */
   content: ""; position: absolute; inset-inline-start: 0; bottom: 0; height: 3px; width: 40%; background: var(--brand-turq);
@@ -96,7 +96,7 @@ textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 v
 }
 @keyframes busy { from { transform: translateX(160%); } to { transform: translateX(-260%); } }
 html[dir="ltr"] .primary:disabled::after { animation-direction: reverse; }
-@media (prefers-color-scheme: dark) { .primary, .primary:disabled { background: var(--brand-purple); } }
+@media (prefers-color-scheme: dark) { .primary, .primary:disabled { background: var(--brand-blue); } }
 
 .status { color: var(--ink-2); min-height: var(--s-6); margin: var(--s-4) 0 0; font-size: var(--fs-sm); }
 
