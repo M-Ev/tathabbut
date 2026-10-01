@@ -10,6 +10,7 @@ from . import llm
 from .config import settings
 from .dorar import DorarResult, get_dorar
 from .extract import Candidate, extract
+from .glossary import gloss_book, gloss_grade
 from .normalize import normalize_ar, skeleton_ar
 from .quran import QuranMatch, get_quran
 from .scholars import EDITORS, GROUP_LABELS, IMAMS, find_scholar, grade_flags, is_hadith_level_grading
@@ -97,17 +98,19 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
             "died_ah": scholar.died_ah, "group": scholar.group, "grade": h.grade, "book": h.book,
             "number": h.number, "rawi": h.rawi, "text": h.text, "url": h.url,
             "similarity": round(sim, 1), "flags": grade_flags(h.grade),
+            "grade_gloss": gloss_grade(h.grade), "book_en": gloss_book(h.book),
         })
     groups = []
     for g in (IMAMS, EDITORS):
         g_items = sorted((i for i in items if i["group"] == g), key=lambda i: (i["died_ah"], -i["similarity"]))
         if g_items:
             groups.append({"group": g, "label_ar": GROUP_LABELS[g]["ar"], "label_en": GROUP_LABELS[g]["en"], "items": g_items})
-    flagged = sorted({i["scholar_ar"] for i in items if "fabricated" in i["flags"]})
+    flagged_scholars = sorted({(i["died_ah"], i["scholar_ar"], i["scholar_en"]) for i in items if "fabricated" in i["flags"]})
+    flagged = [ar for _, ar, _ in flagged_scholars]
     best = max((i["similarity"] for i in items), default=0.0)
     return {
         "query": res.query, "search_url": res.search_url, "groups": groups, "best_similarity": best,
-        "fabricated_by": flagged, "hidden_narrator_statements": hidden, "error": res.error or None,
+        "fabricated_by": flagged, "fabricated_by_en": [en for _, _, en in flagged_scholars], "hidden_narrator_statements": hidden, "error": res.error or None,
         "count": len(items),
     }
 

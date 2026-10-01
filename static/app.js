@@ -50,10 +50,11 @@ const T = {
     },
     fabBy: (names) => `حكم عليه بالوضع أو البطلان أو بأنه لا أصل له: ${names}. فلا يُذكر إلا مع بيان حكمه.`,
     ijtihad: "اختلفت الأحكام، وكلها اجتهاد يُعرض كما هو دون ترجيح.",
-    gradeCols: ["العالِم", "الحكم بنصه", "المصدر"], died: (y) => `ت ${y}هـ`,
+    gradeCols: ["العالِم", "الحكم بنصه", "المصادر"], died: (y) => `ت ${y}هـ`,
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
     narrator: (n) => `أُخفي ${n} من أقوال علماء الجرح والتعديل لأنها حكم على راوٍ لا على الحديث.`,
-    onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.", searchDorar: "ابحث بنفسك في الدرر السنية",
+    onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.",
+    brackets: "الحكم بين المعقوفين [ ] هو اصطلاح الدرر السنية لحكم مستفاد من كتاب العالِم أو منهجه، لا من نص كلامه على هذه الرواية.", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
     leveldRefs: "ولقراءة فتاوى أهل العلم في المسائل العامة:",
@@ -139,10 +140,14 @@ const T = {
     },
     fabBy: (names) => `Graded fabricated, false or baseless by: ${names}. Mention it only together with its grading.`,
     ijtihad: "The gradings differ; all are scholarly ijtihad, shown as they are with no preference.",
-    gradeCols: ["Scholar", "Grading (verbatim)", "Source"], died: (y) => `d. ${y} AH`,
+    gradeCols: ["Scholar", "Grading (verbatim Arabic)", "Sources"], died: (y) => `d. ${y} AH`,
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
     narrator: (n) => `${n} statement(s) about narrators hidden: they judge a narrator, not this hadith.`,
-    onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.", searchDorar: "Search Dorar yourself",
+    onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.",
+    meaning: (g) => `Meaning of the term: ${g}`,
+    noGloss: "No standard English term; read the Arabic wording or ask a specialist.",
+    glossNote: "Each grading is in Arabic exactly as the scholar wrote it. The English beside it is the standard meaning of the term, from Tathabbut's fixed glossary; it is not a new grading.",
+    brackets: "A grading in square brackets [ ] is how Dorar marks a grading drawn from the scholar's book or method, not his exact words on this narration.", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
     leveld: (b) => `The text seems to include a personal fatwa question. Tathabbut does not issue fatwas; please ask ${b}.`,
     leveldRefs: "To read scholars' fatwas on general questions:",
@@ -262,28 +267,57 @@ function renderMushaf(q, c) {
   return h;
 }
 
+// One row per scholar and wording: the same grading from the same scholar in several books is one judgment.
+function groupRows(items) {
+  const rows = [];
+  for (const i of items) {
+    const key = i.scholar_key + "|" + i.grade.trim();
+    const row = rows.find((r) => r.key === key);
+    if (row) row.sources.push(i);
+    else rows.push({ key, first: i, sources: [i] });
+  }
+  return rows;
+}
+
+function sourceLine(i) {
+  const no = esc(localDigits(i.number));
+  const link = i.url ? ` · <a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(t().openDorar)}</a>` : "";
+  if (lang === "ar") return `<li>${esc(i.book)}، ${no}${link}</li>`;
+  const title = i.book_en ? esc(i.book_en) : `<bdi lang="ar" dir="rtl">${esc(i.book)}</bdi>`;
+  const arTitle = i.book_en ? `<bdi class="ar-inline" lang="ar" dir="rtl">${esc(i.book)}</bdi>` : "";
+  return `<li>${title}, no. ${no}${link}${arTitle}</li>`;
+}
+
 function renderGradings(hd) {
   if (!hd) return "";
   let h = "";
-  if (hd.fabricated_by && hd.fabricated_by.length) h += `<p class="line bad">${esc(t().fabBy(hd.fabricated_by.join("، ")))}</p>`;
+  const fab = lang === "en" && hd.fabricated_by_en ? hd.fabricated_by_en : hd.fabricated_by;
+  if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(lang === "ar" ? "، " : ", ")))}</p>`;
   const groups = hd.groups || [];
-  const distinct = new Set(groups.flatMap((g) => g.items.map((i) => i.grade.replace(/[\[\]]/g, "").trim())));
-  if (distinct.size > 1) h += `<p class="line note">${esc(t().ijtihad)}</p>`;
+  const all = groups.flatMap((g) => g.items);
+  const cats = new Set(all.map((i) => (i.grade_gloss || {}).category).filter((c) => c && c !== "narrators"));
+  if (cats.size > 1) h += `<p class="line note">${esc(t().ijtihad)}</p>`;
   for (const g of groups) {
     h += `<table class="grades"><caption>${esc(lang === "ar" ? g.label_ar : g.label_en)}</caption>
       <thead><tr><th>${esc(t().gradeCols[0])}</th><th>${esc(t().gradeCols[1])}</th><th>${esc(t().gradeCols[2])}</th></tr></thead><tbody>`;
-    for (const i of g.items) {
+    for (const row of groupRows(g.items)) {
+      const i = row.first;
+      const gl = i.grade_gloss || {};
+      const meaning = lang === "en"
+        ? `<span class="gloss">${gl.en ? esc(t().meaning(gl.en)) : esc(t().noGloss)}</span>` : "";
       h += `<tr>
         <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(num(i.died_ah)))}</span></td>
-        <td><span class="g">${esc(i.grade)}</span>
-          <details><summary>${esc(t().sourceText)}</summary><div class="htext">${esc(i.text)}${i.rawi ? `<div class="after">${esc(t().rawi)}: ${esc(i.rawi)}</div>` : ""}</div></details></td>
-        <td class="src">${esc(i.book)}، ${esc(localDigits(i.number))}${i.url ? `<br><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(t().openDorar)}</a>` : ""}</td>
+        <td><span class="g" lang="ar" dir="rtl">${esc(i.grade)}</span>${meaning}
+          <details><summary>${esc(t().sourceText)}</summary><div class="htext" lang="ar" dir="rtl">${esc(i.text)}${i.rawi ? `<div class="after">${esc(t().rawi)}: ${esc(i.rawi)}</div>` : ""}</div></details></td>
+        <td class="src"><ul class="srcs">${row.sources.map(sourceLine).join("")}</ul></td>
       </tr>`;
     }
     h += `</tbody></table>`;
   }
+  if (all.some((i) => (i.grade_gloss || {}).bracketed)) h += `<p class="after">${esc(t().brackets)}</p>`;
   if (hd.hidden_narrator_statements) h += `<p class="after">${esc(t().narrator(num(hd.hidden_narrator_statements)))}</p>`;
   if (groups.length) h += `<p class="after">${esc(t().onlyApproved)}</p>`;
+  if (groups.length && lang === "en") h += `<p class="after">${esc(t().glossNote)}</p>`;
   if (hd.search_url) h += `<p class="after"><a href="${esc(hd.search_url)}" target="_blank" rel="noopener">${esc(t().searchDorar)}</a></p>`;
   return h;
 }
@@ -361,7 +395,7 @@ function renderEntry(c) {
     <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
       <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>
     <p class="verdict ${cls}">${esc(verdict)}</p>
-    <p class="as-quoted"><span class="lbl">${esc(t().asQuoted)}</span><q dir="${c.lang === "ar" ? "rtl" : "ltr"}">${esc(c.quote)}</q></p>`;
+    <p class="as-quoted"><span class="lbl">${esc(t().asQuoted)}</span><q><bdi dir="${c.lang === "ar" ? "rtl" : "ltr"}">${esc(c.quote)}</bdi></q></p>`;
   // Evidence first, then the explanation, then what to do.
   for (const n of c.notes || []) if (t().notes[n]) h += `<p class="line ${n === "match_by_model" ? "warn" : "note"}">${esc(t().notes[n])}</p>`;
   if (c.matched_arabic) h += `<p class="as-quoted"><span class="lbl">${esc(t().matchedArabic)}</span>${esc(c.matched_arabic)}</p>`;
