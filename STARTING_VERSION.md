@@ -3,8 +3,8 @@
 The participant guide (FAQ 02) allows building on an earlier project with a documented starting version,
 and states that only the work done from 4 to 6 October 2026 is evaluated.
 
-This file documents the starting version: everything in this repository as of the commit tagged
-`starting-version` was built **before 4 October 2026** (1 October 2026), after the team qualified,
+This file documents the starting version: everything in this repository up to commit
+`e73f92f391d707c6c8964ce040545901af891c4a` (pushed to GitHub on 1 October 2026, also tagged `starting-version`) was built **before 4 October 2026** (1 October 2026), after the team qualified,
 with the AI tools listed in SOURCES_AND_LICENSES.md.
 
 ## What the starting version contains
