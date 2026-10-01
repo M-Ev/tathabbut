@@ -94,3 +94,13 @@ def test_personal_fatwa_question_is_referred(fake_dorar):
     fake_dorar({})
     r = run(check_text("أنا في دولة أوروبية، هل يجوز لي أن أفعل كذا في زواجي؟"))
     assert r["level_d"]["detected"] and "alifta" in r["level_d"]["body"]["url"]
+
+
+def test_every_citation_gets_one_evidence_tier(fake_dorar):
+    fake_dorar({"إنما": "dorar_site.html"})
+    r = run(check_text(
+        "قال رسول الله ﷺ: «إنما الأعمال بالنيات». قال تعالى: ﴿يا أيها الذين آمنوا إذا جاءكم فاسق بخبر فتبينوا﴾. "
+        "قال الله تعالى: «النظافة من الإيمان والعمل عبادة»"
+    ))
+    assert [c["tier"] for c in r["citations"]] == ["documented", "verify", "refer"]
+    assert (r["summary"]["documented"], r["summary"]["verify"], r["summary"]["refer"]) == (1, 1, 1)

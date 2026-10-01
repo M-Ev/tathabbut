@@ -9,7 +9,7 @@ const T = {
     checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… النموذج اللغوي يعمل على معالج مجاني وقد يستغرق دقيقة أو أكثر.",
     failed: "تعذّر الفحص الآن، حاول مرة أخرى.", reportTitle: "نتيجة الفحص",
     none: "لم نجد في النص آية أو حديثًا مستشهدًا به.",
-    summary: (s, n) => `الاستشهادات <b>${n(s.total)}</b> · وُجد في مصدره <b>${n(s.traced)}</b> · يحتاج انتباهًا <b>${n(s.attention)}</b> · أُحيل إلى مختص <b>${n(s.referred)}</b>`,
+    summary: (s, n) => `الاستشهادات <b>${n(s.total)}</b> · موثّق المصدر <b>${n(s.documented)}</b> · يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b> · يُحال إلى مختص <b>${n(s.refer)}</b>`,
     howTitle: "منهج الأداة",
     m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، وتُبيَّن الكلمات المخالفة والعزو الخطأ. نص القرآن لا يُولَّد أبدًا.",
     m2t: "الحديث", m2: "يُبحث عنه في الموسوعة الحديثية للدرر السنية، وتُنقل أحكام أئمة الحديث ثم أحكام المحققين المعاصرين بنصها، مع اسم قائل كل حكم، دون ترجيح بينها.",
@@ -57,6 +57,9 @@ const T = {
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
     why: "سبب الحكم",
+    tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
+    tierLbl: "حالة الدليل",
+    report: "أبلغ عن خطأ في هذه النتيجة",
     r: {
       compared: "قارنّا كلمات النص بنص المصحف حرفًا حرفًا، دون اعتبار للتشكيل ولا لفروق الرسم العثماني والإملائي.",
       foundAt: (p) => `فوجدناه مطابقًا لـ${p}.`,
@@ -94,7 +97,7 @@ const T = {
     checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model runs on a free CPU and may take a minute or more.",
     failed: "The check failed. Please try again.", reportTitle: "Result",
     none: "No Quran verse or hadith citation was found in the text.",
-    summary: (s, n) => `Citations <b>${n(s.total)}</b> · traced to source <b>${n(s.traced)}</b> · need attention <b>${n(s.attention)}</b> · referred <b>${n(s.referred)}</b>`,
+    summary: (s, n) => `Citations <b>${n(s.total)}</b> · traced to source <b>${n(s.documented)}</b> · needs more verification <b>${n(s.verify)}</b> · refer to a specialist <b>${n(s.refer)}</b>`,
     howTitle: "Method",
     m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; wrong words and wrong references are shown. Quran text is never generated.",
     m2t: "Hadith", m2: "Looked up in the Dorar hadith encyclopedia. Gradings by the classical imams of hadith, then by modern hadith editors, are quoted verbatim with who said each, with no preference between them.",
@@ -142,6 +145,9 @@ const T = {
     matchedArabic: "Arabic source matched by the model",
     leveld: (b) => `The text seems to include a personal fatwa question. Tathabbut does not issue fatwas; please ask ${b}.`,
     why: "Why this result",
+    tier: { documented: "Traced to source", verify: "Needs more verification", refer: "Refer to a specialist" },
+    tierLbl: "Evidence status",
+    report: "Report a problem with this result",
     r: {
       compared: "We compared the text with the Mushaf letter by letter, ignoring diacritics and Uthmani versus standard spelling.",
       foundAt: (p) => `It matches ${p}.`,
@@ -178,6 +184,7 @@ const SAMPLES = {
   en: "The Prophet (ﷺ) said: \"Actions are judged by intentions.\"\nAllah says in the Quran: \"Indeed, with hardship comes ease\" (94:6).\nThe Prophet (pbuh) said: \"Seek knowledge even if you have to go to China.\"",
 };
 
+const REPO = "https://github.com/M-Ev/tathabbut";
 let lang = "ar";
 let lastResult = null;
 const $ = (id) => document.getElementById(id);
@@ -333,19 +340,34 @@ function renderWhy(c, cls) {
   return `<details class="why"${cls === "ok" ? "" : " open"}><summary>${esc(t().why)}</summary><ul>${li}</ul></details>`;
 }
 
+function reportLink(c) {
+  const q = c.quran || {};
+  const body = [
+    `Type: ${c.type}`, `Status: ${c.status}`, `Evidence tier: ${c.tier}`,
+    q.ref ? `Mushaf reference: ${q.ref}` : "", c.hadith && c.hadith.query ? `Hadith search: ${c.hadith.query}` : "",
+    "", "Quoted text:", c.quote, "", "What is wrong / ما الخطأ:", "",
+  ].filter((x) => x !== null).join("\n");
+  const url = `${REPO}/issues/new?labels=result-review&title=${encodeURIComponent("[مراجعة نتيجة] " + c.quote.slice(0, 60))}&body=${encodeURIComponent(body)}`;
+  return `<p class="after report-link"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(t().report)}</a></p>`;
+}
+
 function renderEntry(c) {
   const [verdict, cls] = verdictFor(c);
   const kind = c.type === "quran" ? t().quran : t().hadith;
+  const tierCls = { documented: "ok", verify: "warn", refer: "bad" }[c.tier] || "";
   let h = `<li class="entry" style="--i:${c.id - 1}"><div class="entry-no">${num(c.id)}</div><div>
-    <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}</p>
+    <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
+      <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>
     <p class="verdict ${cls}">${esc(verdict)}</p>
     <p class="as-quoted"><span class="lbl">${esc(t().asQuoted)}</span><q dir="${c.lang === "ar" ? "rtl" : "ltr"}">${esc(c.quote)}</q></p>`;
-  h += renderWhy(c, cls);
+  // Evidence first, then the explanation, then what to do.
   for (const n of c.notes || []) if (t().notes[n]) h += `<p class="line ${n === "match_by_model" ? "warn" : "note"}">${esc(t().notes[n])}</p>`;
   if (c.matched_arabic) h += `<p class="as-quoted"><span class="lbl">${esc(t().matchedArabic)}</span>${esc(c.matched_arabic)}</p>`;
   if (c.quran && c.quran.surah != null && (c.type === "quran" || (c.notes || []).includes("hadith_is_quran"))) h += renderMushaf(c.quran, c);
   if (c.hadith) h += renderGradings(c.hadith);
+  h += renderWhy(c, cls);
   if (c.referral) h += `<p class="refer">${esc(c.referral[lang])}</p>`;
+  h += reportLink(c);
   return h + `</div></li>`;
 }
 

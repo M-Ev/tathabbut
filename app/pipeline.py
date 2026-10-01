@@ -271,6 +271,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
             out["status"] = "error"
             out["error"] = type(e).__name__
             out["referral"] = _referral("حدث خطأ أثناء التحقق.", "An error occurred while checking.")
+        out["tier"] = evidence_tier(out)
         results.append(out)
 
     fatwa = bool(PERSONAL_FATWA.search(text))
@@ -283,19 +284,25 @@ async def check_text(text: str, deep: bool = False) -> dict:
     }
 
 
+def evidence_tier(r: dict) -> str:
+    """The track's success criterion asks to tell apart what the sources support, what needs more
+    verification, and what must be referred. Every citation gets exactly one of these:
+    documented (traced to its source), verify (needs more verification), refer (to a specialist)."""
+    if r["referral"]:
+        return "refer"
+    if r["status"] in ("verified", "graded") and not {"wrong_reference", "match_by_model"} & set(r["notes"]):
+        return "documented"
+    return "verify"
+
+
 def _summary(results: list[dict]) -> dict:
-    """Counts only. "traced" means found in its source, not that the text is authentic."""
-    s = {"total": len(results), "quran": 0, "hadith": 0, "traced": 0, "attention": 0, "referred": 0, "fabricated_flag": 0}
+    """Counts only. "documented" means traced to its source, not that the text is authentic."""
+    s = {"total": len(results), "quran": 0, "hadith": 0, "documented": 0, "verify": 0, "refer": 0, "fabricated_flag": 0}
     for r in results:
         s[r["type"]] += 1
+        s[r["tier"]] += 1
         if (r.get("hadith") or {}).get("fabricated_by"):
             s["fabricated_flag"] += 1
-        if r["status"] in ("verified", "graded") and "wrong_reference" not in r["notes"]:
-            s["traced"] += 1
-        elif r["referral"]:
-            s["referred"] += 1
-        else:
-            s["attention"] += 1
     return s
 
 
