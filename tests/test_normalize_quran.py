@@ -49,3 +49,7 @@ def test_surah_names():
 def test_repeated_phrase_prefers_cited_place():
     m = Q.match_arabic("وأقيموا الصلاة وآتوا الزكاة", prefer=(2, 110))
     assert m.ref == "2:110" and m.occurrences > 1
+
+
+def test_cited_place_accepted_for_near_identical_ayat():
+    assert Q.match_english("Indeed, with hardship comes ease", prefer=(94, 5)).ref == "94:5"

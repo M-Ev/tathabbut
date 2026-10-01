@@ -177,8 +177,9 @@ class Quran:
         _, score, i = best
         if prefer and prefer in self.index:
             k = self.index[prefer]
-            if fuzz.token_set_ratio(q, self._en[k]) >= score:
-                i = k
+            s2 = fuzz.token_set_ratio(q, self._en[k])
+            if s2 >= score - 10 and s2 >= 85:  # near-identical ayat (94:5 and 94:6): accept the cited one
+                i, score = k, s2
         if score >= 90:
             return self._build(i, i, "exact", quote, score, "english")
         if score >= 75:
