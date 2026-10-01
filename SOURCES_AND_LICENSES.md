@@ -44,8 +44,8 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 | Font | License |
 |---|---|
-| Readex Pro (challenge identity font), via Google Fonts | SIL Open Font License 1.1 |
-| Amiri Quran, via Google Fonts | SIL Open Font License 1.1 |
+| Readex Pro (challenge identity font, bundled from @fontsource/readex-pro) | SIL Open Font License 1.1 |
+| Amiri Quran (bundled, from @fontsource/amiri-quran) | SIL Open Font License 1.1 |
 
 ## Data
 
