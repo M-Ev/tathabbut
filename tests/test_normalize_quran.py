@@ -53,3 +53,13 @@ def test_repeated_phrase_prefers_cited_place():
 
 def test_cited_place_accepted_for_near_identical_ayat():
     assert Q.match_english("Indeed, with hardship comes ease", prefer=(94, 5)).ref == "94:5"
+
+
+def test_wrong_reference_reports_what_is_really_there():
+    m = Q.match_arabic("يا أيها الذين آمنوا إن جاءكم فاسق بنبإ فتبينوا")
+    Q.check_reference(m, 2, 6, "(البقرة: 6)")
+    assert m.reference_ok is False
+    assert m.cited["surah_name_ar"] == "البقرة" and m.cited["exists"] and skeleton_ar(m.cited["text"]).startswith(skeleton_ar("إن الذين كفروا"))
+    m2 = Q.match_arabic("يا أيها الذين آمنوا إن جاءكم فاسق بنبإ فتبينوا")
+    Q.check_reference(m2, 112, 9, "(الإخلاص: 9)")
+    assert m2.cited["exists"] is False and m2.cited["surah_ayat"] == 4

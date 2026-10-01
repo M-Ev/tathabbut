@@ -48,6 +48,8 @@ class QuranMatch:
     via: str = ""  # arabic | english | english_llm
     reference_given: str = ""
     reference_ok: bool | None = None
+    # What actually sits at the reference the author wrote, to explain a wrong reference.
+    cited: dict | None = None
 
     def to_dict(self):
         return self.__dict__ | {"ref": self.ref, "url": self.url}
@@ -199,6 +201,16 @@ class Quran:
             m.reference_ok = None
             return
         m.reference_ok = m.surah == surah and m.ayah_from <= ayah <= m.ayah_to
+        if m.reference_ok is False:
+            s = self.surahs.get(surah)
+            x = self.get(surah, ayah)
+            m.cited = {
+                "surah": surah, "ayah": ayah,
+                "surah_name_ar": s["ar"] if s else "", "surah_name_en": s["tr"] if s else "",
+                "text": x.text if x else "",
+                "exists": x is not None,
+                "surah_ayat": len([a for a in self.ayat if a.surah == surah]) if s else 0,
+            }
 
     def surah_number(self, name: str) -> int | None:
         name = name.strip()
