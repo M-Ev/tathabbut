@@ -42,6 +42,7 @@ class QuranMatch:
     mushaf_text: str = ""
     translation_en: str = ""
     score: float = 0.0
+    ayat: list = field(default_factory=list)  # [{"ayah": n, "text": Mushaf text}] for display with ayah markers
     diff: list = field(default_factory=list)  # [{"op": "equal|replace|delete|insert", "quoted": str, "mushaf": str}]
     occurrences: int = 0
     via: str = ""  # arabic | english | english_llm
@@ -108,6 +109,7 @@ class Quran:
             surah_name_ar=s["ar"], surah_name_en=s["tr"], mushaf_text=mushaf,
             translation_en=" ".join(x.translation_en for x in span), score=round(score, 1),
             occurrences=occurrences, via=via,
+            ayat=[{"ayah": x.ayah, "text": x.text} for x in span],
         )
         if via == "arabic" and status == "differs":
             m.diff = word_diff(quote, mushaf)
@@ -217,6 +219,9 @@ class Quran:
 def word_diff(quoted: str, mushaf: str) -> list:
     """Word-level differences between a quote and the Mushaf text, compared by skeleton."""
     a, b = ar_words(quoted), mushaf.split()
+    # Show the user's own spelling in the result, not the normalized form.
+    original = [w for w in re.split(r"\s+", quoted) if re.search("[\u0621-\u064A]", w)]
+    shown = [w.strip("«»\"“”(){}﴿﴾،,.:؛") for w in original] if len(original) == len(a) else a
     a_sk = [word_skeleton(w) for w in a]
     b_sk = [word_skeleton(w) for w in ar_words(mushaf)]
     if len(b_sk) != len(b):  # normalization changed word count; fall back to normalized words
@@ -238,7 +243,7 @@ def word_diff(quoted: str, mushaf: str) -> list:
         o[3] = max(o[3], o[4] - (o[2] - o[1]))
     out = []
     for op, i1, i2, j1, j2 in ops:
-        quoted, mush = " ".join(a[i1:i2]), " ".join(b[j1:j2])
+        quoted, mush = " ".join(shown[i1:i2]), " ".join(b[j1:j2])
         if op != "equal" and skeleton_ar(quoted) == skeleton_ar(mush):
             op = "equal"  # spelling only (يا أيها / يَـٰٓأَيُّهَا)
         out.append({"op": op, "quoted": quoted, "mushaf": mush})

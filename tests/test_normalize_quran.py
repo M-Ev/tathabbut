@@ -23,7 +23,7 @@ def test_misquoted_ayah_shows_word_differences():
     m = Q.match_arabic("يا أيها الذين آمنوا إذا جاءكم فاسق بخبر فتبينوا")
     assert m.status == "differs" and m.surah == 49 and m.ayah_from == 6
     changed = [d for d in m.diff if d["op"] != "equal"]
-    assert [d["quoted"] for d in changed] == ["اذا", "بخبر"]
+    assert [d["quoted"] for d in changed] == ["إذا", "بخبر"]  # the user's own spelling
 
 
 def test_hadith_is_not_taken_for_quran():
