@@ -76,7 +76,21 @@ async def health():
 
 @app.get("/api/sources")
 async def sources():
-    return {"quran": get_quran().source, "hadith": "الموسوعة الحديثية، الدرر السنية (dorar.net/hadith)"}
+    """Every source the tool uses, all from the challenge's scientific package, for API users to cite."""
+    from .pipeline import FATWA_BODY
+    from .scholars import SCHOLARS
+
+    return {
+        "package": "المرجعية العلمية المعتمدة، الحزمة العلمية لتحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
+        "quran": get_quran().source,
+        "quran_links": "quranpedia.net",
+        "hadith": "الموسوعة الحديثية، الدرر السنية (dorar.net/hadith)",
+        "approved_scholars": [
+            {"ar": s.name_ar, "en": s.name_en, "died_ah": s.died_ah, "group": s.group} for s in SCHOLARS
+        ],
+        "terms": "معجم الجمهرة لمفردات المحتوى الإسلامي (islamic-content.com/dictionary)",
+        "fatwa_referral": FATWA_BODY,
+    }
 
 
 @app.get("/")

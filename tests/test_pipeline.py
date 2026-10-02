@@ -116,13 +116,14 @@ def test_glossary_uses_jamhara_entries_without_guessing():
     from app.glossary import gloss_book, gloss_grade
     g = gloss_grade("ضعيف جدا")
     assert g["en"] == "Very weak" and g["terms"][0]["url"] == "https://islamic-content.com/dictionary/word/6481/en"
+    assert g["terms"][0]["tr"] == "da'if jiddan"  # spelling only, no meaning added
     assert gloss_grade("حسن صحيح")["en"] == "Good, authentic"
     assert gloss_grade("إسناده صحيح")["en"] == "Authentic chain of transmission"  # Jamhara's own chain entry
     assert gloss_grade("إسناده صحيح")["chain_only"]
     # Jamhara's English page for «الصحيح» gives another sense of the word, so only the Arabic entry is linked.
     s = gloss_grade("[صحيح]")
     assert s["en"] is None and s["category"] == "authentic" and s["bracketed"]
-    assert s["terms"] == [{"en": None, "url": "https://islamic-content.com/dictionary/word/6166"}]
+    assert s["terms"] == [{"tr": "sahih", "en": None, "url": "https://islamic-content.com/dictionary/word/6166"}]
     assert gloss_grade("موضوع")["category"] == "fabricated"
     assert gloss_grade("إسناده ضعيف والحديث صحيح")["terms"] == []  # two judgments: read the Arabic
     assert gloss_grade("كلام غير معروف") == {"en": None, "terms": [], "category": None, "chain_only": False, "bracketed": False}

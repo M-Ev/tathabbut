@@ -25,8 +25,8 @@ const T = {
       verifiedBadRef: "الآية منقولة بلفظ المصحف، والعزو المكتوب يحتاج إلى تصحيح",
       badRefToo: "، والعزو المكتوب يحتاج إلى تصحيح",
       differs: (n) => `لفظ الآية يختلف عن المصحف في ${arPlaces(n)}`,
-      differsEn: "الترجمة قريبة من هذه الآية، وليست بلفظ الترجمة المعتمدة",
-      not_in_mushaf: "هذا النص ليس آية من القرآن",
+      differsEn: "الترجمة قريبة من هذه الآية، وليست بلفظ إحدى الترجمتين المعتمدتين في الأداة",
+      not_in_mushaf: "لم نجد هذا النص في المصحف",
       not_in_translation: "لم نجد آية تقابل هذه الترجمة",
       graded: "وُجد في كتب الحديث، وهذه أحكام علماء الحديث المعتمدين عليه",
       gradedFab: "وُجد في كتب الحديث، ومن علماء الحديث المعتمدين من حكم عليه بالوضع أو البطلان أو بأنه لا أصل له",
@@ -63,7 +63,7 @@ const T = {
     why: "سبب هذه النتيجة",
     tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     tierLbl: "حالة الدليل",
-    report: "أبلغ عن خطأ في هذه النتيجة",
+    report: "أبلغ عن خطأ في هذه النتيجة", reportNote: "يُنشر البلاغ علنًا في GitHub ومعه النص المقتبس.",
     r: {
       compared: "قارنّا كلمات النص بنص المصحف حرفًا حرفًا، دون اعتبار للتشكيل ولا لفروق الرسم العثماني والإملائي.",
       foundAt: (p) => `فوجدناه مطابقًا لـ${p}.`,
@@ -118,8 +118,8 @@ const T = {
       verifiedBadRef: "Quoted exactly as in the Mushaf; the reference needs correcting",
       badRefToo: "; the reference also needs correcting",
       differs: (n) => n === 1 ? "The wording differs from the Mushaf in one place" : `The wording differs from the Mushaf in ${n} places`,
-      differsEn: "Close to this verse, but not the standard translation's wording",
-      not_in_mushaf: "This text is not a verse of the Quran",
+      differsEn: "Close to this verse, but not in the wording of either approved translation",
+      not_in_mushaf: "We did not find this text in the Mushaf",
       not_in_translation: "We could not match this to any verse",
       graded: "Found in hadith sources, with these gradings by the approved hadith scholars",
       gradedFab: "Found in hadith sources; some of the approved hadith scholars graded it fabricated, false or baseless",
@@ -162,7 +162,7 @@ const T = {
     why: "Why this result",
     tier: { documented: "Traced to source", verify: "Needs more verification", refer: "Refer to a specialist" },
     tierLbl: "Evidence status",
-    report: "Report a problem with this result",
+    report: "Report a problem with this result", reportNote: "Reports are public GitHub issues and include the quoted text.",
     r: {
       compared: "We compared the text with the Mushaf letter by letter, ignoring diacritics and Uthmani versus standard spelling.",
       foundAt: (p) => `It matches ${p}.`,
@@ -240,12 +240,12 @@ function verdictFor(c) {
     if (c.status === "differs") {
       if (q.via !== "arabic") return [v.differsEn, "warn"];
       const n = (q.diff || []).filter((d) => d.op !== "equal").length || 1;
-      return [v.differs(n) + (q.reference_ok === false ? v.badRefToo : ""), "bad"];
+      return [v.differs(n) + (q.reference_ok === false ? v.badRefToo : ""), "warn"];  // gentle: attention, not alarm
     }
-    if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "bad"] : [v.not_in_translation, "warn"];
+    if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "warn"] : [v.not_in_translation, "warn"];
   }
   if (c.status === "graded" && hd.fabricated_by && hd.fabricated_by.length) return [v.gradedFab, "bad"];
-  const cls = { graded: "ok", found_similar: "warn", not_found: "bad", needs_model: "warn", source_error: "warn", error: "bad" }[c.status] || "";
+  const cls = { graded: "ok", found_similar: "warn", not_found: "warn", needs_model: "warn", source_error: "warn", error: "bad" }[c.status] || "";
   return [v[c.status] || c.status, cls];
 }
 
@@ -309,13 +309,14 @@ function glossLine(gl) {
   const terms = gl.terms || [];
   let h = "";
   if (gl.category && t().category[gl.category]) h += `<span class="gloss cat">${esc(t().category[gl.category])}</span>`;
-  if (terms.some((x) => x.en)) {
-    h += `<span class="gloss">${esc(t().jamhara)} ${terms.filter((x) => x.en).map((x) => link(x.url, x.en)).join("; ")}</span>`;
-  } else if (terms.length) {
-    h += `<span class="gloss">${esc(t().jamhara)} ${link(terms[0].url, t().jamharaAr)}</span>`;
-  } else if (gl.category !== "mixed") {
-    h += `<span class="gloss">${esc(t().noGloss)}</span>`;
+  // One line per term: its transliteration, then Jamhara's English headword (or its Arabic entry) with the link.
+  for (const x of terms) {
+    const tr = `<i class="tr">${esc(x.tr)}</i> · `;
+    if (x.en) h += `<span class="gloss">${tr}${esc(t().jamhara)} ${link(x.url, x.en)}</span>`;
+    else if (x.url) h += `<span class="gloss">${tr}${esc(t().jamhara)} ${link(x.url, t().jamharaAr)}</span>`;
+    else h += `<span class="gloss">${tr}${esc(t().noGloss)}</span>`;
   }
+  if (!terms.length && gl.category !== "mixed") h += `<span class="gloss">${esc(t().noGloss)}</span>`;
   if (gl.chain_only) h += `<span class="gloss">${esc(t().chainOnly)}</span>`;
   return h;
 }
@@ -424,13 +425,14 @@ function reportLink(c) {
     "", "Quoted text:", c.quote, "", "What is wrong / ما الخطأ:", "",
   ].filter((x) => x !== null).join("\n");
   const url = `${REPO}/issues/new?labels=result-review&title=${encodeURIComponent("[مراجعة نتيجة] " + c.quote.slice(0, 60))}&body=${encodeURIComponent(body)}`;
-  return `<p class="after report-link"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(t().report)}</a></p>`;
+  return `<p class="after report-link"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(t().report)}</a> <span class="fine">${esc(t().reportNote)}</span></p>`;
 }
 
 function renderEntry(c) {
   const [verdict, cls] = verdictFor(c);
   const kind = c.type === "quran" ? t().quran : t().hadith;
-  const tierCls = { documented: "ok", verify: "warn", refer: "bad" }[c.tier] || "";
+  // A source can be traced for a hadith the scholars graded fabricated: keep the tier neutral beside the red verdict.
+  const tierCls = cls === "bad" && c.tier === "documented" ? "" : ({ documented: "ok", verify: "warn", refer: "bad" }[c.tier] || "");
   let h = `<li class="entry" style="--i:${c.id - 1}"><div class="entry-no">${num(c.id)}</div><div>
     <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
       <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>

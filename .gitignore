@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 *.gguf
 .claude/settings.local.json
+eval/synth_results.jsonl

@@ -13,7 +13,18 @@ Items marked ⚠ still need confirmation by the team before final submission.
 | Quranpedia (quranpedia.net) | The link under every verse (`/ayahs/{surah}/{ayah}`) and to the English translation with its notes (`/surah/1/{surah}/book/1948`) | Links only | — |
 | الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached briefly in memory, requests spaced out; fallback to `dorar_api.json`, which Dorar offers to site owners «لعرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (dorar.net/article/389) | ⚠ No terms page; Dorar's FAQ says the encyclopedias are not to be copied or downloaded, so nothing is stored. Permission to display gradings automatically is to be requested from Dorar |
 | معجم الجمهرة للمصطلحات الإسلامية (islamic-content.com/dictionary) | The English term shown beside a hadith grading in the English view | Only the entry's English headword (a few words), with a link to the entry; 27 entries checked by hand on 2 Oct 2026 (`app/glossary.py`) | The site allows «الاستفادة العلمية ... في الاستخدام الشخصي غير التجاري»; no definitions are copied. ⚠ Ask the site for permission to show the headwords |
-| الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Referral point for personal fatwa questions (level د) | Link only | — |
+| الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Level د: personal fatwa questions are referred to a qualified body, as the package requires (the package names none; the team chose this one). The tool never quotes or relies on its fatwas | Link only | — |
+
+### How each domain of the package's reference table is covered
+
+| Package domain | In Tathabbut |
+|---|---|
+| القرآن الكريم | Used: King Fahd Complex Mushaf text and its English translation (al-Hilali & Muhsin Khan), links to quranpedia.net |
+| الحديث النبوي | Used: dorar.net/hadith, gradings of the 13 approved scholars only; the Sahihayn are marked first. Shamela (shamela.ws) is planned, not used yet |
+| الترجمة والمصطلحات | Used: the Jamhara dictionary, for the English of hadith grading terms |
+| الموضوعات الدعوية (dawa.center، الجمهرة) | Not used: the tool writes no da'wah content |
+| التفسير | Not used: the tool does not explain ayat |
+| العقيدة، الفقه العام، السيرة والتاريخ، الشبهات (بينات) | Not used: the tool answers no questions; personal fatwa questions are referred (level د) |
 
 ## Model
 
@@ -52,4 +63,4 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 ## Data
 
-Only synthetic data: the evaluation cases in `eval/cases.jsonl` were written by the team. No user data is collected; user text is not stored or logged, and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.
+Only synthetic data: the evaluation cases in `eval/cases.jsonl` were written by the team. No user data is collected; user text is not stored or logged by the tool (the "report a problem" link opens a public GitHub issue containing the quoted text, and says so beside the link), and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.

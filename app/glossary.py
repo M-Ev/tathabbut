@@ -14,40 +14,41 @@ from .normalize import normalize_ar
 
 JAMHARA = "https://islamic-content.com/dictionary/word/"
 
-# (normalized term, category, Jamhara entry id, Jamhara's English headword or None).
+# (normalized term, category, Jamhara entry id, Jamhara's English headword or None, transliteration).
+# The transliteration only spells the Arabic term in Latin letters (as English-speaking Muslims say it); it adds no meaning.
 # Longer terms first so «حسن صحيح» wins over «صحيح». Every id and headword was checked on the live site
 # on 2 Oct 2026. Some entries have an English page for another sense of the word (for example 6166 «الصحيح»
 # is "The correct view", 10238 «الموضوع» is "Subject matter", 1984 «باطل» is "Invalid", 10109 «المنكر» is
 # "Evil, wrong"): for those the English headword is not used and the link goes to the Arabic entry, whose
 # definition is the hadith sense.
 GRADE_TERMS = [
-    ("لا اصل له", "fabricated", 8302, "It has no basis"),
-    ("ليس له اصل", "fabricated", 8568, "Has no origin"),
-    ("موضوع", "fabricated", 10238, None),
-    ("مكذوب", "fabricated", None, None),
-    ("كذب", "fabricated", 8140, None),
-    ("باطل", "fabricated", 1984, None),
-    ("ضعيف جدا", "very_weak", 6481, "Very weak"),
-    ("منكر", "very_weak", 10109, None),
-    ("متروك", "very_weak", 8754, "Discarded"),
-    ("واه", "very_weak", None, None),
-    ("حسن صحيح", "authentic", 4330, "Good, authentic"),
-    ("صحيح لغيره", "authentic", 6182, "Authentic with others"),
-    ("حسن لغيره", "good", 4335, "Good with others"),
-    ("صحيح", "authentic", 6166, None),
-    ("ثابت", "authentic", 3600, "Confirmed"),
-    ("حسن", "good", 4308, "Good"),
-    ("جيد", "good", None, None),
-    ("لا باس به", "good", None, None),  # Jamhara's 8315 is about a narrator, not a hadith
-    ("رجاله ثقات", "narrators", 5154, "Of reliable narrators"),
-    ("لا يصح", "weak", 8359, "Unauthentic"),
-    ("لا يثبت", "weak", 8336, "It cannot be confirmed"),
-    ("ضعيف", "weak", 6473, "Weak"),
-    ("شاذ", "weak", 5849, "Irregular"),
-    ("مرسل", "weak", 9289, "Attributed"),
-    ("منقطع", "weak", 10103, "Disrupted"),
-    ("معلول", "weak", 9761, "Defective"),  # Jamhara's hadith-sense entry is «المعل»
-    ("فيه عله", "weak", 6985, None),
+    ("لا اصل له", "fabricated", 8302, "It has no basis", "la asla lah"),
+    ("ليس له اصل", "fabricated", 8568, "Has no origin", "laysa lahu asl"),
+    ("موضوع", "fabricated", 10238, None, "mawdu'"),
+    ("مكذوب", "fabricated", None, None, "makdhub"),
+    ("كذب", "fabricated", 8140, None, "kadhib"),
+    ("باطل", "fabricated", 1984, None, "batil"),
+    ("ضعيف جدا", "very_weak", 6481, "Very weak", "da'if jiddan"),
+    ("منكر", "very_weak", 10109, None, "munkar"),
+    ("متروك", "very_weak", 8754, "Discarded", "matruk"),
+    ("واه", "very_weak", None, None, "wahin"),
+    ("حسن صحيح", "authentic", 4330, "Good, authentic", "hasan sahih"),
+    ("صحيح لغيره", "authentic", 6182, "Authentic with others", "sahih li-ghayrihi"),
+    ("حسن لغيره", "good", 4335, "Good with others", "hasan li-ghayrihi"),
+    ("صحيح", "authentic", 6166, None, "sahih"),
+    ("ثابت", "authentic", 3600, "Confirmed", "thabit"),
+    ("حسن", "good", 4308, "Good", "hasan"),
+    ("جيد", "good", None, None, "jayyid"),
+    ("لا باس به", "good", None, None, "la ba'sa bih"),  # Jamhara's 8315 is about a narrator, not a hadith
+    ("رجاله ثقات", "narrators", 5154, "Of reliable narrators", "rijaluhu thiqat"),
+    ("لا يصح", "weak", 8359, "Unauthentic", "la yasihh"),
+    ("لا يثبت", "weak", 8336, "It cannot be confirmed", "la yathbut"),
+    ("ضعيف", "weak", 6473, "Weak", "da'if"),
+    ("شاذ", "weak", 5849, "Irregular", "shadhdh"),
+    ("مرسل", "weak", 9289, "Attributed", "mursal"),
+    ("منقطع", "weak", 10103, "Disrupted", "munqati'"),
+    ("معلول", "weak", 9761, "Defective", "ma'lul"),  # Jamhara's hadith-sense entry is «المعل»
+    ("فيه عله", "weak", 6985, None, "fihi 'illa"),
 ]
 # Chain-only gradings that Jamhara has as entries of their own.
 CHAIN_TERMS = {
@@ -58,39 +59,40 @@ CHAIN_TERMS = {
 _CHAIN = re.compile(r"^(اسناده|سنده|اسناد)\b")
 
 
-def _entry(entry_id: int | None, en: str | None) -> dict:
+def _entry(entry_id: int | None, en: str | None, tr: str) -> dict:
     url = None
     if entry_id:
         url = f"{JAMHARA}{entry_id}/en" if en else f"{JAMHARA}{entry_id}"
-    return {"en": en, "url": url}
+    return {"tr": tr, "en": en, "url": url}
 
 
 def gloss_grade(grade: str) -> dict:
-    """Return {"en", "terms": [{"en", "url"}], "category", "chain_only", "bracketed"}."""
+    """Return {"en", "terms": [{"tr", "en", "url"}], "category", "chain_only", "bracketed"}."""
     raw = grade.strip()
     g = normalize_ar(raw)
     found, taken = [], [False] * len(g)
-    for term, cat, entry_id, en in GRADE_TERMS:
+    for term, cat, entry_id, en, tr in GRADE_TERMS:
         for m in re.finditer(rf"(?<!\S){re.escape(term)}(?!\S)", g):
             if any(taken[m.start():m.end()]):
                 continue
             taken[m.start():m.end()] = [True] * (m.end() - m.start())
-            found.append((m.start(), term, cat, entry_id, en))
+            found.append((m.start(), term, cat, entry_id, en, tr))
     found.sort()
     cats = {f[2] for f in found}
     chain = bool(_CHAIN.match(g))
     terms = []
     if len(cats) == 1:  # more than one judgment in one sentence: the Arabic wording must be read as a whole
-        for _, term, _, entry_id, en in found:
+        for _, term, _, entry_id, en, tr in found:
             if chain:
                 entry_id, en = CHAIN_TERMS.get(term, (None, None))
-            e = _entry(entry_id, en)
+                tr = f"isnaduhu {tr}"
+            e = _entry(entry_id, en, tr)
             if e not in terms:
                 terms.append(e)
     en = "; ".join(t["en"] for t in terms if t["en"]) or None
     return {
         "en": en,
-        "terms": [t for t in terms if t["url"]],
+        "terms": terms,
         "category": cats.pop() if len(cats) == 1 else ("mixed" if cats else None),
         "chain_only": chain,
         "bracketed": raw.startswith("[") and raw.endswith("]"),
