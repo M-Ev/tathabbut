@@ -11,9 +11,16 @@ Items marked ⚠ still need confirmation by the team before final submission.
 | English translation of the meanings by Dr. Muhammad Taqi-ud-Din al-Hilali and Dr. Muhammad Muhsin Khan, King Fahd Complex, Madinah, 1417 AH (book 1948 on quranpedia.net) | The English shown beside every verse; matching English verse quotes | Bundled verbatim, footnotes kept, from QuranEnc.com `english_hilali_khan` v1.1.2 (pinned snapshot in github.com/risan/quran-json, sha256 checked by `scripts/build_quran_data.py`) | QuranEnc terms: no change to the text, credit the publisher and QuranEnc.com, state the version (v1.1.2), keep it updated |
 | Saheeh International (books 1947 and 13638 on quranpedia.net) | Recognising English quotes in this wording only (most English posts use it); never shown as the translation | QuranEnc.com `english_saheeh` v1.1.2, same snapshot | As above |
 | Quranpedia (quranpedia.net) | The link under every verse (`/ayahs/{surah}/{ayah}`) and to the English translation with its notes (`/surah/1/{surah}/book/1948`) | Links only | — |
-| الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached briefly in memory, requests spaced out; fallback to `dorar_api.json`, which Dorar offers to site owners «لعرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (dorar.net/article/389) | ⚠ No terms page; Dorar's FAQ says the encyclopedias are not to be copied or downloaded, so nothing is stored. Permission to display gradings automatically is to be requested from Dorar |
-| معجم الجمهرة للمصطلحات الإسلامية (islamic-content.com/dictionary) | The English term shown beside a hadith grading in the English view | Only the entry's English headword (a few words), with a link to the entry; 27 entries checked by hand on 2 Oct 2026 (`app/glossary.py`) | The site allows «الاستفادة العلمية ... في الاستخدام الشخصي غير التجاري»; no definitions are copied. ⚠ Ask the site for permission to show the headwords |
-| الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Level د: personal fatwa questions are referred to a qualified body, as the package requires (the package names none; the team chose this one). The tool never quotes or relies on its fatwas | Link only | — |
+| الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached briefly in memory, requests spaced out; fallback to `dorar_api.json`, which Dorar offers to site owners «لعرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (dorar.net/article/389) | ⚠ No terms-of-use page (dorar.net/terms is 404; «جميع الحقوق محفوظة لمؤسسة الدرر السنية»). What Dorar publishes: the JSON service «توفر لأصحاب المواقع والمنتديات عرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (article/389); the search widget is free for site owners, who are asked to tell Dorar where it is installed (article/2107); FAQ 5 (dorar.net/feedback): «الموسوعات حالياً غير قابلة للتنزيل … ولا يسمح بنسخها»; the encyclopedia eases access to the scholars' books «لا الاستغناء عنها» (article/56, item 1). The JSON service is covered by article/389; the HTML site search the app uses first (for the approved-scholar filter) is not covered by any published text. So nothing is stored beyond a short in-memory cache, every grading links back to Dorar, and the team is to ask Dorar for permission |
+| موسوعة الجمهرة - مفردات المحتوى الإسلامي (islamic-content.com/dictionary) | The English term shown beside a hadith grading in the English view | Only the entry's English headword (a few words), with a link to the entry; 27 entries checked by hand on 2 Oct 2026 (`app/glossary.py`) | The site allows «الاستفادة العلمية ... في الاستخدام الشخصي غير التجاري»; no definitions are copied. ⚠ Ask the site for permission to show the headwords |
+
+### Referral body for level د (team's choice, not a package source)
+
+The package says that for personal fatwa questions the tool «يحيل إلى جهة مؤهلة» and names no body. The team chose:
+
+| Body | Used for | How |
+|---|---|---|
+| الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Where personal fatwa questions are referred. The tool never quotes or relies on its fatwas | Link only |
 
 ### How each domain of the package's reference table is covered
 
@@ -21,7 +28,7 @@ Items marked ⚠ still need confirmation by the team before final submission.
 |---|---|
 | القرآن الكريم | Used: King Fahd Complex Mushaf text and its English translation (al-Hilali & Muhsin Khan), links to quranpedia.net |
 | الحديث النبوي | Used: dorar.net/hadith, gradings of the 13 approved scholars only; the Sahihayn are marked first. Shamela (shamela.ws) is planned, not used yet |
-| الترجمة والمصطلحات | Used: the Jamhara dictionary, for the English of hadith grading terms |
+| الترجمة والمصطلحات | Used: موسوعة الجمهرة - مفردات المحتوى الإسلامي, for the English of hadith grading terms |
 | الموضوعات الدعوية (dawa.center، الجمهرة) | Not used: the tool writes no da'wah content |
 | التفسير | Not used: the tool does not explain ayat |
 | العقيدة، الفقه العام، السيرة والتاريخ، الشبهات (بينات) | Not used: the tool answers no questions; personal fatwa questions are referred (level د) |

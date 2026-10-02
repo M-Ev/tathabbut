@@ -38,7 +38,7 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 |---|---|
 | استخراج الآيات والأحاديث بالعربية والإنجليزية | التحقق الحي من الدرر السنية |
 | مطابقة كل آية مع المصحف، وفروق الكلمات، وخطأ العزو | تشغيل علّام على الاستضافة وقياس سرعته |
-| البحث في الدرر مقيدًا بالعلماء المعتمدين، بمجموعتين | أرقام التقييم على مجموعة المختصة الشرعية |
+| البحث في الدرر مقيدًا بالعلماء المعتمدين، بمجموعتين (اختُبر على نماذج ثابتة فقط) | أرقام التقييم على مجموعة المختصة الشرعية |
 | حالة الدليل وسبب الحكم والإحالة | الأردية والإندونيسية والفرنسية، من ترجمات مجمع الملك فهد أو الواردة في quranpedia.net |
 | واجهة عربية وإنجليزية، والواجهة البرمجية | عرض فحص إجابات روبوتات المحادثة |
 
@@ -72,7 +72,7 @@ Docker / Hugging Face Space: `docker build -t tathabbut . && docker run -p 7860:
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `TATHABBUT_LLM` | `none` (`llamacpp` in Docker) | `llamacpp`, `openai` or `none` |
+| `TATHABBUT_LLM` | `none` (also in the Dockerfile: the live Space runs without the model until the team's ALLaM endpoint is connected) | `llamacpp`, `openai` or `none` |
 | `TATHABBUT_GGUF_REPO` / `_FILE` | bartowski ALLaM-7B-Instruct Q4_K_M | GGUF to download |
 | `TATHABBUT_DORAR` | `1` | `0` turns hadith lookup off |
 | `TATHABBUT_MAX_CHARS` | `8000` | maximum text length |

@@ -107,7 +107,8 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
     flagged = [ar for _, ar, _ in flagged_scholars]
     best = max((i["similarity"] for i in items), default=0.0)
     # The package puts the two Sahihs first. Decided by the source book, not the scholar's name: al-Bukhari
-    # and Muslim narrate in other books too, and those are not all authentic (Dorar FAQ 13).
+    # and Muslim narrate in other books too, and those are not all authentic. Dorar FAQ 13 (dorar.net/feedback):
+    # «عليك التأكد من المصدر هل هو في صحيح البخاري أم لا، فالأحاديث التي رواها البخاري في غير صحيحه ليست كلها صحيحة».
     sahihayn = []
     for book in SAHIHAYN:
         hits = [i for i in items if normalize_ar(i["book"]) == normalize_ar(book) and i["similarity"] >= STRONG_MATCH]

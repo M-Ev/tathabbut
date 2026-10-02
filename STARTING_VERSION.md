@@ -4,8 +4,11 @@ The participant guide (FAQ 02) allows building on an earlier project with a docu
 and states that only the work done from 4 to 6 October 2026 is evaluated.
 
 This file documents the starting version: everything in this repository up to commit
-`e73f92f391d707c6c8964ce040545901af891c4a` (pushed to GitHub on 1 October 2026, also tagged `starting-version`) was built **before 4 October 2026** (1 October 2026), after the team qualified,
-with the AI tools listed in SOURCES_AND_LICENSES.md.
+`e73f92f391d707c6c8964ce040545901af891c4a` (pushed to GitHub on 1 October 2026) was built **before 4 October 2026** (1 October 2026), after the team qualified,
+with the AI tools listed in SOURCES_AND_LICENSES.md. A git tag could not be pushed from the build environment, so the commit hash is the record.
+
+Commits made on 1 to 3 October after that one (applying the challenge's scientific package, wording, tests and baseline measurements) are also
+part of the starting version. The last commit before 4 October will be named here as the final starting point; everything after it is in CHANGELOG.md.
 
 ## What the starting version contains
 
