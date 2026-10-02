@@ -102,7 +102,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | `app/llm.py` | swappable model layer (ALLaM via llama.cpp or any OpenAI-compatible API) |
 | `app/pipeline.py` | the checking pipeline and referral logic |
 | `static/` | Arabic/English web interface in the challenge identity |
-| `data/quran.json` | Mushaf text and Saheeh International translation |
+| `data/quran.json` | Mushaf text (King Fahd Complex) and its English translation by al-Hilali & Muhsin Khan (King Fahd Complex, 1417 AH); Saheeh International is kept only to recognise English quotes |
 | `eval/` | synthetic evaluation set and runner |
 
 ## التوثيق · Documentation

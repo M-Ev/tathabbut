@@ -110,14 +110,20 @@ def test_every_citation_gets_one_evidence_tier(fake_dorar):
     assert (r["summary"]["documented"], r["summary"]["verify"], r["summary"]["refer"]) == (1, 1, 1)
 
 
-def test_glossary_explains_terms_without_guessing():
+def test_glossary_uses_jamhara_entries_without_guessing():
     from app.glossary import gloss_book, gloss_grade
-    assert gloss_grade("[صحيح]") == {"en": "sahih (authentic)", "category": "authentic", "chain_only": False, "bracketed": True}
-    assert gloss_grade("حسن صحيح")["category"] == "authentic"
-    assert gloss_grade("إسناده صحيح")["en"] == "its chain of narration: sahih (authentic)"
+    g = gloss_grade("ضعيف جدا")
+    assert g["en"] == "Very weak" and g["terms"][0]["url"] == "https://islamic-content.com/dictionary/word/6481/en"
+    assert gloss_grade("حسن صحيح")["en"] == "Good, authentic"
+    assert gloss_grade("إسناده صحيح")["en"] == "Authentic chain of transmission"  # Jamhara's own chain entry
+    assert gloss_grade("إسناده صحيح")["chain_only"]
+    # Jamhara's English page for «الصحيح» gives another sense of the word, so only the Arabic entry is linked.
+    s = gloss_grade("[صحيح]")
+    assert s["en"] is None and s["category"] == "authentic" and s["bracketed"]
+    assert s["terms"] == [{"en": None, "url": "https://islamic-content.com/dictionary/word/6166"}]
     assert gloss_grade("موضوع")["category"] == "fabricated"
-    assert gloss_grade("إسناده ضعيف والحديث صحيح")["en"] is None  # two judgments: read the Arabic
-    assert gloss_grade("كلام غير معروف")["en"] is None
+    assert gloss_grade("إسناده ضعيف والحديث صحيح")["terms"] == []  # two judgments: read the Arabic
+    assert gloss_grade("كلام غير معروف") == {"en": None, "terms": [], "category": None, "chain_only": False, "bracketed": False}
     assert gloss_book("صحيح أبي داود") == "Sahih Abi Dawud"
     assert gloss_book("تخريج سير أعلام النبلاء") == "Takhrij of Siyar A'lam al-Nubala'"
     assert gloss_book("كتاب غير معروف") is None

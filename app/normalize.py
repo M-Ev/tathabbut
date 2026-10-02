@@ -49,7 +49,7 @@ def word_skeleton(word: str) -> str:
 
 def normalize_en(text: str) -> str:
     text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    text = re.sub(r"\[[^\]]*\]|\([^)]*\)", " ", text)  # Saheeh International's bracketed glosses
+    text = re.sub(r"\[[^\]]*\]|\([^)]*\)", " ", text)  # translators' bracketed glosses and footnote markers
     text = re.sub(r"[^a-zA-Z\s]", " ", text).lower()
     return _SPACES.sub(" ", text).strip()
 

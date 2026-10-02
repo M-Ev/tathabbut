@@ -7,9 +7,12 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 | Source | Used for | How | Terms |
 |---|---|---|---|
-| Mushaf of the King Fahd Glorious Qur'an Printing Complex (Uthmani script), via QuranEnc | Quran text, the only reference for verses | Bundled in `data/quran.json` from the npm package `quran-json` 3.1.2 | quran-json: CC-BY-4.0. ⚠ Confirm the Complex's and QuranEnc's terms for redistribution of the text |
-| الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached, requests spaced out; fallback to the public `dorar_api.json` | ⚠ No published API license. Permission to display gradings automatically has been requested / is to be requested from Dorar |
-| Saheeh International English translation, via Tanzil | English display and matching of English verse quotes | Bundled from `quran-json` 3.1.2 | ⚠ Tanzil translation terms (verbatim, with attribution) |
+| Mushaf of the King Fahd Glorious Qur'an Printing Complex (Uthmani script, Hafs) | Quran text, the only reference for verses | Bundled in `data/quran.json` from the npm package `quran-json` 3.1.2, which takes it from QuranEnc. Checked against Quranpedia's King Fahd Complex snapshot (qpc-hafs): the same on all 6,236 verses after encoding normalisation | quran-json: CC BY-SA 4.0 (its LICENSE.txt). ⚠ Confirm the Complex's terms for redistribution of the text |
+| English translation of the meanings by Dr. Muhammad Taqi-ud-Din al-Hilali and Dr. Muhammad Muhsin Khan, King Fahd Complex, Madinah, 1417 AH (book 1948 on quranpedia.net) | The English shown beside every verse; matching English verse quotes | Bundled verbatim, footnotes kept, from QuranEnc.com `english_hilali_khan` v1.1.2 (pinned snapshot in github.com/risan/quran-json, sha256 checked by `scripts/build_quran_data.py`) | QuranEnc terms: no change to the text, credit the publisher and QuranEnc.com, state the version (v1.1.2), keep it updated |
+| Saheeh International (books 1947 and 13638 on quranpedia.net) | Recognising English quotes in this wording only (most English posts use it); never shown as the translation | QuranEnc.com `english_saheeh` v1.1.2, same snapshot | As above |
+| Quranpedia (quranpedia.net) | The link under every verse (`/ayahs/{surah}/{ayah}`) and to the English translation with its notes (`/surah/1/{surah}/book/1948`) | Links only | — |
+| الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached briefly in memory, requests spaced out; fallback to `dorar_api.json`, which Dorar offers to site owners «لعرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (dorar.net/article/389) | ⚠ No terms page; Dorar's FAQ says the encyclopedias are not to be copied or downloaded, so nothing is stored. Permission to display gradings automatically is to be requested from Dorar |
+| معجم الجمهرة للمصطلحات الإسلامية (islamic-content.com/dictionary) | The English term shown beside a hadith grading in the English view | Only the entry's English headword (a few words), with a link to the entry; 27 entries checked by hand on 2 Oct 2026 (`app/glossary.py`) | The site allows «الاستفادة العلمية ... في الاستخدام الشخصي غير التجاري»; no definitions are copied. ⚠ Ask the site for permission to show the headwords |
 | الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Referral point for personal fatwa questions (level د) | Link only | — |
 
 ## Model
@@ -37,7 +40,7 @@ Items marked ⚠ still need confirmation by the team before final submission.
 | llama-cpp-python | MIT |
 | huggingface_hub | Apache-2.0 |
 | pytest (tests only) | MIT |
-| quran-json 3.1.2 (data packaging) | CC-BY-4.0 |
+| quran-json 3.1.2 (data packaging) | CC BY-SA 4.0 (package.json says CC-BY-4.0; its LICENSE.txt is BY-SA) |
 | dorar-hadith-api by Ahmed El-Tabarani (reference for Dorar's page markup and scholar filter ids; no code copied) | MIT |
 
 ## Fonts
@@ -49,4 +52,4 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 ## Data
 
-Only synthetic data: the evaluation cases in `eval/cases.jsonl` were written by the team. No user data is collected; user text is not stored or logged, and only extracted hadith wording is sent to Dorar.
+Only synthetic data: the evaluation cases in `eval/cases.jsonl` were written by the team. No user data is collected; user text is not stored or logged, and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.

@@ -26,9 +26,10 @@ class Ayah:
     surah: int
     ayah: int
     text: str
-    translation_en: str
+    translation_en: str  # King Fahd Complex translation (al-Hilali & Muhsin Khan), shown to the reader
     skeleton: str
     norm_en: str
+    norm_en_saheeh: str  # Saheeh International, used only to recognise English quotes
 
 
 @dataclass
@@ -46,13 +47,14 @@ class QuranMatch:
     diff: list = field(default_factory=list)  # [{"op": "equal|replace|delete|insert", "quoted": str, "mushaf": str}]
     occurrences: int = 0
     via: str = ""  # arabic | english | english_llm
+    matched_translation: str = ""  # for English quotes: which translation the quote matched (hilali | saheeh)
     reference_given: str = ""
     reference_ok: bool | None = None
     # What actually sits at the reference the author wrote, to explain a wrong reference.
     cited: dict | None = None
 
     def to_dict(self):
-        return self.__dict__ | {"ref": self.ref, "url": self.url}
+        return self.__dict__ | {"ref": self.ref, "url": self.url, "translation_url": self.translation_url}
 
     @property
     def ref(self):
@@ -66,7 +68,14 @@ class QuranMatch:
     def url(self):
         if self.surah is None:
             return ""
-        return f"https://quranenc.com/ar/browse/english_saheeh/{self.surah}#{self.ayah_from}"
+        return f"https://quranpedia.net/ayahs/{self.surah}/{self.ayah_from}"
+
+    @property
+    def translation_url(self):
+        """The King Fahd Complex English translation (book 1948) on quranpedia.net, with the translators' notes."""
+        if self.surah is None:
+            return ""
+        return f"https://quranpedia.net/surah/1/{self.surah}/book/1948"
 
 
 class Quran:
@@ -75,7 +84,7 @@ class Quran:
         self.source = data["source"]
         self.surahs = {s["n"]: s for s in data["surahs"]}
         self.ayat = [
-            Ayah(s, a, t, e, skeleton_ar(t), normalize_en(e)) for s, a, t, e in data["verses"]
+            Ayah(s, a, t, e, skeleton_ar(t), normalize_en(e), normalize_en(sah)) for s, a, t, e, sah, _notes in data["verses"]
         ]
         self.index = {(x.surah, x.ayah): i for i, x in enumerate(self.ayat)}
         # Whole-Quran skeleton with offsets, so a quote that spans several ayat is still an exact match.
@@ -86,7 +95,7 @@ class Quran:
             pos += len(x.skeleton)
         self.full = "".join(parts)
         self._sk = [x.skeleton for x in self.ayat]
-        self._en = [x.norm_en for x in self.ayat]
+        self._en = {"hilali": [x.norm_en for x in self.ayat], "saheeh": [x.norm_en_saheeh for x in self.ayat]}
         names = {}
         for s in self.surahs.values():
             names[normalize_ar(s["ar"])] = s["n"]
@@ -175,20 +184,27 @@ class Quran:
         q = normalize_en(quote)
         if len(q.split()) < 5:
             return QuranMatch(status="not_found", via="english")
-        best = process.extractOne(q, self._en, scorer=fuzz.token_set_ratio, score_cutoff=60)
-        if not best:
+        # The quote may follow either translation; keep whichever matches better.
+        found = []
+        for name, index in self._en.items():
+            best = process.extractOne(q, index, scorer=fuzz.token_set_ratio, score_cutoff=60)
+            if not best:
+                continue
+            _, score, i = best
+            if prefer and prefer in self.index:
+                k = self.index[prefer]
+                s2 = fuzz.token_set_ratio(q, index[k])
+                if s2 >= score - 10 and s2 >= 85:  # near-identical ayat (94:5 and 94:6): accept the cited one
+                    i, score = k, s2
+            found.append((score, i, name))
+        if not found:
             return QuranMatch(status="not_found", via="english")
-        _, score, i = best
-        if prefer and prefer in self.index:
-            k = self.index[prefer]
-            s2 = fuzz.token_set_ratio(q, self._en[k])
-            if s2 >= score - 10 and s2 >= 85:  # near-identical ayat (94:5 and 94:6): accept the cited one
-                i, score = k, s2
-        if score >= 90:
-            return self._build(i, i, "exact", quote, score, "english")
-        if score >= 75:
-            return self._build(i, i, "differs", quote, score, "english")
-        return QuranMatch(status="not_found", via="english", score=round(score, 1))
+        score, i, name = max(found)
+        if score < 75:
+            return QuranMatch(status="not_found", via="english", score=round(score, 1))
+        m = self._build(i, i, "exact" if score >= 90 else "differs", quote, score, "english")
+        m.matched_translation = name
+        return m
 
     def get(self, surah: int, ayah: int) -> Ayah | None:
         i = self.index.get((surah, ayah))

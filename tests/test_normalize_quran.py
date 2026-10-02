@@ -37,7 +37,16 @@ def test_repeated_ayah_counts_occurrences():
 
 def test_english_translation_match():
     m = Q.match_english("O you who have believed, if there comes to you a disobedient one with information, investigate")
-    assert m.status == "exact" and m.ref == "49:6"
+    assert m.status == "exact" and m.ref == "49:6" and m.matched_translation == "saheeh"
+    # Whatever the quote followed, the reader is shown the King Fahd Complex translation and quranpedia.net links.
+    assert m.translation_en.startswith("6. O you who believe! If a Fâsiq")
+    assert m.url == "https://quranpedia.net/ayahs/49/6"
+    assert m.translation_url == "https://quranpedia.net/surah/1/49/book/1948"
+
+
+def test_king_fahd_complex_translation_quote_match():
+    m = Q.match_english("If a Fasiq comes to you with any news, verify it, lest you should harm people in ignorance")
+    assert m.status == "exact" and m.ref == "49:6" and m.matched_translation == "hilali"
 
 
 def test_surah_names():

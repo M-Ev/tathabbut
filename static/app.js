@@ -39,7 +39,8 @@ const T = {
     },
     surah: "سورة", ayahWord: "الآية", ayatWord: "الآيات",
     fixesHead: ["ورد في النص", "في المصحف"], missing: "(سقط من النص)", extra: "(ليس في المصحف)",
-    translationLbl: "ترجمة المعنى (صحيح إنترناشونال)",
+    translationLbl: "ترجمة معاني القرآن الكريم (الهلالي ومحسن خان، مجمع الملك فهد)", trName: { hilali: "الهلالي ومحسن خان (مجمع الملك فهد)", saheeh: "صحيح إنترناشونال" },
+    ayahLink: "الآية في موسوعة قرآنبيديا", trLink: "الترجمة الإنجليزية وحواشيها",
     occurrences: (n) => `تتكرر هذه العبارة في ${arPlaces(n)} من المصحف، وهذا أحدها.`,
     wrongRef: (given, where) => `العزو المكتوب ${given} يحتاج إلى تصحيح، والصواب: ${where}.`,
     rightRef: (given) => `العزو المكتوب ${given} صحيح.`,
@@ -55,7 +56,7 @@ const T = {
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
     narrator: (n) => `أُخفي ${n} من أقوال علماء الحديث المعتمدين لأنها حكم على راوٍ لا على الحديث.`,
     onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.",
-    brackets: "الحكم بين المعقوفين [ ] هو اصطلاح الدرر السنية لحكم مستفاد من كتاب العالِم أو منهجه، لا من نص كلامه على هذه الرواية.", searchDorar: "ابحث بنفسك في الدرر السنية",
+    brackets: "ما بين المعقوفين [ ] من صياغة الدرر السنية لا من لفظ المحدّث: تضعه حين تختصر كلامه أو تعبّر عن معناه، أو حين يُفهم الحكم من كلامه دون تصريح، أو حين يُبنى على شرطٍ نصّ عليه المحدّث في مقدمة كتابه. وما خارج المعقوفين فهو لفظه.", bracketsLink: "تنبيهات الدرر السنية العلمية", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
     why: "سبب هذه النتيجة",
@@ -65,7 +66,7 @@ const T = {
     r: {
       compared: "قارنّا كلمات النص بنص المصحف حرفًا حرفًا، دون اعتبار للتشكيل ولا لفروق الرسم العثماني والإملائي.",
       foundAt: (p) => `فوجدناه مطابقًا لـ${p}.`,
-      enMatched: (pct, p) => `طابقنا النص مع ترجمة صحيح إنترناشونال لمعاني القرآن (تقارب ${pct})، وأقرب آية له ${p}، ثم عرضناها بلفظ المصحف.`,
+      enMatched: (pct, p, tr) => `طابقنا النص مع ترجمة ${tr} لمعاني القرآن (تقارب ${pct})، وأقرب آية له ${p}، ثم عرضناها بلفظ المصحف.`,
       nearest: (p, pct) => `أقرب موضع له في المصحف ${p}، وتقارب اللفظ ${pct}.`,
       changed: (a, b) => `كُتب «${a}»، والذي في المصحف «${b}».`,
       missing: (b) => `سقط من النص «${b}».`,
@@ -93,7 +94,7 @@ const T = {
     credit: "يعمل بنموذج علّام من سدايا، ومصادره من الحزمة العلمية للتحدي.",
   },
   en: {
-    title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6",
+    title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6 · “verify it” (King Fahd Complex translation)",
     inputLabel: "Text to check", intro: "Paste a post, a lecture or a chatbot answer, and we will trace every Quran verse and hadith in it to its source.",
     placeholder: "Paste your text here", tryLabel: "Examples:", sampleAr: "Arabic post", sampleEn: "English post",
     deep: "Use the ALLaM language model to find what the basic check missed (slower)", check: "Check citations",
@@ -130,7 +131,8 @@ const T = {
     },
     surah: "Surah", ayahWord: "ayah", ayatWord: "ayat",
     fixesHead: ["As quoted", "In the Mushaf"], missing: "(left out)", extra: "(not in the Mushaf)",
-    translationLbl: "Translation of the meaning (Saheeh International)",
+    translationLbl: "Translation of the meanings (al-Hilali & Muhsin Khan, King Fahd Complex)", trName: { hilali: "al-Hilali & Muhsin Khan (King Fahd Complex)", saheeh: "Saheeh International" },
+    ayahLink: "This verse on Quranpedia", trLink: "Full translation with the translators' notes",
     occurrences: (n) => `This phrase occurs in ${n} places in the Mushaf; this is one of them.`,
     wrongRef: (given, where) => `The reference ${given} needs correcting; it should be ${where}.`,
     rightRef: (given) => `The reference ${given} is correct.`,
@@ -146,10 +148,13 @@ const T = {
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
     narrator: (n) => `${n} statement(s) by the approved hadith scholars are not shown, as they assess a narrator, not this hadith.`,
     onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.",
-    meaning: (g) => `Meaning of the term: ${g}`,
-    noGloss: "No standard English equivalent; please ask a specialist about the Arabic wording.",
-    glossNote: "Each grading is in Arabic exactly as the scholar wrote it. The English beside it is the standard meaning of the term, from Tathabbut's fixed glossary; it is not a new grading.",
-    brackets: "A grading in square brackets [ ] is how Dorar marks a grading drawn from the scholar's book or method, not his exact words on this narration.", searchDorar: "Search Dorar yourself",
+    jamhara: "Jamhara dictionary:",
+    jamharaAr: "Arabic entry only",
+    noGloss: "Not in the Jamhara dictionary in English; please ask a specialist about the Arabic wording.",
+    chainOnly: "This grading is about the chain of narration only.",
+    category: { authentic: "Group: accepted (authentic)", good: "Group: accepted (good)", weak: "Group: weak", very_weak: "Group: very weak", fabricated: "Group: fabricated or baseless", narrators: "Group: about its narrators", mixed: "More than one judgment: read the Arabic as a whole" },
+    glossNote: "Each grading is in Arabic exactly as the scholar wrote it. The English term beside it is the Jamhara dictionary's English headword (islamic-content.com), the term dictionary named in the challenge's scientific package; the group is Tathabbut's grouping for colour. Neither is a new grading.",
+    brackets: "Text in square brackets [ ] is Dorar's wording, not the scholar's: Dorar uses it when it shortens or rephrases his statement, when the grading is understood from his words rather than stated outright, or when it follows from a condition he set in the introduction of his book. Words outside the brackets are his.", bracketsLink: "Dorar's scientific notes", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
     leveld: (b) => `The text seems to include a personal fatwa question. Tathabbut does not issue fatwas; please ask ${b}.`,
     why: "Why this result",
@@ -159,13 +164,13 @@ const T = {
     r: {
       compared: "We compared the text with the Mushaf letter by letter, ignoring diacritics and Uthmani versus standard spelling.",
       foundAt: (p) => `It matches ${p}.`,
-      enMatched: (pct, p) => `We matched the text with the Saheeh International translation of the meanings (${pct} close); the nearest verse is ${p}, shown here in the Mushaf's wording.`,
+      enMatched: (pct, p, tr) => `We matched the text with the ${tr} translation of the meanings (${pct} close); the nearest verse is ${p}, shown here in the Mushaf's wording.`,
       nearest: (p, pct) => `The nearest place in the Mushaf is ${p}, ${pct} close in wording.`,
       changed: (a, b) => `Written «${a}»; the Mushaf has «${b}».`,
       missing: (b) => `«${b}» is missing from the text.`,
       extra: (a) => `«${a}» was added; it is not in the verse.`,
       copyRule: "Quran text must be quoted exactly as in the Mushaf; it is safest to copy it from a reliable source.",
-      enDiffers: (pct, p) => `The quoted translation does not match the standard translation word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
+      enDiffers: (pct, p) => `The quoted translation does not match the approved translations word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
       notInMushaf: (n) => `We searched all ${n} verses of the Mushaf and found nothing matching or close to it.`,
       notInTranslation: (n) => `We compared the text with a translation of the meanings of all ${n} verses and found nothing close. A translation comparison is not enough to say it is not a verse, which is why it is referred to a specialist.`,
       attributed: (m) => `The text attributed it to the Quran with «${m}».`,
@@ -269,7 +274,9 @@ function renderMushaf(q, c) {
     h += `</tbody></table>`;
   }
   if (q.occurrences > 1) h += `<p class="line note">${esc(t().occurrences(q.occurrences))}</p>`;
-  h += `<p class="after"><a href="${esc(q.url)}" target="_blank" rel="noopener">quranenc.com</a></p>`;
+  h += `<p class="after"><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(t().ayahLink)}</a>`;
+  if (lang === "en" || c.lang === "en") h += ` · <a href="${esc(q.translation_url)}" target="_blank" rel="noopener">${esc(t().trLink)}</a>`;
+  h += `</p>`;
   return h;
 }
 
@@ -294,6 +301,23 @@ function sourceLine(i) {
   return `<li>${title}, no. ${no}${link}${arTitle}</li>`;
 }
 
+// English help for a grading: the Jamhara dictionary's own English headword with a link, never our own wording.
+function glossLine(gl) {
+  const link = (u, text) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+  const terms = gl.terms || [];
+  let h = "";
+  if (gl.category && t().category[gl.category]) h += `<span class="gloss cat">${esc(t().category[gl.category])}</span>`;
+  if (terms.some((x) => x.en)) {
+    h += `<span class="gloss">${esc(t().jamhara)} ${terms.filter((x) => x.en).map((x) => link(x.url, x.en)).join("; ")}</span>`;
+  } else if (terms.length) {
+    h += `<span class="gloss">${esc(t().jamhara)} ${link(terms[0].url, t().jamharaAr)}</span>`;
+  } else if (gl.category !== "mixed") {
+    h += `<span class="gloss">${esc(t().noGloss)}</span>`;
+  }
+  if (gl.chain_only) h += `<span class="gloss">${esc(t().chainOnly)}</span>`;
+  return h;
+}
+
 function renderGradings(hd) {
   if (!hd) return "";
   let h = "";
@@ -309,8 +333,7 @@ function renderGradings(hd) {
     for (const row of groupRows(g.items)) {
       const i = row.first;
       const gl = i.grade_gloss || {};
-      const meaning = lang === "en"
-        ? `<span class="gloss">${gl.en ? esc(t().meaning(gl.en)) : esc(t().noGloss)}</span>` : "";
+      const meaning = lang === "en" ? glossLine(gl) : "";
       h += `<tr>
         <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(localDigits(i.died_ah)))}</span></td>
         <td><span class="g" lang="ar" dir="rtl">${esc(i.grade)}</span>${meaning}
@@ -320,7 +343,9 @@ function renderGradings(hd) {
     }
     h += `</tbody></table>`;
   }
-  if (all.some((i) => (i.grade_gloss || {}).bracketed)) h += `<p class="after">${esc(t().brackets)}</p>`;
+  if (all.some((i) => (i.grade_gloss || {}).bracketed)) {
+    h += `<p class="after">${esc(t().brackets)} <a href="https://dorar.net/article/56" target="_blank" rel="noopener">${esc(t().bracketsLink)}</a></p>`;
+  }
   if (hd.hidden_narrator_statements) h += `<p class="after">${esc(t().narrator(num(hd.hidden_narrator_statements)))}</p>`;
   if (groups.length) h += `<p class="after">${esc(t().onlyApproved)}</p>`;
   if (groups.length && lang === "en") h += `<p class="after">${esc(t().glossNote)}</p>`;
@@ -337,7 +362,7 @@ function reasonsFor(c) {
   const out = [];
   if (c.type === "quran" && q.surah != null) {
     if (c.status === "verified" && q.via === "arabic") out.push(r.compared, r.foundAt(place(q)));
-    else if (c.status === "verified") out.push(r.enMatched(pct(q.score), place(q)));
+    else if (c.status === "verified") out.push(r.enMatched(pct(q.score), place(q), t().trName[q.matched_translation] || t().trName.hilali));
     else if (c.status === "differs" && q.via === "arabic") {
       out.push(r.compared, r.nearest(place(q), pct(q.score)));
       for (const d of (q.diff || []).filter((d) => d.op !== "equal")) {
