@@ -61,7 +61,9 @@ def test_wrong_quran_reference_is_flagged(fake_dorar):
 def test_text_claimed_as_quran_but_not_in_mushaf(fake_dorar):
     fake_dorar({})
     r = run(check_text("قال الله تعالى: «النظافة من الإيمان والعمل عبادة»"))
-    assert r["citations"][0]["status"] == "not_in_mushaf"
+    c = r["citations"][0]
+    assert c["status"] == "not_in_mushaf"
+    assert "علوم القرآن" in c["referral"]["ar"]  # a Quran question goes to a Quran specialist
 
 
 def test_english_hadith_without_model_is_referred(fake_dorar):

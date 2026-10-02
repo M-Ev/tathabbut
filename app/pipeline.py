@@ -110,11 +110,15 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
     }
 
 
-def _referral(reason_ar: str, reason_en: str) -> dict:
-    return {
-        "ar": reason_ar + " يُحال إلى مختص في الحديث للتحقق.",
-        "en": reason_en + " Please refer to a hadith specialist.",
-    }
+_SPECIALIST = {
+    "hadith": ("مختص في الحديث", "a hadith specialist"),
+    "quran": ("مختص في علوم القرآن", "a specialist in Quranic studies"),
+}
+
+
+def _referral(reason_ar: str, reason_en: str, field: str = "hadith") -> dict:
+    ar, en = _SPECIALIST[field]
+    return {"ar": f"{reason_ar} يُحال إلى {ar} للتحقق.", "en": f"{reason_en} Please refer to {en}."}
 
 
 async def check_hadith(c: Candidate, out: dict) -> None:
@@ -216,7 +220,10 @@ async def check_quran(c: Candidate, out: dict) -> None:
                 if info["count"]:
                     out["hadith"] = info
                     out["notes"].append("quran_claim_found_in_hadith")
-        out["referral"] = _referral("لم نجد هذا النص في المصحف.", "This text was not found in the Mushaf.")
+        found_as_hadith = "quran_claim_found_in_hadith" in out["notes"]
+        why = (("لم نجد هذا النص في المصحف.", "This text was not found in the Mushaf.") if c.lang == "ar"
+               else ("لم نجد آية تقابل هذه الترجمة.", "We could not match this to any verse."))
+        out["referral"] = _referral(*why, "hadith" if found_as_hadith else "quran")
     if m.reference_ok is False:
         out["notes"].append("wrong_reference")
 

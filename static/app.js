@@ -5,59 +5,60 @@ const T = {
     title: "تثبّت", tagline: "مدقق الاستشهادات الشرعية", mottoRef: "الحجرات ٦",
     inputLabel: "النص المراد فحصه", intro: "الصق منشورًا أو درسًا أو إجابة روبوت محادثة، وسنتتبع كل آية وحديث فيه إلى مصدره.",
     placeholder: "الصق النص هنا", tryLabel: "أمثلة:", sampleAr: "منشور عربي", sampleEn: "English post",
-    deep: "استعن بالنموذج اللغوي علّام لاكتشاف ما فات القواعد (أبطأ)", check: "تحقّق من الاستشهادات",
-    checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… النموذج اللغوي يعمل على معالج مجاني وقد يستغرق دقيقة أو أكثر.",
+    deep: "استعن بالنموذج اللغوي علّام لاكتشاف ما فات الفحص الأساسي (أبطأ)", check: "تحقّق من الاستشهادات",
+    checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… وقد يستغرق النموذج اللغوي دقيقة أو أكثر.",
     failed: "تعذّر الفحص الآن، حاول مرة أخرى.", reportTitle: "نتيجة الفحص",
     none: "لم نجد في النص آية أو حديثًا مستشهدًا به.",
     summary: (s, n) => `الاستشهادات <b>${n(s.total)}</b> · موثّق المصدر <b>${n(s.documented)}</b> · يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b> · يُحال إلى مختص <b>${n(s.refer)}</b>`,
     howTitle: "منهج الأداة",
-    m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، وتُبيَّن الكلمات المخالفة والعزو الخطأ. نص القرآن لا يُولَّد أبدًا.",
+    m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، ويُنبَّه على ما اختلف عن لفظ المصحف أو عن موضع الآية، مع إظهار النص الصحيح والسورة والآية. نص القرآن لا يُولَّد أبدًا.",
     m2t: "الحديث", m2: "يُبحث عنه في الموسوعة الحديثية للدرر السنية، وتُنقل أحكام أئمة الحديث ثم أحكام المحققين المعاصرين بنصها، مع اسم قائل كل حكم، دون ترجيح بينها.",
-    m3t: "عند عدم الوجود", m3: "يقال ذلك صراحة ويُحال إلى المختص، وأسئلة الفتوى الشخصية تُحال إلى جهة الإفتاء.",
-    m4t: "النموذج اللغوي", m4: "يستخرج ويطابق فقط، ولا يحكم ولا يفتي. وكل ما يقترحه يجب أن يوجد بنصه في كلامك وإلا يُحذف.",
-    privacy: "لا نحفظ نصك، ولا يُرسل إلى الدرر إلا لفظ الحديث المستخرج.",
+    m3t: "إذا لم نجد مصدرًا", m3: "يقال ذلك صراحة ويُحال إلى المختص، وأسئلة الفتوى الشخصية تُحال إلى جهة الإفتاء.",
+    m4t: "النموذج اللغوي", m4: "يستخرج ويطابق فقط، ولا يحكم على حديث ولا يفتي. وكل ما يقترحه يجب أن يرد بلفظه في النص المفحوص، وإلا حُذف.",
+    privacy: "لا نحفظ نصك، ولا يُرسل إلى الدرر السنية إلا لفظ الحديث المستخرج. وعند الاستعانة بعلّام يُرسل النص إلى النموذج على خادم الفريق.",
     disclosure: "تثبّت أداة آلية مدعومة بالذكاء الاصطناعي، وليست عالمًا ولا مفتيًا.",
     apiLink: "الواجهة البرمجية لفحص إجابات روبوتات المحادثة",
     footer: "فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
     quran: "آية", hadith: "حديث", asQuoted: "ورد في النص", byModel: "اكتشفه النموذج اللغوي",
     v: {
       verified: "الآية منقولة بلفظ المصحف",
-      verifiedBadRef: "الآية منقولة بلفظ المصحف، لكن عزوها خطأ",
-      badRefToo: "، وعزوها خطأ",
-      differs: (n) => n === 1 ? "في نقل الآية خطأ في موضع واحد" : n === 2 ? "في نقل الآية خطأ في موضعين" : `في نقل الآية خطأ في ${n} مواضع`,
+      verifiedBadRef: "الآية منقولة بلفظ المصحف، والعزو المكتوب يحتاج إلى تصحيح",
+      badRefToo: "، والعزو المكتوب يحتاج إلى تصحيح",
+      differs: (n) => `لفظ الآية يختلف عن المصحف في ${arPlaces(n)}`,
       differsEn: "الترجمة قريبة من هذه الآية، وليست بلفظ الترجمة المعتمدة",
       not_in_mushaf: "هذا النص ليس آية من القرآن",
-      graded: "وُجد في كتب الحديث، وهذه أحكام العلماء عليه",
-      gradedFab: "وُجد في كتب الحديث، ومن العلماء من حكم عليه بالوضع أو البطلان",
+      not_in_translation: "لم نجد آية تقابل هذه الترجمة",
+      graded: "وُجد في كتب الحديث، وهذه أحكام علماء الحديث المعتمدين عليه",
+      gradedFab: "وُجد في كتب الحديث، ومن علماء الحديث المعتمدين من حكم عليه بالوضع أو البطلان أو بأنه لا أصل له",
       found_similar: "وُجدت روايات بلفظ مقارب، لا بلفظه",
       not_found: "لم نجد حكمًا لأحد علماء الحديث المعتمدين على هذا النص",
       needs_model: "النص مترجم، والبحث عن أصله العربي يحتاج إلى النموذج اللغوي",
       source_error: "تعذّر الوصول إلى الموسوعة الحديثية الآن",
-      source_offline: "البحث في الحديث متوقف",
+      source_offline: "البحث في الموسوعة الحديثية غير مفعّل",
       error: "حدث خطأ أثناء الفحص",
     },
     surah: "سورة", ayahWord: "الآية", ayatWord: "الآيات",
-    fixesHead: ["ورد في النص", "في المصحف"], missing: "(محذوف)", extra: "(زائد)",
+    fixesHead: ["ورد في النص", "في المصحف"], missing: "(سقط من النص)", extra: "(ليس في المصحف)",
     translationLbl: "ترجمة المعنى (صحيح إنترناشونال)",
-    occurrences: (n) => `تتكرر هذه العبارة في ${n} مواضع من المصحف، وهذا أحدها.`,
-    wrongRef: (given, where) => `العزو المكتوب ${given} خطأ، والصواب: ${where}.`,
+    occurrences: (n) => `تتكرر هذه العبارة في ${arPlaces(n)} من المصحف، وهذا أحدها.`,
+    wrongRef: (given, where) => `العزو المكتوب ${given} يحتاج إلى تصحيح، والصواب: ${where}.`,
     rightRef: (given) => `العزو المكتوب ${given} صحيح.`,
     notes: {
       hadith_is_quran: "هذا النص آية من القرآن، وقد نُسب في النص إلى النبي ﷺ.",
       quran_claim_found_in_hadith: "نُسب هذا النص إلى القرآن، ووجدناه في كتب الحديث:",
       match_by_model: "المطابقة بين الترجمة والأصل العربي اقترحها النموذج اللغوي، فراجع النص العربي بنفسك.",
-      wording_differs: "انقل الحديث بلفظه كما في المصدر.",
+      wording_differs: "الأَولى نقل الحديث بلفظه كما في المصدر.",
     },
     fabBy: (names) => `حكم عليه بالوضع أو البطلان أو بأنه لا أصل له: ${names}. فلا يُذكر إلا مع بيان حكمه.`,
-    ijtihad: "اختلفت الأحكام، وكلها اجتهاد يُعرض كما هو دون ترجيح.",
+    ijtihad: "اختلفت أحكام علماء الحديث المعتمدين، وكلها اجتهاد يُعرض كما هو دون ترجيح.",
     gradeCols: ["العالِم", "الحكم بنصه", "المصادر"], died: (y) => `ت ${y}هـ`,
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
-    narrator: (n) => `أُخفي ${n} من أقوال علماء الجرح والتعديل لأنها حكم على راوٍ لا على الحديث.`,
+    narrator: (n) => `أُخفي ${n} من أقوال علماء الحديث المعتمدين لأنها حكم على راوٍ لا على الحديث.`,
     onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.",
     brackets: "الحكم بين المعقوفين [ ] هو اصطلاح الدرر السنية لحكم مستفاد من كتاب العالِم أو منهجه، لا من نص كلامه على هذه الرواية.", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
-    why: "سبب الحكم",
+    why: "سبب هذه النتيجة",
     tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     tierLbl: "حالة الدليل",
     report: "أبلغ عن خطأ في هذه النتيجة",
@@ -69,11 +70,12 @@ const T = {
       changed: (a, b) => `كُتب «${a}»، والذي في المصحف «${b}».`,
       missing: (b) => `سقط من النص «${b}».`,
       extra: (a) => `زيد في النص «${a}»، وليس في الآية.`,
-      copyRule: "نص القرآن يُنقل بلفظه كما في المصحف، فانسخه من مصدر موثوق.",
+      copyRule: "نص القرآن يُنقل بلفظه كما في المصحف، والأسلم نسخه من مصدر موثوق.",
       enDiffers: (pct, p) => `الترجمة المنقولة لا تطابق الترجمة المعتمدة حرفيًا (تقارب ${pct})، وأقرب آية لمعناها ${p}. ترجمات المعاني تختلف، فالمرجع هو الأصل العربي.`,
       notInMushaf: (n) => `بحثنا في آيات المصحف كلها (${n} آية)، فلم نجد نصًا يطابقه أو يقاربه.`,
+      notInTranslation: (n) => `قارنّا النص بترجمة معاني آيات المصحف كلها (${n} آية)، فلم نجد ما يقاربه. والمقارنة بالترجمة لا تكفي للحكم بأنه ليس آية، ولذلك نحيله إلى المختص.`,
       attributed: (m) => `وقد نُسب في النص إلى القرآن بعبارة «${m}».`,
-      refWritten: (g) => `كتب الكاتب العزو ${g}.`,
+      refWritten: (g) => `ذُكر في النص العزو ${g}.`,
       refHolds: (p) => `والذي في ${p}:`,
       refNoAyah: (name, n) => `وسورة ${name} عدد آياتها ${n}، فلا توجد آية بهذا الرقم.`,
       refActual: (p) => `أما النص المنقول فموضعه ${p}.`,
@@ -81,7 +83,7 @@ const T = {
       searched: (q) => `بحثنا عن «${q}» في الموسوعة الحديثية للدرر السنية، مقصورًا على علماء الحديث المعتمدين في الأداة.`,
       foundN: (n, pct) => `عدد أحكامهم التي وجدناها على روايات هذا الحديث: ${n}، وأقرب الروايات لفظًا إلى النص بنسبة ${pct}.`,
       notWord: "اللفظ المنقول لا يطابق ألفاظ الروايات تمامًا.",
-      quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فالتعليل لأهل الحديث في كتبهم.",
+      quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فتعليلها في كتب علماء الحديث المعتمدين.",
       noneFound: "فلم نجد لأحدهم حكمًا على نص يقارب هذا.",
       notMeaning: "وعدم وجوده هنا ليس حكمًا عليه، ولذلك نحيله إلى المختص.",
       modelWords: (w) => `استعان النموذج اللغوي علّام بكلمات عربية للبحث: «${w}»، ثم اختار الأصل الأقرب لمعنى الترجمة.`,
@@ -91,60 +93,61 @@ const T = {
     credit: "يعمل بنموذج علّام من سدايا، ومصادره من الحزمة العلمية للتحدي.",
   },
   en: {
-    title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6 · “verify”",
+    title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6",
     inputLabel: "Text to check", intro: "Paste a post, a lecture or a chatbot answer, and we will trace every Quran verse and hadith in it to its source.",
     placeholder: "Paste your text here", tryLabel: "Examples:", sampleAr: "Arabic post", sampleEn: "English post",
-    deep: "Use the ALLaM language model to find what the rules missed (slower)", check: "Check citations",
-    checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model runs on a free CPU and may take a minute or more.",
+    deep: "Use the ALLaM language model to find what the basic check missed (slower)", check: "Check citations",
+    checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model may take a minute or more.",
     failed: "The check failed. Please try again.", reportTitle: "Result",
     none: "No Quran verse or hadith citation was found in the text.",
     summary: (s, n) => `Citations <b>${n(s.total)}</b> · traced to source <b>${n(s.documented)}</b> · needs more verification <b>${n(s.verify)}</b> · refer to a specialist <b>${n(s.refer)}</b>`,
     howTitle: "Method",
-    m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; wrong words and wrong references are shown. Quran text is never generated.",
-    m2t: "Hadith", m2: "Looked up in the Dorar hadith encyclopedia. Gradings by the classical imams of hadith, then by modern hadith editors, are quoted verbatim with who said each, with no preference between them.",
-    m3t: "Not found", m3: "The tool says so plainly and refers you to a specialist; personal fatwa questions go to a fatwa authority.",
-    m4t: "Language model", m4: "Only extracts and matches; it never grades or rules. Anything it suggests must appear verbatim in your text or it is dropped.",
-    privacy: "Your text is not stored. Only the extracted hadith wording is sent to Dorar.",
+    m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; any word or reference that differs is pointed out, with the correct text, surah and ayah shown. Quran text is never generated.",
+    m2t: "Hadith", m2: "Looked up in the Dorar hadith encyclopedia. Gradings by the classical imams of hadith, then by modern hadith editors, are quoted verbatim, each with the name of the scholar who gave it, with no preference between them.",
+    m3t: "When no source is found", m3: "The tool says so plainly and refers you to a specialist; personal fatwa questions go to a fatwa authority.",
+    m4t: "Language model", m4: "Only extracts and matches; it never grades a hadith or gives a fatwa. Anything it suggests must appear verbatim in the checked text, or it is dropped.",
+    privacy: "Your text is not stored. Only the extracted hadith wording is sent to Dorar. When ALLaM is used, the text is sent to the model on the team's server.",
     disclosure: "Tathabbut is an AI-assisted tool, not a scholar or a mufti.",
     apiLink: "API for checking chatbot answers",
     footer: "Team Qayd al-Awabid · AI Challenge in Serving Islamic Content",
     quran: "Quran", hadith: "Hadith", asQuoted: "As quoted", byModel: "found by the language model",
     v: {
       verified: "Quoted exactly as in the Mushaf",
-      verifiedBadRef: "Quoted correctly, but the reference is wrong",
-      badRefToo: ", and the reference is wrong",
-      differs: (n) => n === 1 ? "The verse is misquoted in one place" : `The verse is misquoted in ${n} places`,
+      verifiedBadRef: "Quoted exactly as in the Mushaf; the reference needs correcting",
+      badRefToo: "; the reference also needs correcting",
+      differs: (n) => n === 1 ? "The wording differs from the Mushaf in one place" : `The wording differs from the Mushaf in ${n} places`,
       differsEn: "Close to this verse, but not the standard translation's wording",
       not_in_mushaf: "This text is not a verse of the Quran",
-      graded: "Found in hadith sources, with these gradings",
-      gradedFab: "Found in hadith sources; some scholars graded it fabricated or false",
+      not_in_translation: "We could not match this to any verse",
+      graded: "Found in hadith sources, with these gradings by the approved hadith scholars",
+      gradedFab: "Found in hadith sources; some of the approved hadith scholars graded it fabricated, false or baseless",
       found_similar: "Narrations with similar, not identical, wording were found",
       not_found: "No grading by the approved hadith scholars was found",
       needs_model: "This is a translation; finding its Arabic source needs the language model",
       source_error: "The hadith encyclopedia could not be reached",
-      source_offline: "Hadith lookup is off",
-      error: "An error occurred",
+      source_offline: "Hadith encyclopedia lookup is turned off",
+      error: "An error occurred during the check",
     },
     surah: "Surah", ayahWord: "ayah", ayatWord: "ayat",
-    fixesHead: ["As quoted", "In the Mushaf"], missing: "(missing)", extra: "(extra)",
+    fixesHead: ["As quoted", "In the Mushaf"], missing: "(left out)", extra: "(not in the Mushaf)",
     translationLbl: "Translation of the meaning (Saheeh International)",
     occurrences: (n) => `This phrase occurs in ${n} places in the Mushaf; this is one of them.`,
-    wrongRef: (given, where) => `The reference ${given} is wrong; it should be ${where}.`,
+    wrongRef: (given, where) => `The reference ${given} needs correcting; it should be ${where}.`,
     rightRef: (given) => `The reference ${given} is correct.`,
     notes: {
       hadith_is_quran: "This text is a Quran verse, but it was attributed to the Prophet ﷺ.",
       quran_claim_found_in_hadith: "This was attributed to the Quran; it was found in hadith sources:",
-      match_by_model: "The language model matched the translation to the Arabic source. Please check the Arabic text yourself.",
-      wording_differs: "Quote the hadith in the wording of its source.",
+      match_by_model: "The language model matched the translation to the Arabic source. Please verify the Arabic text, or ask someone who reads Arabic.",
+      wording_differs: "It is best to quote the hadith in the wording of its source.",
     },
-    fabBy: (names) => `Graded fabricated, false or baseless by: ${names}. Mention it only together with its grading.`,
-    ijtihad: "The gradings differ; all are scholarly ijtihad, shown as they are with no preference.",
+    fabBy: (names) => `Graded fabricated, false or baseless by: ${names}. It should be mentioned only together with its grading.`,
+    ijtihad: "The approved hadith scholars' gradings differ; each is scholarly ijtihad (reasoned judgment), shown as it is with no preference.",
     gradeCols: ["Scholar", "Grading (verbatim Arabic)", "Sources"], died: (y) => `d. ${y} AH`,
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
-    narrator: (n) => `${n} statement(s) about narrators hidden: they judge a narrator, not this hadith.`,
+    narrator: (n) => `${n} statement(s) by the approved hadith scholars are not shown, as they assess a narrator, not this hadith.`,
     onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.",
     meaning: (g) => `Meaning of the term: ${g}`,
-    noGloss: "No standard English term; read the Arabic wording or ask a specialist.",
+    noGloss: "No standard English equivalent; please ask a specialist about the Arabic wording.",
     glossNote: "Each grading is in Arabic exactly as the scholar wrote it. The English beside it is the standard meaning of the term, from Tathabbut's fixed glossary; it is not a new grading.",
     brackets: "A grading in square brackets [ ] is how Dorar marks a grading drawn from the scholar's book or method, not his exact words on this narration.", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
@@ -161,11 +164,12 @@ const T = {
       changed: (a, b) => `Written «${a}»; the Mushaf has «${b}».`,
       missing: (b) => `«${b}» is missing from the text.`,
       extra: (a) => `«${a}» was added; it is not in the verse.`,
-      copyRule: "Quran text must be quoted exactly as in the Mushaf; copy it from a reliable source.",
+      copyRule: "Quran text must be quoted exactly as in the Mushaf; it is safest to copy it from a reliable source.",
       enDiffers: (pct, p) => `The quoted translation does not match the standard translation word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
       notInMushaf: (n) => `We searched all ${n} verses of the Mushaf and found nothing matching or close to it.`,
+      notInTranslation: (n) => `We compared the text with a translation of the meanings of all ${n} verses and found nothing close. A translation comparison is not enough to say it is not a verse, which is why it is referred to a specialist.`,
       attributed: (m) => `The text attributed it to the Quran with «${m}».`,
-      refWritten: (g) => `The author wrote the reference ${g}.`,
+      refWritten: (g) => `The text gives the reference ${g}.`,
       refHolds: (p) => `What is at ${p}:`,
       refNoAyah: (name, n) => `Surah ${name} has ${n} verses, so there is no verse with that number.`,
       refActual: (p) => `The quoted text is at ${p}.`,
@@ -198,6 +202,9 @@ const t = () => T[lang];
 const num = (n) => (lang === "ar" ? Number(n).toLocaleString("ar-EG") : String(n));
 const localDigits = (s) => (lang === "ar" ? String(s ?? "").replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) : String(s ?? ""));
 const arDigits = (n) => Number(n).toLocaleString("ar-EG", { useGrouping: false });
+// Arabic count of «موضع»: موضع واحد، موضعين، ٣–١٠ مواضع، ١١ موضعًا فأكثر.
+const arPlaces = (n) => (n === 1 ? "موضع واحد" : n === 2 ? "موضعين" : `${arDigits(n)} ${n <= 10 ? "مواضع" : "موضعًا"}`);
+const updateCounter = () => { $("counter").textContent = localDigits(`${$("text").value.length} / 8000`); };
 
 function applyLang() {
   document.documentElement.lang = lang;
@@ -205,6 +212,7 @@ function applyLang() {
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t()[el.dataset.i18n]; });
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t()[el.dataset.i18nPh]; });
   $("lang").textContent = lang === "ar" ? "English" : "العربية";
+  updateCounter();
   document.title = lang === "ar" ? "تثبّت · مدقق الاستشهادات الشرعية" : "Tathabbut · Islamic citation checker";
   if (lastResult) render(lastResult);
 }
@@ -227,7 +235,7 @@ function verdictFor(c) {
       const n = (q.diff || []).filter((d) => d.op !== "equal").length || 1;
       return [v.differs(n) + (q.reference_ok === false ? v.badRefToo : ""), "bad"];
     }
-    if (c.status === "not_in_mushaf") return [v.not_in_mushaf, "bad"];
+    if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "bad"] : [v.not_in_translation, "warn"];
   }
   if (c.status === "graded" && hd.fabricated_by && hd.fabricated_by.length) return [v.gradedFab, "bad"];
   const cls = { graded: "ok", found_similar: "warn", not_found: "bad", needs_model: "warn", source_error: "warn", error: "bad" }[c.status] || "";
@@ -256,11 +264,11 @@ function renderMushaf(q, c) {
   if (changed.length) {
     h += `<table class="fixes"><thead><tr><th>${esc(t().fixesHead[0])}</th><th>${esc(t().fixesHead[1])}</th></tr></thead><tbody>`;
     for (const d of changed) {
-      h += `<tr><td class="was">${esc(d.quoted || t().extra)}</td><td class="is">${esc(d.mushaf || t().missing)}</td></tr>`;
+      h += `<tr><td class="was">${esc(d.quoted || t().missing)}</td><td class="is">${esc(d.mushaf || t().extra)}</td></tr>`;
     }
     h += `</tbody></table>`;
   }
-  if (q.occurrences > 1) h += `<p class="line note">${esc(t().occurrences(num(q.occurrences)))}</p>`;
+  if (q.occurrences > 1) h += `<p class="line note">${esc(t().occurrences(q.occurrences))}</p>`;
   h += `<p class="after"><a href="${esc(q.url)}" target="_blank" rel="noopener">quranenc.com</a></p>`;
   return h;
 }
@@ -304,7 +312,7 @@ function renderGradings(hd) {
       const meaning = lang === "en"
         ? `<span class="gloss">${gl.en ? esc(t().meaning(gl.en)) : esc(t().noGloss)}</span>` : "";
       h += `<tr>
-        <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(num(i.died_ah)))}</span></td>
+        <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(localDigits(i.died_ah)))}</span></td>
         <td><span class="g" lang="ar" dir="rtl">${esc(i.grade)}</span>${meaning}
           <details><summary>${esc(t().sourceText)}</summary><div class="htext" lang="ar" dir="rtl">${esc(i.text)}${i.rawi ? `<div class="after">${esc(t().rawi)}: ${esc(i.rawi)}</div>` : ""}</div></details></td>
         <td class="src"><ul class="srcs">${row.sources.map(sourceLine).join("")}</ul></td>
@@ -348,7 +356,7 @@ function reasonsFor(c) {
     } else if (q.reference_given) out.push(r.refRight(q.reference_given));
   }
   if (c.type === "quran" && c.status === "not_in_mushaf") {
-    out.push(r.notInMushaf(num(6236)));
+    out.push(c.lang === "ar" ? r.notInMushaf(num(6236)) : r.notInTranslation(num(6236)));
     if (c.marker && !["﴿﴾", "ref", "unmarked", "model"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
   }
   if (c.type === "hadith") {
@@ -439,7 +447,7 @@ async function check() {
 }
 
 $("go").addEventListener("click", check);
-$("text").addEventListener("input", () => { $("counter").textContent = `${$("text").value.length} / 8000`; });
+$("text").addEventListener("input", updateCounter);
 $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) check(); });
 document.querySelectorAll("[data-sample]").forEach((b) => b.addEventListener("click", () => {
   $("text").value = SAMPLES[b.dataset.sample];

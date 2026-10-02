@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>تثبّت · مدقق الاستشهادات الشرعية</title>
-<meta name="description" content="تثبّت: يتتبع كل آية وحديث في النص إلى مصدره العربي، وينقل أحكام علماء الحديث المعتمدين حرفيًا، ويحيل إلى المختص عند عدم الوجود.">
+<meta name="description" content="تثبّت: يتتبع كل آية وحديث في النص إلى مصدره العربي، وينقل أحكام علماء الحديث المعتمدين حرفيًا، ويحيل إلى المختص إذا لم يجد مصدرًا.">
 <link rel="stylesheet" href="/static/fonts/fonts.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -33,10 +33,10 @@
         <span aria-hidden="true">·</span>
         <button type="button" class="linkish" data-sample="en" data-i18n="sampleEn">English post</button>
       </p>
-      <span id="counter" class="count">0 / 8000</span>
+      <span id="counter" class="count">٠ / ٨٠٠٠</span>
     </div>
     <div class="compose-actions">
-      <label class="check"><input type="checkbox" id="deep"> <span data-i18n="deep">استعن بالنموذج اللغوي علّام لاكتشاف ما فات القواعد (أبطأ)</span></label>
+      <label class="check"><input type="checkbox" id="deep"> <span data-i18n="deep">استعن بالنموذج اللغوي علّام لاكتشاف ما فات الفحص الأساسي (أبطأ)</span></label>
       <button id="go" class="primary" type="button" data-i18n="check">تحقّق من الاستشهادات</button>
     </div>
   </section>
@@ -53,12 +53,12 @@
   <section class="about" aria-labelledby="about-h">
     <h2 id="about-h" class="section-h" data-i18n="howTitle">منهج الأداة</h2>
     <dl class="method">
-      <dt data-i18n="m1t">القرآن</dt><dd data-i18n="m1">يُطابق النص مع مصحف مجمع الملك فهد، وتُبيَّن الكلمات المخالفة والعزو الخطأ. نص القرآن لا يُولَّد أبدًا.</dd>
+      <dt data-i18n="m1t">القرآن</dt><dd data-i18n="m1">يُطابق النص مع مصحف مجمع الملك فهد، ويُنبَّه على ما اختلف عن لفظ المصحف أو عن موضع الآية، مع إظهار النص الصحيح والسورة والآية. نص القرآن لا يُولَّد أبدًا.</dd>
       <dt data-i18n="m2t">الحديث</dt><dd data-i18n="m2">يُبحث عنه في الموسوعة الحديثية للدرر السنية، وتُنقل أحكام أئمة الحديث ثم أحكام المحققين المعاصرين بنصها، مع اسم قائل كل حكم، دون ترجيح بينها.</dd>
-      <dt data-i18n="m3t">عند عدم الوجود</dt><dd data-i18n="m3">يقال ذلك صراحة ويُحال إلى المختص، وأسئلة الفتوى الشخصية تُحال إلى جهة الإفتاء.</dd>
-      <dt data-i18n="m4t">النموذج اللغوي</dt><dd data-i18n="m4">يستخرج ويطابق فقط، ولا يحكم ولا يفتي. وكل ما يقترحه يجب أن يوجد بنصه في كلامك وإلا يُحذف.</dd>
+      <dt data-i18n="m3t">إذا لم نجد مصدرًا</dt><dd data-i18n="m3">يقال ذلك صراحة ويُحال إلى المختص، وأسئلة الفتوى الشخصية تُحال إلى جهة الإفتاء.</dd>
+      <dt data-i18n="m4t">النموذج اللغوي</dt><dd data-i18n="m4">يستخرج ويطابق فقط، ولا يحكم على حديث ولا يفتي. وكل ما يقترحه يجب أن يرد بلفظه في النص المفحوص، وإلا حُذف.</dd>
     </dl>
-    <p class="fine" data-i18n="privacy">لا نحفظ نصك، ولا يُرسل إلى الدرر إلا لفظ الحديث المستخرج.</p>
+    <p class="fine" data-i18n="privacy">لا نحفظ نصك، ولا يُرسل إلى الدرر السنية إلا لفظ الحديث المستخرج. وعند الاستعانة بعلّام يُرسل النص إلى النموذج على خادم الفريق.</p>
     <p class="fine" data-i18n="disclosure">تثبّت أداة آلية مدعومة بالذكاء الاصطناعي، وليست عالمًا ولا مفتيًا.</p>
     <p class="fine"><a href="/docs" data-i18n="apiLink">الواجهة البرمجية لفحص إجابات روبوتات المحادثة</a></p>
   </section>
