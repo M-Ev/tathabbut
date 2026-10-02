@@ -26,3 +26,9 @@ def test_reads_references():
 
 def test_plain_text_has_no_citations():
     assert extract("هذا نص عادي عن أهمية القراءة والتعلم في حياتنا اليومية.") == []
+
+
+def test_longer_hadith_markers_are_not_cut():
+    # «الحديث الشريف» must not leave «الشريف:» inside the quote; «قول النبي ﷺ» is a marker too.
+    assert [c.quote for c in extract("وفي الحديث الشريف: «تبسمك في وجه أخيك لك صدقة»")] == ["تبسمك في وجه أخيك لك صدقة"]
+    assert [(c.type, c.quote) for c in extract("ومن ذلك قول النبي ﷺ: «الدين النصيحة»")] == [("hadith", "الدين النصيحة")]

@@ -33,6 +33,7 @@ def test_hadith_gradings_grouped_and_ordered(fake_dorar):
     assert groups[1]["items"][0]["scholar_key"] == "albani"
     assert c["hadith"]["hidden_narrator_statements"] == 1
     assert groups[0]["items"][0]["grade"] == "[صحيح]"  # verbatim
+    assert [x["book"] for x in c["hadith"]["sahihayn"]] == ["صحيح البخاري", "صحيح مسلم"]
 
 
 def test_fabricated_grading_is_flagged_with_who_said_it(fake_dorar):
@@ -40,6 +41,7 @@ def test_fabricated_grading_is_flagged_with_who_said_it(fake_dorar):
     r = run(check_text("وفي الحديث: «اطلبوا العلم ولو في الصين»"))
     c = r["citations"][0]
     assert c["hadith"]["fabricated_by"] == ["الألباني"]
+    assert c["hadith"]["sahihayn"] == []
     assert c["hadith"]["fabricated_by_en"] == ["al-Albani"]
     assert r["summary"]["fabricated_flag"] == 1
 

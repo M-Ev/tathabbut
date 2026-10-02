@@ -56,6 +56,7 @@ const T = {
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
     narrator: (n) => `أُخفي ${n} من أقوال علماء الحديث المعتمدين لأنها حكم على راوٍ لا على الحديث.`,
     onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.",
+    sahihayn: (list) => `ورد بهذا اللفظ أو بلفظ قريب منه في ${list}، بحسب نتائج الدرر السنية.`, and: " و",
     brackets: "ما بين المعقوفين [ ] من صياغة الدرر السنية لا من لفظ المحدّث: تضعه حين تختصر كلامه أو تعبّر عن معناه، أو حين يُفهم الحكم من كلامه دون تصريح، أو حين يُبنى على شرطٍ نصّ عليه المحدّث في مقدمة كتابه. وما خارج المعقوفين فهو لفظه.", bracketsLink: "تنبيهات الدرر السنية العلمية", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
@@ -148,6 +149,7 @@ const T = {
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
     narrator: (n) => `${n} statement(s) by the approved hadith scholars are not shown, as they assess a narrator, not this hadith.`,
     onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.",
+    sahihayn: (list) => `This wording, or one very close to it, is in ${list}, according to Dorar's results.`, and: " and ",
     jamhara: "Jamhara dictionary:",
     jamharaAr: "Arabic entry only",
     noGloss: "Not in the Jamhara dictionary in English; please ask a specialist about the Arabic wording.",
@@ -323,6 +325,13 @@ function renderGradings(hd) {
   let h = "";
   const fab = lang === "en" && hd.fabricated_by_en ? hd.fabricated_by_en : hd.fabricated_by;
   if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(lang === "ar" ? "، " : ", ")))}</p>`;
+  if (hd.sahihayn && hd.sahihayn.length) {
+    const list = hd.sahihayn.map((x) => {
+      const name = lang === "ar" ? `${esc(x.book)} (${esc(localDigits(x.number))})` : `${esc(x.book_en || x.book)} (no. ${esc(x.number)})`;
+      return x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${name}</a>` : name;
+    }).join(t().and);
+    h += `<p class="line ok">${t().sahihayn(list)}</p>`;
+  }
   const groups = hd.groups || [];
   const all = groups.flatMap((g) => g.items);
   const cats = new Set(all.map((i) => (i.grade_gloss || {}).category).filter((c) => c && c !== "narrators"));

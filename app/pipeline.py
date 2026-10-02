@@ -72,6 +72,9 @@ async def _search_dorar(quote: str) -> DorarResult | None:
     return last
 
 
+SAHIHAYN = ("صحيح البخاري", "صحيح مسلم")
+
+
 def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> dict:
     items, hidden, seen = [], 0, set()
     for h in res.hadiths:
@@ -103,10 +106,18 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
     flagged_scholars = sorted({(i["died_ah"], i["scholar_ar"], i["scholar_en"]) for i in items if "fabricated" in i["flags"]})
     flagged = [ar for _, ar, _ in flagged_scholars]
     best = max((i["similarity"] for i in items), default=0.0)
+    # The package puts the two Sahihs first. Decided by the source book, not the scholar's name: al-Bukhari
+    # and Muslim narrate in other books too, and those are not all authentic (Dorar FAQ 13).
+    sahihayn = []
+    for book in SAHIHAYN:
+        hits = [i for i in items if normalize_ar(i["book"]) == normalize_ar(book) and i["similarity"] >= STRONG_MATCH]
+        if hits:
+            best_hit = max(hits, key=lambda i: i["similarity"])
+            sahihayn.append({"book": book, "book_en": gloss_book(book), "number": best_hit["number"], "url": best_hit["url"]})
     return {
         "query": res.query, "search_url": res.search_url, "groups": groups, "best_similarity": best,
         "fabricated_by": flagged, "fabricated_by_en": [en for _, _, en in flagged_scholars], "hidden_narrator_statements": hidden, "error": res.error or None,
-        "count": len(items),
+        "count": len(items), "sahihayn": sahihayn,
     }
 
 
