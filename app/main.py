@@ -77,8 +77,9 @@ async def health():
 @app.get("/api/sources")
 async def sources():
     """Every source the tool uses, for API users to cite. All are from the challenge's scientific package except
-    the level د referral body: the package says to refer to a qualified body and names none, so the team chose it."""
-    from .pipeline import FATWA_BODY
+    the level د referral: the package says to refer to a qualified body and names none, so the team chose the
+    official fatwa body and the two scholars' fatwa sites (links only)."""
+    from .pipeline import FATWA_BODY, FATWA_REFERENCES
     from .scholars import SCHOLARS
 
     return {
@@ -91,7 +92,8 @@ async def sources():
         ],
         "terms": "موسوعة الجمهرة - مفردات المحتوى الإسلامي (islamic-content.com/dictionary)",
         "fatwa_referral": FATWA_BODY,
-        "fatwa_referral_note": "Team's choice for level د: the package says «يحيل إلى جهة مؤهلة» and names no body.",
+        "fatwa_references": FATWA_REFERENCES,
+        "fatwa_referral_note": "Team's choice for level د: the package says «يحيل إلى جهة مؤهلة» and names no body. The tool links to these and never quotes or relies on a fatwa in its results.",
     }
 
 

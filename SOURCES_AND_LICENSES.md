@@ -14,13 +14,15 @@ Items marked ⚠ still need confirmation by the team before final submission.
 | الموسوعة الحديثية، الدرر السنية (dorar.net/hadith) | Hadith texts and scholars' gradings, quoted verbatim with a link back | Live search of the public site (filtered to approved scholars), cached briefly in memory, requests spaced out; fallback to `dorar_api.json`, which Dorar offers to site owners «لعرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (dorar.net/article/389) | ⚠ No terms-of-use page (dorar.net/terms is 404; «جميع الحقوق محفوظة لمؤسسة الدرر السنية»). What Dorar publishes: the JSON service «توفر لأصحاب المواقع والمنتديات عرض نتائج البحث في الموسوعة الحديثية في مواقعهم» (article/389); the search widget is free for site owners, who are asked to tell Dorar where it is installed (article/2107); FAQ 5 (dorar.net/feedback): «الموسوعات حالياً غير قابلة للتنزيل … ولا يسمح بنسخها»; the encyclopedia eases access to the scholars' books «لا الاستغناء عنها» (article/56, item 1). The JSON service is covered by article/389; the HTML site search the app uses first (for the approved-scholar filter) is not covered by any published text. So nothing is stored beyond a short in-memory cache, every grading links back to Dorar, and the team is to ask Dorar for permission |
 | موسوعة الجمهرة - مفردات المحتوى الإسلامي (islamic-content.com/dictionary) | The English term shown beside a hadith grading in the English view | Only the entry's English headword (a few words), with a link to the entry; 27 entries checked by hand on 2 Oct 2026 (`app/glossary.py`) | The site allows «الاستفادة العلمية ... في الاستخدام الشخصي غير التجاري»; no definitions are copied. ⚠ Ask the site for permission to show the headwords |
 
-### Referral body for level د (team's choice, not a package source)
+### Fatwa referral for level د (team's choice, not in the package's reference table)
 
-The package says that for personal fatwa questions the tool «يحيل إلى جهة مؤهلة» and names no body. The team chose:
+The package says that for personal fatwa questions the tool «لا يقدم … حكمًا مستقلًا؛ يوضح المعلومات العامة ويحيل إلى جهة مؤهلة», and names no body. The team relies on the following, in this order. A personal case needs a living mufti who knows the facts, so the official body comes first; the two scholars (may Allah have mercy on them) are where the reader can find their published fatwas on general questions. The tool links to these only: it never quotes, searches, summarises or picks a fatwa, and nothing from them enters a result.
 
-| Body | Used for | How |
+| Referral | Used for | How |
 |---|---|---|
-| الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Where personal fatwa questions are referred. The tool never quotes or relies on its fatwas | Link only |
+| جهة الإفتاء الرسمية في بلد المستخدم، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Where a personal fatwa question is referred | Link only |
+| الموقع الرسمي لسماحة الشيخ عبدالعزيز بن باز (binbaz.org.sa) | Reading his published fatwas, linked under the referral | Link only, no content copied |
+| الموقع الرسمي لفضيلة الشيخ محمد بن صالح العثيمين (binothaimeen.net) | Reading his published fatwas, linked under the referral | Link only, no content copied |
 
 ### How each domain of the package's reference table is covered
 

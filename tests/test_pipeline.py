@@ -99,7 +99,8 @@ def test_personal_fatwa_question_is_referred(fake_dorar):
     fake_dorar({})
     r = run(check_text("أنا في دولة أوروبية، هل يجوز لي أن أفعل كذا في زواجي؟"))
     assert r["level_d"]["detected"] and "alifta" in r["level_d"]["body"]["url"]
-    assert "references" not in r["level_d"]  # only the referral: no fatwa sources outside the challenge package
+    assert "بلدك" in r["level_d"]["body"]["ar"]  # the package's own case is a user in another country
+    assert [x["url"] for x in r["level_d"]["references"]] == ["https://binbaz.org.sa", "https://binothaimeen.net"]
 
 
 def test_every_citation_gets_one_evidence_tier(fake_dorar):

@@ -20,11 +20,21 @@ log = logging.getLogger("tathabbut")
 STRONG_MATCH = 85
 WEAK_MATCH = 60
 
+# Level د: the package says the tool gives no ruling of its own and refers to a qualified body; it names none.
+# A personal case needs a living mufti who knows the facts, so the official fatwa body comes first.
 FATWA_BODY = {
-    "ar": "الرئاسة العامة للبحوث العلمية والإفتاء",
-    "en": "The General Presidency of Scholarly Research and Ifta (Saudi Arabia)",
+    "ar": "جهة الإفتاء الرسمية في بلدك، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء",
+    "en": "the official fatwa authority in your country (in Saudi Arabia: the General Presidency of Scholarly Research and Ifta)",
     "url": "https://www.alifta.gov.sa",
 }
+# The team relies on these two scholars' published fatwas (team's choice; not in the package's reference table).
+# The tool links to their official sites only: it never quotes, searches, summarises or picks a fatwa.
+FATWA_REFERENCES = [
+    {"ar": "فتاوى سماحة الشيخ عبدالعزيز بن باز رحمه الله (الموقع الرسمي)",
+     "en": "Fatwas of Shaykh Abd al-Aziz ibn Baz (official site)", "url": "https://binbaz.org.sa"},
+    {"ar": "فتاوى فضيلة الشيخ محمد بن صالح العثيمين رحمه الله (الموقع الرسمي)",
+     "en": "Fatwas of Shaykh Muhammad ibn Salih al-Uthaymeen (official site)", "url": "https://binothaimeen.net"},
+]
 PERSONAL_FATWA = re.compile(
     r"هل يجوز لي|هل يحل لي|هل علي|ما حكم (?:ما فعلت|زواجي|طلاقي|صلاتي|صيامي)|أنا في (?:دولة|بلد)|"
     r"is it (?:halal|haram|permissible|allowed) for me|am i allowed to|can i (?:marry|divorce)|my (?:husband|wife) (?:said|did)",
@@ -299,7 +309,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
     fatwa = bool(PERSONAL_FATWA.search(text))
     return {
         "citations": results,
-        "level_d": {"detected": True, "body": FATWA_BODY} if fatwa else None,
+        "level_d": {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES} if fatwa else None,
         "summary": _summary(results),
         "model": {"backend": llm.backend.name, "used": deep and llm.available(), "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
