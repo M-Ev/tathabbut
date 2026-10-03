@@ -1,6 +1,6 @@
 # Evaluation set
 
-`cases.jsonl`: one case per line, all synthetic (written by the team, no user data).
+`cases.jsonl`: one case per line, all synthetic (drafted with Claude, review by the team's Sharia reviewer pending, no user data).
 
 ```json
 {"id": "...", "text": "text to check",

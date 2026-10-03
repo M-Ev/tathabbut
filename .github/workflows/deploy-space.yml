@@ -1,10 +1,9 @@
-# Publishes the app to the Hugging Face Space on every push to main.
-# Needs one repository secret: HF_TOKEN (a Hugging Face token with write access).
+# Publishes the app to the Hugging Face Space. Run by hand only (Actions tab → Run workflow):
+# the live Space is rebuilt from this repository with the Space's Factory rebuild, so pushes
+# do not need it. Needs one repository secret: HF_TOKEN (a Hugging Face token with write access).
 name: Deploy to Hugging Face Space
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -43,7 +42,7 @@ jobs:
               folder_path=".",
               repo_id=os.environ["SPACE_ID"],
               repo_type="space",
-              ignore_patterns=[".git/*", ".github/*", "tests/*", "eval/*", "scripts/*", "docs/screenshots/*", "index.py", "vercel.json"],
+              ignore_patterns=[".git/*", ".github/*", "tests/*", "eval/*", "scripts/*", "docs/screenshots/*"],
               delete_patterns=["app/**", "static/**", "data/**", "docs/**"],
               commit_message=f"Deploy {os.environ.get('GITHUB_SHA', '')[:7]} from GitHub",
           )

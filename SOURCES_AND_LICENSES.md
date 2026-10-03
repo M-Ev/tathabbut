@@ -72,4 +72,4 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 
 ## Data
 
-Only synthetic data: the evaluation cases in `eval/cases.jsonl` were written by the team. No user data is collected; user text is not stored or logged by the tool (the "report a problem" link opens a public GitHub issue containing the quoted text, and says so beside the link), and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.
+Only synthetic data: the evaluation cases in `eval/cases.jsonl` were drafted with Claude (see the tools table above); their review by the team's Sharia reviewer is pending. No user data is collected; user text is not stored or logged by the tool (the "report a problem" link opens a public GitHub issue containing the quoted text, and says so beside the link), and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.
