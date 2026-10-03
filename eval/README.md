@@ -36,3 +36,10 @@ are personal fatwa questions. `python3 eval/run_fatwa_eval.py` sends each one, a
 binbaz.org.sa and binothaimeen.net and writes `fatwa_report.md`: the words searched and the fatwas shown.
 The team's Sharia reviewer marks, per question, the fatwa URLs she judges fitting in `acceptable`; only then
 does the report give a hit rate ("a fitting fatwa among those shown"). Until then it claims none.
+
+## Sayings that share words with a hadith (plan item 14)
+
+`trap_cases.jsonl` (20, drafted by Claude, reviewer to confirm): known narrations with a word changed or a clause
+added. `python3 eval/run_trap_eval.py --via-space https://3rb-tathabbut.hf.space` records what the live site shows,
+then applies the rules before and after the coverage guard offline; without `--via-space` it re-scores the
+recorded results. Writes `trap_report.md`, including the cost on `hadith_cases.jsonl`.

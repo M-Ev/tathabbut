@@ -15,8 +15,8 @@
   "sahihayn_is_supported": true,
   "chain_only_counts_as_accepted": false,
   "coverage": {
-    "_about": "Plan item 12: a grading counts only for the wording it was said of.",
-    "short_quote_words": 5,
+    "_about": "Plan item 12: a grading counts only for the wording it was said of. short_quote_words 10 chosen on 4 Oct on eval/trap_cases.jsonl (5 → 6 of 20 lent, 10 → 2) at no cost on eval/hadith_cases.jsonl; tuned on the same cases it reports, so the reviewer's set is the real test.",
+    "short_quote_words": 10,
     "short_quote_min_coverage": 1.0,
     "min_coverage": 0.8,
     "longer_narration_counts": false,
