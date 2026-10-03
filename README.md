@@ -117,6 +117,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/operations.md](docs/operations.md) | الاستضافة والتكلفة، والتعطل والبدائل، والأدوار، وخطة الاستمرار |
 | [docs/limitations.md](docs/limitations.md) | القيود المعروفة وكيف نتعامل معها |
 | [docs/design-system.md](docs/design-system.md) | نظام التصميم |
+| [docs/package-conformance.md](docs/package-conformance.md) | مطابقة الحزمة العلمية: المعايير الثمانية، والمستويات، وجدول المرجعية، وحالات الاختبار، ولكل صف اختباره |
 | [docs/api.md](docs/api.md) | فحص إجابة روبوت المحادثة قبل عرضها: القرار والسياسة وأمثلة Python وJavaScript |
 | [docs/api-and-keys.md](docs/api-and-keys.md) | الواجهات البرمجية التي تستدعيها الأداة، ومفاتيحها ومصدر كل مفتاح، وما يُرسل إلى كل خدمة |
 | [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |
