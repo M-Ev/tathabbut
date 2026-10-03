@@ -278,6 +278,13 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             out["referral"] = _referral("لم نجد أصلًا عربيًا مطابقًا لهذا النص المترجم.", "No matching Arabic source was found for this translated text.")
             return
         quote = texts[pick - 1]
+        # Plan item 22: the model's pick must share the wording it proposed itself, or it is not accepted.
+        if _similarity(arabic, quote) < WEAK_MATCH:
+            out["status"] = "not_found"
+            out["notes"].append("model_pick_rejected")
+            out["hadith"] = _grade_groups(quote, res, min_sim=101)
+            out["referral"] = _referral("لم نجد أصلًا عربيًا مطابقًا لهذا النص المترجم.", "No matching Arabic source was found for this translated text.")
+            return
         out["matched_arabic"] = quote
         out["notes"].append("match_by_model")
 
@@ -372,6 +379,8 @@ async def _model_candidates(text: str, existing: list[Candidate]) -> tuple[list[
 
 async def check_text(text: str, deep: bool = False) -> dict:
     t0 = time.monotonic()
+    usage = {"calls": 0, "seconds": 0.0}
+    llm.USAGE.set(usage)
     # Plan item 18: nothing is cut silently; the report says how much was checked.
     truncated = {"text_chars": len(text), "checked_chars": min(len(text), settings.max_text_chars)}
     text = text[: settings.max_text_chars]
@@ -424,7 +433,9 @@ async def check_text(text: str, deep: bool = False) -> dict:
         "level_d": level_d,
         "summary": _summary(results),
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
-        "model": {"backend": llm.backend.name, "used": deep and llm.available(), "dropped_unverifiable": dropped},
+        "model": {"backend": llm.backend.name, "available": llm.available(), "requested": deep,
+                  "used": usage["calls"] > 0, "calls": usage["calls"], "seconds": round(usage["seconds"], 1),
+                  "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
     }
 

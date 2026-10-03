@@ -222,3 +222,5 @@ details[open] > :not(summary) { animation: open var(--dur-2) var(--ease); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 html[dir="ltr"] .ar-inline { text-align: left; }
+.deep-why { margin: var(--s-1) 0 0; max-width: 46ch; }
+.check:has(input:disabled) { color: var(--ink-3); }

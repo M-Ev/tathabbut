@@ -43,8 +43,9 @@ class FakeBackend(llm._Backend):
         self.replies = list(replies)
         self.calls = []
 
-    async def chat(self, messages, max_tokens=256):
+    async def chat(self, messages, max_tokens=256, schema=None):
         self.calls.append(messages[-1]["content"])
+        self.schemas = getattr(self, "schemas", []) + [schema]
         return self.replies.pop(0) if self.replies else "{}"
 
 

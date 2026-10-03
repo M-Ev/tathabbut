@@ -12,6 +12,9 @@ const T = {
     truncatedText: (a, b) => `النص أطول من حد الفحص، ففُحص أول ${a} حرف من ${b}.`,
     truncatedCits: (a, b) => `فُحص أول ${a} استشهادًا من ${b} وُجدت في النص. افحص الباقي في طلب آخر.`,
     dorarDown: "الموسوعة الحديثية غير متاحة الآن: الآيات تُفحص كالمعتاد، والأحاديث تُحال إلى المختص حتى تعود.",
+    modelOff: "الفحص المعمّق بعلّام غير متاح الآن لأن خادم النموذج متوقف، والفحص الأساسي يعمل كاملًا.",
+    modelUsed: (n) => `استُعين بعلّام في هذا الفحص (${n} ث).`,
+    modelNotUsed: "لم يُستعن بالنموذج اللغوي في هذا الفحص.",
     busy: "طلبات كثيرة من هذا الجهاز في دقائق قليلة. انتظر قليلًا ثم أعد المحاولة.",
     unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية.",
     unsupportedPart: "وفي النص كلام بلغة غير مدعومة بعد، فلم يُفحص منه إلا الاستشهادات العربية والإنجليزية أعلاه.",
@@ -129,6 +132,9 @@ const T = {
     truncatedText: (a, b) => `The text is longer than the check limit; the first ${a} of ${b} characters were checked.`,
     truncatedCits: (a, b) => `The first ${a} of ${b} citations found were checked. Check the rest in another request.`,
     dorarDown: "The hadith encyclopedia cannot be reached right now: verses are checked as usual, and hadith are referred to a specialist until it is back.",
+    modelOff: "The deep check with ALLaM is unavailable right now because the model server is off; the basic check works in full.",
+    modelUsed: (n) => `ALLaM was used in this check (${n} s).`,
+    modelNotUsed: "The language model was not used in this check.",
     busy: "Too many requests from this device in a few minutes. Please wait a little and try again.",
     unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today.",
     unsupportedPart: "Part of the text is in a language not supported yet; only the Arabic and English citations above were checked.",
@@ -553,6 +559,8 @@ function render(r) {
   }
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
+  const md = r.model || {};
+  $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds)) : t().modelNotUsed)}</span>`;
   const tr = r.truncated;
   if (tr && tr.text_chars > tr.checked_chars) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedText(num(tr.checked_chars), num(tr.text_chars)))}</span>`;
   if (tr && tr.citations_found > tr.citations_checked) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedCits(num(tr.citations_checked), num(tr.citations_found)))}</span>`;
@@ -598,10 +606,12 @@ async function check() {
 
 // Plan item 17: say plainly when Dorar is down, before the visitor checks a hadith.
 let dorarDown = false;
+let modelOff = false;
 async function health() {
   try {
     const h = await (await fetch("/api/health")).json();
     dorarDown = h.dorar_enabled && h.dorar_reachable === false;
+    modelOff = !h.model_ready;
   } catch (e) { /* the check itself reports failures */ }
   showBanner();
 }
@@ -609,6 +619,12 @@ function showBanner() {
   const b = $("banner");
   b.hidden = !dorarDown;
   if (dorarDown) b.textContent = t().dorarDown;
+  // Plan item 21: the deep check is switched off, with its reason, while the model server is off.
+  const d = $("deep");
+  d.disabled = modelOff;
+  if (modelOff) d.checked = false;
+  $("deep-why").hidden = !modelOff;
+  $("deep-why").textContent = modelOff ? t().modelOff : "";
 }
 
 $("go").addEventListener("click", check);
