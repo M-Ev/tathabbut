@@ -113,6 +113,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/operations.md](docs/operations.md) | الاستضافة والتكلفة، والتعطل والبدائل، والأدوار، وخطة الاستمرار |
 | [docs/limitations.md](docs/limitations.md) | القيود المعروفة وكيف نتعامل معها |
 | [docs/design-system.md](docs/design-system.md) | نظام التصميم |
+| [docs/api-and-keys.md](docs/api-and-keys.md) | الواجهات البرمجية التي تستدعيها الأداة، ومفاتيحها ومصدر كل مفتاح، وما يُرسل إلى كل خدمة |
 | [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |
 
 See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, tool and license, and [STARTING_VERSION.md](STARTING_VERSION.md) for what existed before the challenge's build days.
