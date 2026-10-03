@@ -8,7 +8,7 @@ This file lists every outside service the tool talks to, who runs it, whether it
 
 | الخدمة · Service | الجهة المالكة · Owner | ما يُرسل · What is sent | مفتاح؟ · Key? | مصدر المفتاح · Key source | في الشيفرة · Code |
 |---|---|---|---|---|---|
-| الموسوعة الحديثية: البحث في `https://www.dorar.net/hadith/search`، وواجهة `https://dorar.net/dorar_api.json` بديلًا | مؤسسة الدرر السنية (dorar.net)، من مصادر الحزمة العلمية للتحدي | لفظ الحديث المستخرج فقط، لا نص المستخدم كاملًا · Only the extracted hadith wording | لا · No | عامة دون حساب · Public, no account. نحترم حدودها بفاصل 0.6 ثانية بين الطلبات وتخزين مؤقت للنتائج | `app/dorar.py` |
+| الموسوعة الحديثية (اتصال مباشر من خادم الأداة دون وسيط): البحث في `https://www.dorar.net/hadith/search`، وواجهة `https://dorar.net/dorar_api.json` بديلًا | مؤسسة الدرر السنية (dorar.net)، من مصادر الحزمة العلمية للتحدي | لفظ الحديث المستخرج فقط، لا نص المستخدم كاملًا · Only the extracted hadith wording | لا · No | عامة دون حساب · Public, no account. نحترم حدودها بفاصل 0.6 ثانية بين الطلبات وتخزين مؤقت للنتائج | `app/dorar.py` |
 | النموذج اللغوي علّام (ALLaM-7B-Instruct-preview) عبر واجهة متوافقة مع OpenAI (`/v1/chat/completions`) | النموذج من سدايا (SDAIA)، مفتوح بترخيص Apache-2.0؛ والخادم Inference Endpoint خاص بالفريق على Hugging Face | النص المفحوص (حتى 3000 حرف) عند تفعيل «استعن بالنموذج اللغوي علّام» فقط · The checked text, only when the ALLaM option is ticked | نعم · Yes: `TATHABBUT_LLM_API_KEY` | مفتاح وصول (Access Token) من حساب الفريق في Hugging Face، يُنشأ من Settings ← Access Tokens، ويوضع سرًّا في إعدادات الـ Space · A Hugging Face access token from the team's account, stored as a Space secret | `app/llm.py` (`OpenAIBackend`)، والعنوان في `TATHABBUT_LLM_BASE_URL` |
 | تنزيل علّام لتشغيله داخل الحاوية (الطريقة المحلية `llamacpp`) | نسخة GGUF عامة على Hugging Face: `bartowski/ALLaM-AI_ALLaM-7B-Instruct-preview-GGUF` | لا شيء من نص المستخدم؛ تنزيل ملف النموذج مرة واحدة · Nothing from the user; a one-time model download | لا · No | المستودع عام · Public repository | `app/llm.py` (`LlamaCppBackend`) |
 
@@ -39,9 +39,9 @@ This file lists every outside service the tool talks to, who runs it, whether it
 
 ## 5. أدوات الذكاء الاصطناعي في بناء المشروع · AI tools used to build the project
 
-الأداة نفسها لا تستدعي أي نموذج غير علّام. أما في كتابة الشيفرة والوثائق فاستُعمل Claude من Anthropic عبر Claude Code، بحساب الفريق، ولا تستعمل الأداة مفتاحه في تشغيلها. التفاصيل ودور الفريق في [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
+الأداة نفسها لا تستدعي أي نموذج غير علّام، ولا تستدعي واجهة Claude البرمجية ولا تحمل مفتاحًا لها. أما أثناء التطوير فاستُعمل Claude من Anthropic عبر Claude Code بحساب الفريق: في الشيفرة والاختبارات، ومسودات حالات التقييم، والوثائق. والقائمة الكاملة ودور الفريق في سجل الأدوات والتراخيص [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
 
-The running tool calls no model other than ALLaM. Claude (Anthropic), through Claude Code on the team's account, was used to write code and documentation; its key is not used by the tool at runtime. Details in [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
+The running tool calls no model other than ALLaM; it never calls the Claude API and holds no Claude key. During development, Claude (Anthropic) was used through Claude Code on the team's account for code and tests, drafts of the evaluation cases, and documentation. The full list and the team's role are in the tools and licenses log, [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
 
 ## 6. كيف يتحقق المحكّم · How a judge can verify
 
