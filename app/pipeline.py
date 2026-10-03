@@ -21,6 +21,19 @@ log = logging.getLogger("tathabbut")
 
 STRONG_MATCH = 85
 WEAK_MATCH = 60
+DISPLAY_RULES = json.loads((Path(__file__).resolve().parent.parent / "data" / "display_rules.json").read_text(encoding="utf-8"))
+# Plan item 12 (coverage guard), from data/display_rules.json. A quote of SHORT_QUOTE words or fewer must be
+# found whole, in order, in the narration; a longer one needs MIN_COVERAGE of its words. Team defaults until
+# tuned on the Sharia reviewer's set.
+_COV = DISPLAY_RULES.get("coverage", {})
+SHORT_QUOTE = _COV.get("short_quote_words", 5)
+SHORT_MIN_COVERAGE = _COV.get("short_quote_min_coverage", 1.0)
+MIN_COVERAGE = _COV.get("min_coverage", 0.8)
+# A narration with more words than this is "longer": its grading may be about the whole narration or what it
+# adds, so it is shown but does not decide the quote's status (live check, 4 Oct: Ibn Hajar's «موضوع» on an
+# 897-word sermon in al-Matalib al-Aliya containing «من غشنا فليس منا», a hadith of Sahih Muslim).
+def _longer(q_words: int, s_words: int) -> bool:
+    return s_words > max(2 * q_words, q_words + 8)
 
 # Level د: the package says the tool gives no ruling of its own and refers to a qualified body; it names none.
 # Team decision (3 Oct): the reader looks first in the two scholars' published fatwas below; if none covers
@@ -55,6 +68,63 @@ def _similarity(quote: str, source: str) -> float:
     if not a or not b:
         return 0.0
     return float(fuzz.partial_ratio(a, b))
+
+
+def _same_word(a: str, b: str) -> bool:
+    """Skeleton words, tolerant of spelling and of a joined و ف ب ل ك («خير» / «وخير»)."""
+    if a == b or (min(len(a), len(b)) >= 4 and fuzz.ratio(a, b) >= 80):
+        return True
+    return (len(b) > 2 and b[0] in "وفبلك" and b[1:] == a) or (len(a) > 2 and a[0] in "وفبلك" and a[1:] == b)
+
+
+# Prepositions that narrations swap freely («في الصين» / «بالصين»); never a negation such as «لا».
+_PARTICLES = {skeleton_ar(w) for w in "في من على عن إلى الى ثم قد".split()}
+
+
+def _coverage(quote: str, source: str) -> tuple[float, list[str], int]:
+    """Share of the quote's words found in order in the narration (spelling-tolerant), the quote's words that
+    were not found (as written), and the narration's length in words."""
+    q_raw = [w for w in _strip_harakat(quote).split() if skeleton_ar(w)]
+    content = [w for w in q_raw if skeleton_ar(w) not in _PARTICLES]
+    q_raw = content or q_raw
+    q = [skeleton_ar(w) for w in q_raw]
+    s = [x for x in (skeleton_ar(w) for w in source.split()) if x][:1500]
+    if not q:
+        return 0.0, [], len(s)
+    # Longest common subsequence of words, keeping which quote words took part.
+    prev = [0] * (len(s) + 1)
+    rows = []
+    for a in q:
+        cur = [0] * (len(s) + 1)
+        for j, b in enumerate(s, 1):
+            cur[j] = prev[j - 1] + 1 if _same_word(a, b) else max(prev[j], cur[j - 1])
+        rows.append(cur)
+        prev = cur
+    used, i, j = set(), len(q), len(s)
+    while i > 0 and j > 0:
+        if _same_word(q[i - 1], s[j - 1]) and rows[i - 1][j] == (rows[i - 2][j - 1] if i > 1 else 0) + 1:
+            used.add(i - 1)
+            i, j = i - 1, j - 1
+        elif (rows[i - 2][j] if i > 1 else 0) >= rows[i - 1][j - 1]:
+            i -= 1
+        else:
+            j -= 1
+    missing = [w for k, w in enumerate(q_raw) if k not in used]
+    return len(used) / len(q), missing, len(s)
+
+
+def _match_kind(quote: str, text: str) -> dict:
+    cov, missing, s_len = _coverage(quote, text)
+    q_len = len([w for w in _strip_harakat(quote).split() if skeleton_ar(w) and skeleton_ar(w) not in _PARTICLES]) or 1
+    need = SHORT_MIN_COVERAGE if q_len <= SHORT_QUOTE else MIN_COVERAGE
+    if cov + 1e-9 < need:
+        kind = "partial"
+    elif _longer(q_len, s_len):
+        kind = "longer"
+    else:
+        kind = "same"
+    return {"match": kind, "coverage": round(100 * cov), "missing_words": missing if kind == "partial" else [],
+            "source_words": s_len}
 
 
 def _dorar_queries(quote: str) -> list[tuple[str, str]]:
@@ -111,26 +181,38 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
             "number": h.number, "rawi": h.rawi, "text": h.text, "url": h.url,
             "similarity": round(sim, 1), "flags": grade_flags(h.grade),
             "grade_gloss": gloss_grade(h.grade), "book_en": gloss_book(h.book),
+            **_match_kind(quote, h.text),
         })
+    order = {"same": 0, "longer": 1, "partial": 2}
     groups = []
     for g in (IMAMS, EDITORS):
-        g_items = sorted((i for i in items if i["group"] == g), key=lambda i: (i["died_ah"], -i["similarity"]))
+        g_items = sorted((i for i in items if i["group"] == g), key=lambda i: (i["died_ah"], order[i["match"]], -i["similarity"]))
         if g_items:
             groups.append({"group": g, "label_ar": GROUP_LABELS[g]["ar"], "label_en": GROUP_LABELS[g]["en"], "items": g_items})
-    flagged_scholars = sorted({(i["died_ah"], i["scholar_ar"], i["scholar_en"]) for i in items if "fabricated" in i["flags"]})
+    def strong(i):
+        return i["similarity"] >= STRONG_MATCH and i["match"] != "partial"
+
+    # «موضوع» marks the quote only when it was said of this wording, not of a longer narration containing it.
+    flagged_scholars = sorted({(i["died_ah"], i["scholar_ar"], i["scholar_en"]) for i in items
+                               if "fabricated" in i["flags"] and strong(i) and i["match"] == "same"})
     flagged = [ar for _, ar, _ in flagged_scholars]
     best = max((i["similarity"] for i in items), default=0.0)
+    best_strong = max((i["similarity"] for i in items if strong(i)), default=0.0)
     # The package puts the two Sahihs first. Decided by the source book, not the scholar's name: al-Bukhari
     # and Muslim narrate in other books too, and those are not all authentic. Dorar FAQ 13 (dorar.net/feedback):
     # «عليك التأكد من المصدر هل هو في صحيح البخاري أم لا، فالأحاديث التي رواها البخاري في غير صحيحه ليست كلها صحيحة».
     sahihayn = []
     for book in SAHIHAYN:
-        hits = [i for i in items if normalize_ar(i["book"]) == normalize_ar(book) and i["similarity"] >= STRONG_MATCH]
+        # A longer narration in a Sahih still counts: the quoted words are in it as quoted.
+        hits = [i for i in items if normalize_ar(i["book"]) == normalize_ar(book) and strong(i)]
         if hits:
             best_hit = max(hits, key=lambda i: i["similarity"])
             sahihayn.append({"book": book, "book_en": gloss_book(book), "number": best_hit["number"], "url": best_hit["url"]})
     return {
         "query": res.query, "search_url": res.search_url, "groups": groups, "best_similarity": best,
+        "best_strong_similarity": best_strong,
+        "same_wording": sum(1 for i in items if strong(i) and i["match"] == "same"),
+        "longer_only": bool(items) and not any(strong(i) and i["match"] == "same" for i in items) and any(strong(i) for i in items),
         "fabricated_by": flagged, "fabricated_by_en": [en for _, _, en in flagged_scholars], "hidden_narrator_statements": hidden, "error": res.error or None,
         "count": len(items), "sahihayn": sahihayn,
     }
@@ -201,7 +283,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
 
     info = _grade_groups(quote, res)
     out["hadith"] = info
-    if info["count"] and info["best_similarity"] >= STRONG_MATCH:
+    if info["count"] and info["best_strong_similarity"] >= STRONG_MATCH:
         out["status"] = "graded"
     elif info["count"]:
         out["status"] = "found_similar"
@@ -337,8 +419,6 @@ async def check_text(text: str, deep: bool = False) -> dict:
     }
 
 
-DISPLAY_RULES = json.loads((Path(__file__).resolve().parent.parent / "data" / "display_rules.json").read_text(encoding="utf-8"))
-
 
 def _hadith_tier(r: dict) -> str:
     """Apply data/display_rules.json (written and signed by the Sharia reviewer) to the gradings found.
@@ -347,11 +427,17 @@ def _hadith_tier(r: dict) -> str:
     hd = r.get("hadith") or {}
     if r["status"] != "graded" or {"wrong_reference", "match_by_model"} & set(r["notes"]):
         return "verify"
+    in_sahihayn = rules["sahihayn_is_supported"] and hd.get("sahihayn")
+    if in_sahihayn and hd.get("fabricated_by"):
+        return "verify"  # never settled by the tool: the scholars' words are shown side by side
+    if in_sahihayn:
+        return "supported"
     if hd.get("fabricated_by"):
         return "not_supported"
-    if rules["sahihayn_is_supported"] and hd.get("sahihayn"):
-        return "supported"
-    items = [i for g in hd.get("groups", []) for i in g["items"] if i["similarity"] >= STRONG_MATCH]
+    # Only gradings of this wording decide; a grading of a longer narration is shown, not counted.
+    items = [i for g in hd.get("groups", []) for i in g["items"]
+             if i["similarity"] >= STRONG_MATCH and (i.get("match", "same") == "same"
+                                                     or (i.get("match") == "longer" and _COV.get("longer_narration_counts")))]
     cats = set()
     for i in items:
         gl = i.get("grade_gloss") or {}

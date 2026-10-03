@@ -3,26 +3,47 @@
   "status": "draft",
   "reviewed_by": null,
   "reviewed_on": null,
-  "accepted_categories": ["authentic", "good"],
-  "not_supported_categories": ["weak", "very_weak", "fabricated"],
+  "accepted_categories": [
+    "authentic",
+    "good"
+  ],
+  "not_supported_categories": [
+    "weak",
+    "very_weak",
+    "fabricated"
+  ],
   "sahihayn_is_supported": true,
   "chain_only_counts_as_accepted": false,
-  "red_only_for": ["fabricated"],
+  "coverage": {
+    "_about": "Plan item 12: a grading counts only for the wording it was said of.",
+    "short_quote_words": 5,
+    "short_quote_min_coverage": 1.0,
+    "min_coverage": 0.8,
+    "longer_narration_counts": false,
+    "longer_when": "the narration has more than twice the quote's words and at least 8 more"
+  },
+  "red_only_for": [
+    "fabricated"
+  ],
   "tiers": {
     "supported": {
-      "ar": "تؤيده المصادر", "en": "Supported by the sources",
-      "when": "Found in the two Sahihs, or every grading of the matching text by the approved scholars that Dorar returned is in an accepted category."
+      "ar": "تؤيده المصادر",
+      "en": "Supported by the sources",
+      "when": "Found in the two Sahihs (a longer narration there counts, since it contains the quoted words), or every grading of this wording by the approved scholars that Dorar returned is in an accepted category."
     },
     "not_supported": {
-      "ar": "لا تؤيده المصادر المعتمدة", "en": "Not supported by the approved sources",
-      "when": "Every grading of the matching text by the approved scholars is weak, very weak or fabricated. Red only when one of them is fabricated or baseless."
+      "ar": "لا تؤيده المصادر المعتمدة",
+      "en": "Not supported by the approved sources",
+      "when": "Every grading of this wording by the approved scholars is weak, very weak or fabricated. Red only when one of them is fabricated or baseless. A grading of a longer narration that contains the quote is shown but not counted."
     },
     "verify": {
-      "ar": "يحتاج مزيدًا من التحقق", "en": "Needs more verification",
-      "when": "The gradings differ, the wording differs, the written attribution is wrong, a grading speaks only about the chain, or the match was made by the model."
+      "ar": "يحتاج مزيدًا من التحقق",
+      "en": "Needs more verification",
+      "when": "The gradings differ, the wording differs (words of the quote missing from the narration), only longer narrations containing the quote were graded, a fabricated grading meets a Sahih narration, the written attribution is wrong, a grading speaks only about the chain, or the match was made by the model."
     },
     "refer": {
-      "ar": "يُحال إلى مختص", "en": "Refer to a specialist",
+      "ar": "يُحال إلى مختص",
+      "en": "Refer to a specialist",
       "when": "Nothing was found, the source could not be reached, or the question asks for a fatwa."
     }
   }

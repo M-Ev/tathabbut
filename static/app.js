@@ -57,6 +57,8 @@ const T = {
     ijtihad: "اختلفت أحكام علماء الحديث المعتمدين، وكلها اجتهاد يُعرض كما هو دون ترجيح.",
     gradeCols: ["العالِم", "الحكم بنصه", "المصادر"], died: (y) => `ت ${y}هـ`,
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
+    longerText: (n) => `هذا الحكم على رواية أطول (${n} كلمة) ورد فيها اللفظ المنقول، لا على اللفظ المنقول وحده، فلا تُبنى عليه حالة الدليل.`,
+    partialText: (w) => `في النص المنقول ما لم نجده في هذه الرواية: «${w}». فالحكم على لفظ مقارب، لا على النص المنقول.`,
     narrator: (n) => `أُخفي ${n} من أقوال علماء الحديث المعتمدين لأنها حكم على راوٍ لا على الحديث.`,
     onlyApproved: "تُعرض أحكام علماء الحديث المعتمدين في الأداة فقط.",
     sahihayn: (list) => `ورد بهذا اللفظ أو بلفظ قريب منه في ${list}، بحسب نتائج الدرر السنية.`, and: " و",
@@ -97,6 +99,7 @@ const T = {
       searched: (q) => `بحثنا عن «${q}» في الموسوعة الحديثية للدرر السنية، مقصورًا على علماء الحديث المعتمدين في الأداة.`,
       foundN: (n, pct) => `عدد أحكامهم التي وجدناها على روايات هذا الحديث: ${n}، وأقرب الروايات لفظًا إلى النص بنسبة ${pct}.`,
       notWord: "اللفظ المنقول لا يطابق ألفاظ الروايات تمامًا.",
+      longerOnly: "وجدنا اللفظ المنقول داخل روايات أطول، وأحكامها على الرواية كلها، فلا نبني عليها حالة الدليل.",
       quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فتعليلها في كتب علماء الحديث المعتمدين.",
       noneFound: "فلم نجد لأحدهم حكمًا على نص يقارب هذا.",
       notMeaning: "وعدم وجوده هنا ليس حكمًا عليه، ولذلك نحيله إلى المختص.",
@@ -162,6 +165,8 @@ const T = {
     ijtihad: "The approved hadith scholars' gradings differ; each is scholarly ijtihad (reasoned judgment), shown as it is with no preference.",
     gradeCols: ["Scholar", "Grading (verbatim Arabic)", "Sources"], died: (y) => `d. ${y} AH`,
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
+    longerText: (n) => `This grading is of a longer narration (${n} words) that contains the quoted words, not of the quoted words alone, so it does not decide the evidence status.`,
+    partialText: (w) => `The quote has words not found in this narration: «${w}». The grading is of a similar wording, not of the quoted text.`,
     narrator: (n) => `${n} statement(s) by the approved hadith scholars are not shown, as they assess a narrator, not this hadith.`,
     onlyApproved: "Only gradings by the tool's approved hadith scholars are shown.",
     sahihayn: (list) => `This wording, or one very close to it, is in ${list}, according to Dorar's results.`, and: " and ",
@@ -208,6 +213,7 @@ const T = {
       searched: (q) => `We searched for «${q}» in the Dorar hadith encyclopedia, limited to the tool's approved hadith scholars.`,
       foundN: (n, pct) => `We found ${n} of their gradings on narrations of this hadith; the closest wording is ${pct} close to the text.`,
       notWord: "The quoted wording does not exactly match the narrations.",
+      longerOnly: "The quoted words were found inside longer narrations; their gradings are of the whole narration, so the evidence status is not based on them.",
       quoteOnly: "Gradings are quoted verbatim from their sources. The tool neither explains nor weighs them; the reasons are in the scholars' own books.",
       noneFound: "None of them has a grading on a text close to this one.",
       notMeaning: "Not finding it here is not a judgment on it, which is why it is referred to a specialist.",
@@ -315,7 +321,7 @@ function renderMushaf(q, c) {
 function groupRows(items) {
   const rows = [];
   for (const i of items) {
-    const key = i.scholar_key + "|" + i.grade.trim();
+    const key = i.scholar_key + "|" + i.grade.trim() + "|" + (i.match || "same");
     const row = rows.find((r) => r.key === key);
     if (row) row.sources.push(i);
     else rows.push({ key, first: i, sources: [i] });
@@ -372,7 +378,9 @@ function renderGradings(hd) {
     for (const row of groupRows(g.items)) {
       const i = row.first;
       const gl = i.grade_gloss || {};
-      const meaning = lang === "en" ? glossLine(gl) : "";
+      let meaning = lang === "en" ? glossLine(gl) : "";
+      if (i.match === "longer") meaning += `<span class="gloss match-note">${esc(t().longerText(num(i.source_words)))}</span>`;
+      if (i.match === "partial" && (i.missing_words || []).length) meaning += `<span class="gloss match-note">${bidi(esc(t().partialText(i.missing_words.join(" "))))}</span>`;
       h += `<tr>
         <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(localDigits(i.died_ah)))}</span></td>
         <td><span class="g" lang="ar" dir="rtl">${esc(i.grade)}</span>${meaning}
@@ -432,6 +440,7 @@ function reasonsFor(c) {
     if (c.status === "graded" || c.status === "found_similar") {
       out.push(r.foundN(num(hd.count), pct(hd.best_similarity)));
       if (c.status === "found_similar") out.push(r.notWord);
+      if (hd.longer_only) out.push(r.longerOnly);
       out.push(r.quoteOnly);
     }
     if (c.status === "not_found" && hd.query) out.push(r.noneFound, r.notMeaning);

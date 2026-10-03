@@ -233,3 +233,48 @@ def test_fatwa_ranking_needs_a_shared_word_in_the_title_and_weighs_rare_words():
     t = question_terms("هل يجوز للمرأة الحائض قراءة القرآن من الجوال؟")
     close, common = _rank(t, [("حكم قراءة المرأة للقرآن أثناء فترة الحيض للحاجة",), ("هل يجوز للمرأة أن تذهب إلى السوق",)])
     assert close >= 60 > common
+
+
+def _graded(quote, hadiths):
+    from app.dorar import DorarHadith, DorarResult
+    from app.pipeline import _grade_groups, _hadith_tier
+    info = _grade_groups(quote, DorarResult(query=quote, method="site", hadiths=[DorarHadith(**h) for h in hadiths]))
+    status = "graded" if info["best_strong_similarity"] >= 85 else ("found_similar" if info["count"] else "not_found")
+    return info, status, _hadith_tier({"status": status, "notes": [], "hadith": info})
+
+
+def test_grading_of_a_longer_narration_is_not_lent_to_a_short_quote():
+    # Live check, 4 Oct: Ibn Hajar's «موضوع» on an 897-word sermon containing «من غشنا فليس منا» made this
+    # hadith of Sahih Muslim read «لا تؤيده المصادر المعتمدة».
+    sermon = "خطبنا رسول الله صلى الله عليه وسلم فذكر حديثا طويلا وفيه ومن اطلع إلى بيت جاره فرأى عورة رجل " \
+             "كان حقا على الله أن يدخله النار ومن غشنا فليس منا ومن مشى في عون أخيه " * 3
+    info, status, tier = _graded("من غشنا فليس منا", [
+        {"text": "مَن غَشَّنا فليسَ مِنَّا", "mohdith": "مسلم", "mohdith_id": "261", "book": "صحيح مسلم", "number": "101", "grade": "[صحيح]"},
+        {"text": sermon, "mohdith": "ابن حجر العسقلاني", "mohdith_id": "852", "book": "المطالب العالية", "number": "4/ 268", "grade": "موضوع"},
+    ])
+    assert status == "graded" and tier == "supported" and info["fabricated_by"] == []
+    hajar = [i for g in info["groups"] for i in g["items"] if i["scholar_key"] == "ibn_hajar"][0]
+    assert hajar["match"] == "longer" and hajar["source_words"] > 40
+
+
+def test_longer_narrations_only_need_more_checking():
+    long_text = "كن في الدنيا كأنك غريب أو عابر سبيل واعدد نفسك في الموتى فإذا أصبحت نفسك فلا تحدثها بالمساء وإذا أمست فلا تحدثها بالصباح وخذ من صحتك لسقمك"
+    info, status, tier = _graded("كن في الدنيا كأنك غريب أو عابر سبيل", [
+        {"text": long_text, "mohdith": "الذهبي", "mohdith_id": "748", "book": "الأربعون الودعانية", "number": "1", "grade": "[موضوع]"},
+    ])
+    assert info["longer_only"] and info["fabricated_by"] == [] and tier == "verify"
+
+
+def test_coverage_guard_shows_the_words_no_narration_has():
+    # Plan item 12: «الدين المعاملة» (no known basis) must not borrow al-Albani's «صحيح» on «الدين النصيحة».
+    info, status, tier = _graded("الدين المعاملة", [
+        {"text": "إِنَّ الدِّينَ النَّصِيحَةُ ، إِنَّ الدِّينَ النَّصِيحَةُ", "mohdith": "الألباني", "mohdith_id": "1420", "book": "صحيح الترغيب", "number": "1767", "grade": "صحيح"},
+    ])
+    item = info["groups"][0]["items"][0]
+    assert status == "found_similar" and tier == "verify"
+    assert item["match"] == "partial" and item["missing_words"] == ["المعاملة"]
+    # A swapped preposition is not a different hadith.
+    info, status, _ = _graded("اطلبوا العلم ولو في الصين", [
+        {"text": "اطلبوا العلم ولو بالصين", "mohdith": "الألباني", "mohdith_id": "1420", "book": "السلسلة الضعيفة", "number": "416", "grade": "باطل"},
+    ])
+    assert status == "graded" and info["groups"][0]["items"][0]["match"] == "same"

@@ -16,6 +16,11 @@ Run (needs access to dorar.net):
     python3 eval/verify_hadith_cases.py
 Offline plan, no network and no writes (shows each case's quote, queries and URLs, and extraction mismatches):
     python3 eval/verify_hadith_cases.py --dry-run
+Through the live app, when this machine cannot reach dorar.net (Dorar's Cloudflare refuses some clouds):
+    python3 eval/verify_hadith_cases.py --via-space https://3rb-tathabbut.hf.space
+  This records what the live app shows (its POST /api/check), not Dorar's raw results: only the approved
+  scholars' gradings the app displays, marked "source": "live_app". Each case costs the Space one to three
+  of its roughly 100 daily Dorar searches. Non-Arabic cases need the model and are skipped.
 Re-render only the reviewer's table from the JSONL (offline):
     python3 eval/verify_hadith_cases.py --render-md
 """
@@ -152,9 +157,66 @@ async def verify_case(case: dict, client: DorarClient) -> str:
     return case["verification_status"]
 
 
-async def verify_all(cases: list[dict]) -> dict:
-    client = DorarClient()
+async def verify_case_via_space(case: dict, base: str, http) -> str:
+    """The live app's answer for the case's text: what a judge would see on the site."""
+    checked_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    if case["lang"] != "ar":
+        return "skipped_needs_model"
+    try:
+        r = await http.post(base.rstrip("/") + "/api/check", json={"text": case["text"], "deep": False})
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:  # noqa: BLE001 - an unreachable app is never "not found"
+        case["evidence"]["live_check"] = {"checked_at": checked_at, "via": base, "outcome": "source_error", "error": type(e).__name__}
+        return "source_error"
+    cits = [c for c in data.get("citations", []) if c.get("type") == "hadith"]
+    c = next((c for c in cits if same_text(c.get("quote"), case["quote"])), cits[0] if cits else None)
+    ev = case["evidence"]
+    ev["live_check"] = {"checked_at": checked_at, "via": base + "/api/check", "app_status": c and c.get("status"),
+                        "app_tier": c and c.get("tier"), "search_url": c and (c.get("hadith") or {}).get("search_url")}
+    if c is None:
+        ev["live_check"]["outcome"] = "not_extracted"
+        return "not_extracted"
+    if c["status"] == "source_error":
+        ev["live_check"]["outcome"] = "source_error"
+        return "source_error"
+    entries = []
+    for g in (c.get("hadith") or {}).get("groups", []):
+        for i in g.get("items", []):
+            entries.append({
+                "scholar": i.get("scholar_key"), "scholar_ar": i.get("scholar_ar"), "group": i.get("group"),
+                "grade": i.get("grade"), "book": i.get("book"), "number": i.get("number"), "rawi": i.get("rawi"),
+                "text": i.get("text"), "hadith_url": i.get("url"), "similarity": i.get("similarity"),
+                "narrator_statement": False, "shown_by_app": True, "flags": i.get("flags", []),
+                "source": "live_app", "checked_at": checked_at})
+    ev["gradings"] = [g for g in ev.get("gradings", []) if g.get("source") not in ("live_check", "live_app")] + entries
+    case["verification_status"] = "verified" if entries else "not_found"
+    ev["live_check"]["outcome"] = case["verification_status"]
+    ev["live_check"]["approved_entries"] = len(entries)
+    if case["expected"][0].get("status") is None:
+        exp = dict(case["expected"][0])
+        exp["status"] = c["status"]
+        keys = sorted({e["scholar"] for e in entries if e["scholar"]})
+        if keys:
+            exp["scholars_any"] = keys
+        if any("fabricated" in e["flags"] for e in entries):
+            exp["fabricated"] = True
+        case["expected"][0] = exp
+        case["expected_source"] = f"live_app_snapshot {checked_at}: what the live app showed; reviewer to confirm"
+    return case["verification_status"]
+
+
+async def verify_all(cases: list[dict], via_space: str | None = None) -> dict:
     tally: dict[str, int] = {}
+    if via_space:
+        import httpx
+        async with httpx.AsyncClient(timeout=90) as http:
+            for case in cases:
+                outcome = await verify_case_via_space(case, via_space, http)
+                tally[outcome] = tally.get(outcome, 0) + 1
+                print(f"{case['id']:<28} {outcome}")
+        return tally
+    client = DorarClient()
     for case in cases:
         outcome = await verify_case(case, client)
         tally[outcome] = tally.get(outcome, 0) + 1
@@ -334,6 +396,7 @@ def main() -> int:
     ap.add_argument("--md", default=str(MD), help="reviewer table to re-render")
     ap.add_argument("--dry-run", action="store_true", help="offline: show the plan, write nothing")
     ap.add_argument("--render-md", action="store_true", help="offline: only re-render the reviewer table")
+    ap.add_argument("--via-space", metavar="URL", help="check through the live app's POST /api/check instead of dorar.net")
     a = ap.parse_args()
     path, md = Path(a.cases), Path(a.md)
     cases = load(path)
@@ -343,7 +406,7 @@ def main() -> int:
         render_md(cases, md)
         print(f"wrote {md}")
         return 0
-    tally = asyncio.run(verify_all(cases))
+    tally = asyncio.run(verify_all(cases, a.via_space))
     dump(cases, path)
     render_md(cases, md)
     print("\n" + ", ".join(f"{k}: {v}" for k, v in sorted(tally.items())) + f"\nwrote {path} and {md}")
