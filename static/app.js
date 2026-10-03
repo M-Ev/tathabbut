@@ -9,7 +9,7 @@ const T = {
     checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… وقد يستغرق النموذج اللغوي دقيقة أو أكثر.",
     failed: "تعذّر الفحص الآن، حاول مرة أخرى.", reportTitle: "نتيجة الفحص",
     none: "لم نجد في النص آية أو حديثًا مستشهدًا به.",
-    summary: (s, n) => `الاستشهادات <b>${n(s.total)}</b> · موثّق المصدر <b>${n(s.documented)}</b> · يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b> · يُحال إلى مختص <b>${n(s.refer)}</b>`,
+    summary: (s, n) => [`الاستشهادات <b>${n(s.total)}</b>`, s.documented && `مطابق للمصحف <b>${n(s.documented)}</b>`, s.supported && `تؤيده المصادر <b>${n(s.supported)}</b>`, s.not_supported && `لا تؤيده المصادر المعتمدة <b>${n(s.not_supported)}</b>`, s.verify && `يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b>`, s.refer && `يُحال إلى مختص <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "منهج الأداة",
     m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، ويُنبَّه على ما اختلف عن لفظ المصحف أو عن موضع الآية، مع إظهار النص الصحيح والسورة والآية. نص القرآن لا يُولَّد أبدًا.",
     m2t: "الحديث", m2: "يُبحث عنه في الموسوعة الحديثية للدرر السنية، وتُنقل أحكام أئمة الحديث ثم أحكام المحققين المعاصرين بنصها، مع اسم قائل كل حكم، دون ترجيح بينها.",
@@ -62,7 +62,8 @@ const T = {
     leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
     leveldBody: (b) => `فإن لم يوجد فيها ما يستوفي الحالة، فيُرجى سؤال ${b}.`,
     why: "سبب هذه النتيجة",
-    tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
+    tier: { documented: "مطابق للمصحف", supported: "تؤيده المصادر", not_supported: "لا تؤيده المصادر المعتمدة", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
+    rulesDraft: "قواعد حالة الدليل مسودة من الفريق، تنتظر توقيع المراجِعة الشرعية.", rulesSigned: (who, d) => `قواعد حالة الدليل راجعتها ووقّعتها ${who} في ${d}.`,
     tierLbl: "حالة الدليل",
     report: "أبلغ عن خطأ في هذه النتيجة", reportNote: "يُنشر البلاغ علنًا في GitHub ومعه النص المقتبس.",
     r: {
@@ -103,7 +104,7 @@ const T = {
     checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model may take a minute or more.",
     failed: "The check failed. Please try again.", reportTitle: "Result",
     none: "No Quran verse or hadith citation was found in the text.",
-    summary: (s, n) => `Citations <b>${n(s.total)}</b> · traced to source <b>${n(s.documented)}</b> · needs more verification <b>${n(s.verify)}</b> · refer to a specialist <b>${n(s.refer)}</b>`,
+    summary: (s, n) => [`Citations <b>${n(s.total)}</b>`, s.documented && `matches the Mushaf <b>${n(s.documented)}</b>`, s.supported && `supported by the sources <b>${n(s.supported)}</b>`, s.not_supported && `not supported by the approved sources <b>${n(s.not_supported)}</b>`, s.verify && `needs more verification <b>${n(s.verify)}</b>`, s.refer && `refer to a specialist <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "Method",
     m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; any word or reference that differs is pointed out, with the correct text, surah and ayah shown. Quran text is never generated.",
     m2t: "Hadith", m2: "Looked up in the Dorar hadith encyclopedia. Gradings by the classical imams of hadith, then by modern hadith editors, are quoted verbatim, each with the name of the scholar who gave it, with no preference between them.",
@@ -162,7 +163,8 @@ const T = {
     leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
     leveldBody: (b) => `If they do not cover the case, ask ${b}.`,
     why: "Why this result",
-    tier: { documented: "Traced to source", verify: "Needs more verification", refer: "Refer to a specialist" },
+    tier: { documented: "Matches the Mushaf", supported: "Supported by the sources", not_supported: "Not supported by the approved sources", verify: "Needs more verification", refer: "Refer to a specialist" },
+    rulesDraft: "The evidence-status rules are the team's draft, awaiting the Sharia reviewer's signature.", rulesSigned: (who, d) => `The evidence-status rules were reviewed and signed by ${who} on ${d}.`,
     tierLbl: "Evidence status",
     report: "Report a problem with this result", reportNote: "Reports are public GitHub issues and include the quoted text.",
     r: {
@@ -433,8 +435,10 @@ function reportLink(c) {
 function renderEntry(c) {
   const [verdict, cls] = verdictFor(c);
   const kind = c.type === "quran" ? t().quran : t().hadith;
-  // A source can be traced for a hadith the scholars graded fabricated: keep the tier neutral beside the red verdict.
-  const tierCls = cls === "bad" && c.tier === "documented" ? "" : ({ documented: "ok", verify: "warn", refer: "bad" }[c.tier] || "");
+  // One colour, one meaning: green only when the sources support it, red only for a fabricated grading,
+  // orange for everything that needs attention or a specialist (data/display_rules.json).
+  const fab = ((c.hadith || {}).fabricated_by || []).length > 0;
+  const tierCls = { documented: "ok", supported: "ok", not_supported: fab ? "bad" : "warn", verify: "warn", refer: "warn" }[c.tier] || "";
   let h = `<li class="entry" style="--i:${c.id - 1}"><div class="entry-no">${num(c.id)}</div><div>
     <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
       <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>
@@ -453,7 +457,11 @@ function renderEntry(c) {
 
 function render(r) {
   $("report").hidden = false;
-  if (r.summary.total) $("summary").innerHTML = t().summary(r.summary, (x) => esc(num(x)));
+  if (r.summary.total) {
+    const dr = r.display_rules || {};
+    const rules = r.summary.hadith ? `<span class="fine rules-note">${esc(dr.status === "signed" ? t().rulesSigned(dr.reviewed_by, dr.reviewed_on) : t().rulesDraft)}</span>` : "";
+    $("summary").innerHTML = t().summary(r.summary, (x) => esc(num(x))) + rules;
+  }
   else $("summary").textContent = t().none;
   const ld = $("leveld");
   ld.hidden = !r.level_d;

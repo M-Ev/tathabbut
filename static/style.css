@@ -104,6 +104,7 @@ html[dir="ltr"] .primary:disabled::after { animation-direction: reverse; }
 .report { border-top: var(--rule-strong) solid var(--ink); padding-top: var(--s-5); margin-top: var(--s-3); }
 .summary { font-size: var(--fs-md); margin: 0 0 var(--s-2); color: var(--ink-2); }
 .summary b { color: var(--ink); font-weight: 600; }
+.summary .rules-note { display: block; }
 .callout { border-inline-start: var(--rule-side) solid var(--warn); background: var(--warn-tint); padding: var(--s-2) var(--s-4); margin: var(--s-4) 0; }
 .callout p { margin: var(--s-1) 0; }
 .callout .refs { margin: 0; padding-inline-start: var(--s-5); }

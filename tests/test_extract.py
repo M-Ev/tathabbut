@@ -32,3 +32,22 @@ def test_longer_hadith_markers_are_not_cut():
     # «الحديث الشريف» must not leave «الشريف:» inside the quote; «قول النبي ﷺ» is a marker too.
     assert [c.quote for c in extract("وفي الحديث الشريف: «تبسمك في وجه أخيك لك صدقة»")] == ["تبسمك في وجه أخيك لك صدقة"]
     assert [(c.type, c.quote) for c in extract("ومن ذلك قول النبي ﷺ: «الدين النصيحة»")] == [("hadith", "الدين النصيحة")]
+
+
+def test_follow_on_hadith_after_a_hadith_is_extracted():
+    # Preflight B2: posts list hadith with a bare «وقال:» after the first one.
+    cs = extract("وقال ﷺ: «إنما الأعمال بالنيات». وقال: «اطلبوا العلم ولو بالصين». وقال أيضًا: «الدين النصيحة»")
+    assert [(c.type, c.quote) for c in cs] == [
+        ("hadith", "إنما الأعمال بالنيات"), ("hadith", "اطلبوا العلم ولو بالصين"), ("hadith", "الدين النصيحة")]
+
+
+def test_bare_qala_is_not_a_hadith_without_a_hadith_before_it():
+    assert extract("قال محمد: «مرحبا بكم جميعا»") == []
+    cs = extract("قال رسول الله ﷺ: «الدين النصيحة».\n\nوقال: «كلام عادي من شخص»")
+    assert [c.quote for c in cs] == ["الدين النصيحة"]  # a new paragraph does not continue the list
+
+
+def test_reference_without_colon_ends_the_quote():
+    # Preflight B3: «(البقرة 200)» was swallowed into the ayah, so a real ayah was called not in the Mushaf.
+    (c,) = extract("وقال تعالى: إن الله مع الصابرين (البقرة 200).")
+    assert c.quote == "إن الله مع الصابرين" and (c.ref_surah, c.ref_ayah) == (2, 200)

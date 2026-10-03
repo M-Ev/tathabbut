@@ -1,8 +1,10 @@
 """The checking pipeline: extract citations, trace each one to its source, report verbatim, or refer."""
 import asyncio
+import json
 import logging
 import re
 import time
+from pathlib import Path
 
 from rapidfuzz import fuzz
 
@@ -239,7 +241,9 @@ async def check_quran(c: Candidate, out: dict) -> None:
             # Often a hadith or a saying circulated as if it were an ayah.
             res = await _search_dorar(c.quote)
             if res and res.hadiths:
-                info = _grade_groups(c.quote, res)
+                # Only a strong match is shown under a quote that is not in the Mushaf: a distant hadith's
+                # grading would read as a grading of what the user wrote.
+                info = _grade_groups(c.quote, res, min_sim=STRONG_MATCH)
                 if info["count"]:
                     out["hadith"] = info
                     out["notes"].append("quran_claim_found_in_hadith")
@@ -312,25 +316,58 @@ async def check_text(text: str, deep: bool = False) -> dict:
         "citations": results,
         "level_d": {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES} if fatwa else None,
         "summary": _summary(results),
+        "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
         "model": {"backend": llm.backend.name, "used": deep and llm.available(), "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
     }
 
 
+DISPLAY_RULES = json.loads((Path(__file__).resolve().parent.parent / "data" / "display_rules.json").read_text(encoding="utf-8"))
+
+
+def _hadith_tier(r: dict) -> str:
+    """Apply data/display_rules.json (written and signed by the Sharia reviewer) to the gradings found.
+    Only the gradings of the matching text count; the tool never prefers one scholar over another."""
+    rules = DISPLAY_RULES
+    hd = r.get("hadith") or {}
+    if r["status"] != "graded" or {"wrong_reference", "match_by_model"} & set(r["notes"]):
+        return "verify"
+    if hd.get("fabricated_by"):
+        return "not_supported"
+    if rules["sahihayn_is_supported"] and hd.get("sahihayn"):
+        return "supported"
+    items = [i for g in hd.get("groups", []) for i in g["items"] if i["similarity"] >= STRONG_MATCH]
+    cats = set()
+    for i in items:
+        gl = i.get("grade_gloss") or {}
+        cat = gl.get("category")
+        if cat in rules["accepted_categories"] and gl.get("chain_only") and not rules["chain_only_counts_as_accepted"]:
+            cat = "chain_only"
+        cats.add(cat)
+    if cats and cats <= set(rules["accepted_categories"]):
+        return "supported"
+    if cats and cats <= set(rules["not_supported_categories"]):
+        return "not_supported"
+    return "verify"
+
+
 def evidence_tier(r: dict) -> str:
     """The track's success criterion asks to tell apart what the sources support, what needs more
-    verification, and what must be referred. Every citation gets exactly one of these:
-    documented (traced to its source), verify (needs more verification), refer (to a specialist)."""
+    verification, and what must be referred. A Quran quote matching the Mushaf is "documented"; a hadith
+    is "supported" or "not_supported" only by the reviewer's rules; anything else is "verify" or "refer"."""
     if r["referral"]:
         return "refer"
-    if r["status"] in ("verified", "graded") and not {"wrong_reference", "match_by_model"} & set(r["notes"]):
+    if r["type"] == "hadith":
+        return _hadith_tier(r)
+    if r["status"] == "verified" and not {"wrong_reference", "match_by_model"} & set(r["notes"]):
         return "documented"
     return "verify"
 
 
 def _summary(results: list[dict]) -> dict:
-    """Counts only. "documented" means traced to its source, not that the text is authentic."""
-    s = {"total": len(results), "quran": 0, "hadith": 0, "documented": 0, "verify": 0, "refer": 0, "fabricated_flag": 0}
+    """Counts only. "documented" means a Quran quote matches the Mushaf; hadith tiers follow the reviewer's rules."""
+    s = {"total": len(results), "quran": 0, "hadith": 0, "documented": 0, "supported": 0, "not_supported": 0,
+         "verify": 0, "refer": 0, "fabricated_flag": 0}
     for r in results:
         s[r["type"]] += 1
         s[r["tier"]] += 1

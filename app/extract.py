@@ -45,7 +45,13 @@ REF_NAME = re.compile(
     r"(?:الآية|آية|ayah|verse)?\s*[:：]?\s*([0-9٠-٩]{1,3})(?:\s*[-–]\s*[0-9٠-٩]{1,3})?\s*[\)\]]",
     re.I,
 )
-SENTENCE_END = re.compile(r"[.!؟?\n]|[\(\[]\s*(?:\d|سورة|Surah|Qur|[ء-ي]+\s*[:：])")
+# A sentence ends at punctuation or where a written reference opens: (2:255), (سورة ...), (البقرة: 255)
+# and (البقرة 255) or (آل عمران ٥) without a colon.
+SENTENCE_END = re.compile(
+    r"[.!؟?\n]|[\(\[]\s*(?:\d|سورة|Surah|Qur|[ء-ي]+\s*[:：]|[ء-ي]+(?:\s+[ء-ي]+)?\s*[0-9٠-٩]{1,3}\s*[\)\]])"
+)
+# A follow-on hadith in a list: «وقال: «...»» or «وعنه: ...» right after a hadith already found in the same paragraph.
+HADITH_FOLLOW_AR = re.compile(r"(?<![ء-ي])(?:وقال(?:\s+(?:أيضًا|أيضا))?|وعنه)\s*[:：]\s*")
 
 
 @dataclass
@@ -130,6 +136,20 @@ def extract(text: str) -> list[Candidate]:
             quote = _clean_quote(text[s:e])
             lang = "ar" if is_arabic(quote) else "en"
             _add(found, Candidate(kind, quote, m.start(), e, lang, m.group(0).strip()))
+
+    # 2b) «وقال: «...»» continuing a list of hadith: only after a hadith already found in the same paragraph,
+    # so a bare «وقال:» elsewhere (a person speaking) is never taken as a hadith.
+    for m in HADITH_FOLLOW_AR.finditer(text):
+        before = [c for c in found if c.end <= m.start()]
+        last = max(before, key=lambda c: c.end, default=None)
+        if not last or last.type != "hadith" or "\n\n" in text[last.end : m.start()]:
+            continue
+        span = _take_quote(text, m.end())
+        if not span:
+            continue
+        s, e = span
+        quote = _clean_quote(text[s:e])
+        _add(found, Candidate("hadith", quote, m.start(), e, "ar" if is_arabic(quote) else "en", m.group(0).strip()))
 
     # 3) Curly braces or quotes followed by a Quran reference.
     for m in re.finditer(r"[{«\"“]([^}»\"”]{6,})[}»\"”]", text):

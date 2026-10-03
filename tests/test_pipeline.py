@@ -109,8 +109,8 @@ def test_every_citation_gets_one_evidence_tier(fake_dorar):
         "قال رسول الله ﷺ: «إنما الأعمال بالنيات». قال تعالى: ﴿يا أيها الذين آمنوا إذا جاءكم فاسق بخبر فتبينوا﴾. "
         "قال الله تعالى: «النظافة من الإيمان والعمل عبادة»"
     ))
-    assert [c["tier"] for c in r["citations"]] == ["documented", "verify", "refer"]
-    assert (r["summary"]["documented"], r["summary"]["verify"], r["summary"]["refer"]) == (1, 1, 1)
+    assert [c["tier"] for c in r["citations"]] == ["supported", "verify", "refer"]
+    assert (r["summary"]["supported"], r["summary"]["verify"], r["summary"]["refer"]) == (1, 1, 1)
 
 
 def test_glossary_uses_jamhara_entries_without_guessing():
@@ -131,3 +131,48 @@ def test_glossary_uses_jamhara_entries_without_guessing():
     assert gloss_book("صحيح أبي داود") == "Sahih Abi Dawud"
     assert gloss_book("تخريج سير أعلام النبلاء") == "Takhrij of Siyar A'lam al-Nubala'"
     assert gloss_book("كتاب غير معروف") is None
+
+
+def test_fabricated_hadith_is_never_tagged_as_supported(fake_dorar):
+    # Plan item 13 / preflight B1: a hadith graded fabricated must not carry a green or "documented" status.
+    fake_dorar({"اطلبوا": "dorar_site_fabricated.html"})
+    r = run(check_text("وفي الحديث: «اطلبوا العلم ولو بالصين»"))
+    c = r["citations"][0]
+    assert c["tier"] == "not_supported"
+    assert r["summary"]["documented"] == 0 and r["summary"]["supported"] == 0 and r["summary"]["not_supported"] == 1
+
+
+def test_sahihayn_hadith_is_supported(fake_dorar):
+    fake_dorar({"إنما": "dorar_site.html"})
+    r = run(check_text("قال رسول الله ﷺ: «إنما الأعمال بالنيات»"))
+    assert r["citations"][0]["tier"] == "supported"
+    assert r["display_rules"]["status"] in ("draft", "signed")
+
+
+def test_weak_only_hadith_is_not_supported(fake_dorar):
+    fake_dorar({"أربعين": "dorar_site_weak.html"})
+    r = run(check_text("قال رسول الله ﷺ: «من حفظ على أمتي أربعين حديثا بعثه الله فقيها»"))
+    c = r["citations"][0]
+    assert c["status"] == "graded" and c["tier"] == "not_supported"
+    assert not c["hadith"]["fabricated_by"]  # orange, not red, in the interface
+
+
+def test_quran_match_is_documented_not_supported(fake_dorar):
+    fake_dorar({})
+    r = run(check_text("قال تعالى: ﴿إِنَّ اللَّهَ مَعَ الصَّابِرِينَ﴾"))
+    assert r["citations"][0]["tier"] == "documented"
+
+
+def test_ayah_with_reference_without_colon_is_found_with_wrong_reference(fake_dorar):
+    fake_dorar({})
+    r = run(check_text("وقال تعالى: إن الله مع الصابرين (البقرة 200)."))
+    c = r["citations"][0]
+    assert c["status"] == "verified" and "wrong_reference" in c["notes"] and c["hadith"] is None
+
+
+def test_distant_hadith_is_not_shown_under_a_quote_missing_from_the_mushaf(fake_dorar):
+    # Preflight B4: a 70% Dorar hit used to appear, with its grading, under a quote not found in the Mushaf.
+    fake_dorar({"اطلبوا": "dorar_site_fabricated.html"})
+    r = run(check_text("قال الله تعالى: «اطلبوا العلم من المهد إلى اللحد في كل مكان»"))
+    c = r["citations"][0]
+    assert c["status"] == "not_in_mushaf" and c["hadith"] is None
