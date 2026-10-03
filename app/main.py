@@ -56,22 +56,65 @@ async def _startup():
         asyncio.create_task(llm.backend.warm())  # download/load ALLaM in the background
 
 
+def _client_ip(request: Request) -> str:
+    """Behind the Hugging Face proxy every visitor arrives from the proxy's address, so they would all share one
+    limit (plan item 16). The proxy appends the visitor's address to X-Forwarded-For; its last entry is the one
+    the proxy added, so a visitor cannot choose it."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    if fwd.strip():
+        return fwd.split(",")[-1].strip()
+    return request.client.host if request.client else "?"
+
+
 @app.post("/api/check")
 async def api_check(req: CheckRequest, request: Request):
-    _rate_limit(request.client.host if request.client else "?")
+    _rate_limit(_client_ip(request))
     return await check_text(req.text, deep=req.deep)
 
 
 @app.get("/api/health")
 async def health():
+    """What works right now (plan item 17): the Quran check needs nothing outside; hadith need Dorar."""
+    from . import dorar
+
     q = get_quran()
     return {
         "ok": True,
+        "version": _VERSION,
         "quran_verses": len(q.ayat),
         "model_backend": llm.backend.name,
         "model_ready": getattr(llm.backend, "_llm", None) is not None or llm.backend.name == "openai",
         "dorar_enabled": settings.dorar_enabled,
+        "dorar_reachable": dorar.reachable() if settings.dorar_enabled else False,
+        "dorar_last_ok": dorar.STATUS["last_ok"],
+        "dorar_last_error": dorar.STATUS["last_error"],
+        "dorar_last_error_at": dorar.STATUS["last_error_at"],
+        "fatwa_search": settings.fatwa_search,
     }
+
+
+def _git_commit() -> str | None:
+    """The deployed commit, read from .git without the git program (the Space clones the repo)."""
+    from pathlib import Path
+
+    g = Path(__file__).resolve().parent.parent / ".git"
+    try:
+        head = (g / "HEAD").read_text().strip()
+        if head.startswith("ref: "):
+            ref = head[5:]
+            f = g / ref
+            if f.exists():
+                return f.read_text().strip()[:7]
+            for line in (g / "packed-refs").read_text().splitlines():
+                if line.endswith(" " + ref):
+                    return line[:7]
+            return None
+        return head[:7]
+    except OSError:
+        return None
+
+
+_VERSION = {"commit": _git_commit()}
 
 
 @app.get("/api/sources")

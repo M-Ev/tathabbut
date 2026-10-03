@@ -28,9 +28,9 @@ This file lists every outside service the tool talks to, who runs it, whether it
 
 ## 3. واجهة تثبّت نفسها · Tathabbut's own API
 
-`POST /api/check` مفتوحة دون مفتاح للعرض والتحكيم، ومحدودة بعشرين طلبًا كل عشر دقائق لكل عنوان IP لحماية المصادر التي نستدعيها (`app/main.py`). وتوجد أيضًا `GET /api/health` و`GET /api/sources` (قائمة المصادر والعلماء المعتمدين)، والتوثيق التفاعلي في `/docs`.
+`POST /api/check` مفتوحة دون مفتاح للعرض والتحكيم، ومحدودة بعشرين طلبًا كل عشر دقائق لكل زائر (يُعرف عنوانه من آخر قيمة في `X-Forwarded-For` التي يضيفها وسيط Hugging Face) لحماية المصادر التي نستدعيها (`app/main.py`). وتوجد أيضًا `GET /api/health` (هل تجيب الدرر الآن وآخر نجاح وآخر خطأ، وهل النموذج جاهز، ورقم الالتزام المنشور) و`GET /api/sources` (قائمة المصادر والعلماء المعتمدين)، والتوثيق التفاعلي في `/docs`.
 
-`POST /api/check` is open without a key for the demo and judging, limited to 20 requests per 10 minutes per IP to protect the sources we call (`app/main.py`). Also `GET /api/health`, `GET /api/sources` and interactive docs at `/docs`.
+`POST /api/check` is open without a key for the demo and judging, limited to 20 requests per 10 minutes per visitor (the last `X-Forwarded-For` entry, added by the Hugging Face proxy) to protect the sources we call (`app/main.py`). Also `GET /api/health` (whether Dorar answers now, its last success and error, whether the model is ready, and the deployed commit), `GET /api/sources` and interactive docs at `/docs`.
 
 ## 4. مفاتيح النشر · Deployment keys
 
@@ -50,5 +50,5 @@ The running tool calls no model other than ALLaM; it never calls the Claude API 
 ```bash
 grep -rnE "https?://" app/          # every outside address the server code uses
 grep -rn "environ" app/config.py    # every setting and key comes from the environment
-curl https://3rb-tathabbut.hf.space/api/health   # model_backend shows whether ALLaM is connected
+curl https://3rb-tathabbut.hf.space/api/health   # model_backend: is ALLaM connected; dorar_reachable; version.commit
 ```

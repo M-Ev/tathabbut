@@ -4,6 +4,7 @@ Privacy: only the extracted hadith wording is sent to Dorar, never the user's fu
 Politeness: results are cached, and requests are spaced out (see MIN_INTERVAL).
 """
 import asyncio
+from datetime import datetime, timezone
 import html
 import json
 import re
@@ -174,6 +175,7 @@ class DorarClient:
         res = DorarResult(query=query, method=method, search_url=self.site_url(query, method, False))
         try:
             res.hadiths = parse_site_html(await self._get(url))
+            _mark(True)
             if res.hadiths:
                 return res
         except Exception as e:  # noqa: BLE001 - any failure falls through to the API
@@ -182,9 +184,32 @@ class DorarClient:
             api = f"{API_URL}?{urlencode({'skey': query})}"
             hadiths = parse_api_json(await self._get(api))
             res.hadiths = [h for h in hadiths if find_scholar(h.mohdith)]
+            _mark(True)
         except Exception as e:  # noqa: BLE001
             res.error = (res.error + "; " if res.error else "") + f"api: {type(e).__name__}"
+        if res.error and not res.hadiths:
+            _mark(False, res.error)
         return res
+
+
+# Plan item 17: what /api/health reports about Dorar (times are UTC, ISO 8601).
+STATUS = {"last_ok": None, "last_error": None, "last_error_at": None}
+
+
+def _mark(ok: bool, err: str = "") -> None:
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if ok:
+        STATUS["last_ok"] = now
+    else:
+        STATUS["last_error"], STATUS["last_error_at"] = err, now
+
+
+def reachable() -> bool | None:
+    """True or False from the latest search, None before any search since the server started."""
+    ok, bad = STATUS["last_ok"], STATUS["last_error_at"]
+    if ok is None and bad is None:
+        return None
+    return bad is None or (ok is not None and ok >= bad)
 
 
 _client: DorarClient | None = None

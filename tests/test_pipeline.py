@@ -278,3 +278,32 @@ def test_coverage_guard_shows_the_words_no_narration_has():
         {"text": "اطلبوا العلم ولو بالصين", "mohdith": "الألباني", "mohdith_id": "1420", "book": "السلسلة الضعيفة", "number": "416", "grade": "باطل"},
     ])
     assert status == "graded" and info["groups"][0]["items"][0]["match"] == "same"
+
+
+def test_nothing_is_cut_silently(fake_dorar, monkeypatch):
+    # Plan item 18: the report says how many citations were checked out of how many were found.
+    from app.config import settings
+    fake_dorar({})
+    monkeypatch.setattr(settings, "max_citations", 2)
+    r = run(check_text("قال تعالى: ﴿قُلْ هُوَ اللَّهُ أَحَدٌ﴾ وقال: ﴿اللَّهُ الصَّمَدُ﴾ وقال: ﴿لَمْ يَلِدْ وَلَمْ يُولَدْ﴾"))
+    assert len(r["citations"]) == 2
+    assert r["truncated"]["citations_found"] == 3 and r["truncated"]["citations_checked"] == 2
+    monkeypatch.setattr(settings, "max_citations", 12)
+    assert run(check_text("قال تعالى: ﴿قُلْ هُوَ اللَّهُ أَحَدٌ﴾"))["truncated"] is None
+
+
+def test_health_reports_dorar_and_the_rate_limit_sees_the_visitor():
+    from fastapi.testclient import TestClient
+    from app import dorar, main
+    c = TestClient(main.app)
+    dorar.STATUS.update(last_ok=None, last_error="site: ConnectError", last_error_at="2026-10-04T00:00:00+00:00")
+    h = c.get("/api/health").json()
+    assert h["dorar_reachable"] is False and h["dorar_last_error"] == "site: ConnectError"
+    dorar.STATUS.update(last_ok="2026-10-04T00:01:00+00:00")
+    assert c.get("/api/health").json()["dorar_reachable"] is True
+    dorar.STATUS.update(last_ok=None, last_error=None, last_error_at=None)
+
+    class R:  # the proxy appends the visitor; an entry the visitor sent first is not trusted
+        headers = {"x-forwarded-for": "6.6.6.6, 203.0.113.9"}
+        client = type("C", (), {"host": "10.0.0.1"})()
+    assert main._client_ip(R()) == "203.0.113.9"

@@ -99,6 +99,8 @@ html[dir="ltr"] .primary:disabled::after { animation-direction: reverse; }
 @media (prefers-color-scheme: dark) { .primary, .primary:disabled { background: var(--brand-blue); } }
 
 .status { color: var(--ink-2); min-height: var(--s-6); margin: var(--s-4) 0 0; font-size: var(--fs-sm); }
+.banner { margin: var(--s-4) 0 0; padding: var(--s-3) var(--s-4); background: var(--warn-tint); border-inline-start: var(--rule-side) solid var(--warn); border-radius: var(--r-1); color: var(--ink); font-size: var(--fs-sm); }
+.banner[hidden] { display: none; }
 
 /* report */
 .report { border-top: var(--rule-strong) solid var(--ink); padding-top: var(--s-5); margin-top: var(--s-3); }

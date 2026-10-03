@@ -9,6 +9,10 @@ const T = {
     checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… وقد يستغرق النموذج اللغوي دقيقة أو أكثر.",
     failed: "تعذّر الفحص الآن، حاول مرة أخرى.", reportTitle: "نتيجة الفحص",
     none: "لم نجد في النص آية أو حديثًا مستشهدًا به.",
+    truncatedText: (a, b) => `النص أطول من حد الفحص، ففُحص أول ${a} حرف من ${b}.`,
+    truncatedCits: (a, b) => `فُحص أول ${a} استشهادًا من ${b} وُجدت في النص. افحص الباقي في طلب آخر.`,
+    dorarDown: "الموسوعة الحديثية غير متاحة الآن: الآيات تُفحص كالمعتاد، والأحاديث تُحال إلى المختص حتى تعود.",
+    busy: "طلبات كثيرة من هذا الجهاز في دقائق قليلة. انتظر قليلًا ثم أعد المحاولة.",
     unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية.",
     unsupportedPart: "وفي النص كلام بلغة غير مدعومة بعد، فلم يُفحص منه إلا الاستشهادات العربية والإنجليزية أعلاه.",
     summary: (s, n) => [`الاستشهادات <b>${n(s.total)}</b>`, s.documented && `مطابق للمصحف <b>${n(s.documented)}</b>`, s.supported && `تؤيده المصادر <b>${n(s.supported)}</b>`, s.not_supported && `لا تؤيده المصادر المعتمدة <b>${n(s.not_supported)}</b>`, s.verify && `يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b>`, s.refer && `يُحال إلى مختص <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
@@ -117,6 +121,10 @@ const T = {
     checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model may take a minute or more.",
     failed: "The check failed. Please try again.", reportTitle: "Result",
     none: "No Quran verse or hadith citation was found in the text.",
+    truncatedText: (a, b) => `The text is longer than the check limit; the first ${a} of ${b} characters were checked.`,
+    truncatedCits: (a, b) => `The first ${a} of ${b} citations found were checked. Check the rest in another request.`,
+    dorarDown: "The hadith encyclopedia cannot be reached right now: verses are checked as usual, and hadith are referred to a specialist until it is back.",
+    busy: "Too many requests from this device in a few minutes. Please wait a little and try again.",
     unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today.",
     unsupportedPart: "Part of the text is in a language not supported yet; only the Arabic and English citations above were checked.",
     summary: (s, n) => [`Citations <b>${n(s.total)}</b>`, s.documented && `matches the Mushaf <b>${n(s.documented)}</b>`, s.supported && `supported by the sources <b>${n(s.supported)}</b>`, s.not_supported && `not supported by the approved sources <b>${n(s.not_supported)}</b>`, s.verify && `needs more verification <b>${n(s.verify)}</b>`, s.refer && `refer to a specialist <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
@@ -252,6 +260,7 @@ function applyLang() {
   updateCounter();
   document.title = lang === "ar" ? "تثبّت · مدقق الاستشهادات الشرعية" : "Tathabbut · Islamic citation checker";
   if (lastResult) render(lastResult);
+  showBanner();
 }
 
 function place(q) {
@@ -525,6 +534,9 @@ function render(r) {
   }
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
+  const tr = r.truncated;
+  if (tr && tr.text_chars > tr.checked_chars) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedText(num(tr.checked_chars), num(tr.text_chars)))}</span>`;
+  if (tr && tr.citations_found > tr.citations_checked) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedCits(num(tr.citations_checked), num(tr.citations_found)))}</span>`;
   const ld = $("leveld");
   ld.hidden = !r.level_d;
   if (r.level_d) {
@@ -551,16 +563,33 @@ async function check() {
   $("status").textContent = deep ? t().checkingDeep : t().checking;
   try {
     const res = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, deep }) });
+    if (res.status === 429) { $("status").textContent = t().busy; return; }
     if (!res.ok) throw new Error(res.status);
     lastResult = await res.json();
     $("status").textContent = "";
     render(lastResult);
+    health();
     $("report").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (e) {
     $("status").textContent = t().failed;
   } finally {
     $("go").disabled = false;
   }
+}
+
+// Plan item 17: say plainly when Dorar is down, before the visitor checks a hadith.
+let dorarDown = false;
+async function health() {
+  try {
+    const h = await (await fetch("/api/health")).json();
+    dorarDown = h.dorar_enabled && h.dorar_reachable === false;
+  } catch (e) { /* the check itself reports failures */ }
+  showBanner();
+}
+function showBanner() {
+  const b = $("banner");
+  b.hidden = !dorarDown;
+  if (dorarDown) b.textContent = t().dorarDown;
 }
 
 $("go").addEventListener("click", check);
@@ -578,3 +607,4 @@ $("lang").addEventListener("click", () => {
 });
 try { const saved = localStorage.getItem("tathabbut-lang"); if (saved === "en" || saved === "ar") lang = saved; } catch (e) { /* ignore */ }
 applyLang();
+health();

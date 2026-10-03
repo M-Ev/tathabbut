@@ -372,12 +372,15 @@ async def _model_candidates(text: str, existing: list[Candidate]) -> tuple[list[
 
 async def check_text(text: str, deep: bool = False) -> dict:
     t0 = time.monotonic()
+    # Plan item 18: nothing is cut silently; the report says how much was checked.
+    truncated = {"text_chars": len(text), "checked_chars": min(len(text), settings.max_text_chars)}
     text = text[: settings.max_text_chars]
     cands = extract(text)
     dropped = 0
     if deep and llm.available():
         extra, dropped = await _model_candidates(text, cands)
         cands = sorted(cands + extra, key=lambda c: c.start)
+    truncated.update(citations_found=len(cands), citations_checked=min(len(cands), settings.max_citations))
     cands = cands[: settings.max_citations]
 
     results = []
@@ -410,6 +413,8 @@ async def check_text(text: str, deep: bool = False) -> dict:
                 log.warning("fatwa search failed: %s", e)
     return {
         "citations": results,
+        "truncated": truncated if (truncated["text_chars"] > truncated["checked_chars"]
+                                   or truncated["citations_found"] > truncated["citations_checked"]) else None,
         "unsupported_language": unsupported_language(text),
         "level_d": level_d,
         "summary": _summary(results),
