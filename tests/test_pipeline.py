@@ -363,3 +363,15 @@ def test_chatbot_decision_follows_the_policy_and_never_passes_a_partial_check(fa
     assert r["decision"]["action"] == "annotate" and not r["coverage"]["complete"]
     assert any(x.get("rule") == "not_fully_checked" for x in r["decision"]["reasons"])
     assert r["disclaimer"]["ar"] and r["versions"]["chatbot_policy"]
+
+
+def test_fatwa_detector_reads_first_person_cases_and_rulings_in_answers(fake_dorar):
+    # Plan item 32: «هل علي بن أبي طالب...» is about a person; the other two are level د.
+    fake_dorar({})
+    assert run(check_text("هل علي بن أبي طالب أول من أسلم من الصبيان؟"))["level_d"] is None
+    ld = run(check_text("أنا طلقت زوجتي وهي حائض، فهل يقع الطلاق؟"))["level_d"]
+    assert ld and ld["form"] == "question"
+    ld = run(check_text("سألتني: هل أستطيع الجمع بين الصلاتين في السفر؟ نعم يجوز لك أن تفعل ذلك."))["level_d"]
+    assert ld and ld["form"] == "ruling_in_answer"
+    assert "الصلاتين" in ld["fatwas"]["terms"]  # searched with the question the answer replied to
+    assert run(check_text("Yes, you can combine the prayers while travelling."))["level_d"]["form"] == "ruling_in_answer"

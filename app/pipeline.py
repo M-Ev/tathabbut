@@ -53,11 +53,23 @@ FATWA_REFERENCES = [
     {"ar": "فتاوى فضيلة الشيخ محمد بن صالح العثيمين رحمه الله (الموقع الرسمي)",
      "en": "Fatwas of Shaykh Muhammad ibn Salih al-Uthaymeen (official site)", "url": "https://binothaimeen.net"},
 ]
+# Level د (plan item 32): a personal fatwa question, or a chatbot answer issuing one. «هل علي بن أبي طالب...» is a
+# question about a person, not a fatwa, so «هل علي» counts only before a word of obligation.
+_ME_AR = r"(?:أنا|انا)\s+(?:طلقت|حلفت|نذرت|أفطرت|افطرت|تركت|صليت|اقترضت|أعمل|اعمل|أسكن|اسكن|متزوج|متزوجة|حامل|مريض|مريضة|مسافر|مسافرة|حائض|نفساء)"
 PERSONAL_FATWA = re.compile(
-    r"هل يجوز لي|هل يحل لي|هل علي|ما حكم (?:ما فعلت|زواجي|طلاقي|صلاتي|صيامي)|أنا في (?:دولة|بلد)|"
-    r"is it (?:halal|haram|permissible|allowed) for me|am i allowed to|can i (?:marry|divorce)|my (?:husband|wife) (?:said|did)",
+    r"هل\s+(?:يجوز|يحل|يصح|يحق)\s+(?:لي|لنا)|هل\s+يجوز\s+(?:أن|ان)\s+أ|هل\s+(?:يصح|يقبل|يبطل)\s+(?:صيامي|صلاتي|زواجي|طلاقي|حجي|وضوئي|عمرتي)"
+    r"|هل\s+(?:عل[يّ]ّ?|علينا)\s+(?:أن|ان|إثم|اثم|ذنب|كفارة|قضاء|زكاة|شيء|شي|دم|فدية|غسل)"
+    r"|ما\s+حكم\s+(?:ما\s+فعلت|زواجي|طلاقي|صلاتي|صيامي|عملي|مالي|حجي)|(?:أنا|انا)\s+في\s+(?:دولة|بلد)|" + _ME_AR +
+    r"|(?<![ء-ي])(?:طلقت\s+(?:زوجتي|امرأتي)|حلفت\s+(?:بالطلاق|بالله|أن|ان)|نذرت\s+(?:أن|ان)|زوجي\s+(?:طلقني|حلف|قال\s+لي)|ماذا\s+(?:يجب\s+)?علي|ماذا\s+أفعل\s+(?:إذا|اذا|لو|وقد))"
+    # A chatbot answer that rules on the asker's own case.
+    r"|(?:نعم|لا)\s*[،,]?\s*(?:يجوز|يحل)\s+لك|(?:يجب|يحرم)\s+عليك|(?:طلاقك|صيامك|صلاتك|زواجك|حجك|نذرك|يمينك)\s+(?:واقع|يقع|لا\s+يقع|صحيحة?|باطلة?|غير\s+صحيحة?)"
+    r"|is\s+it\s+(?:halal|haram|permissible|allowed|ok(?:ay)?)\s+(?:for\s+me|if\s+i)|am\s+i\s+allowed\s+to|do\s+i\s+have\s+to"
+    r"|can\s+i\s+(?:marry|divorce|pray|fast|break\s+my\s+fast|eat|drink|combine|skip)|\bi\s+(?:divorced|swore|vowed)\b"
+    r"|my\s+(?:husband|wife)\s+(?:said|did|divorced)|yes,?\s+you\s+(?:can|may|are\s+allowed)|it\s+is\s+(?:permissible|haram|halal|forbidden)\s+for\s+you"
+    r"|your\s+(?:divorce|fast|prayer|marriage|oath|vow)\s+is\s+(?:valid|invalid|not\s+valid|void)",
     re.I,
 )
+_ANSWER_FORM = re.compile(r"لك|عليك|طلاقك|صيامك|صلاتك|زواجك|حجك|نذرك|يمينك|you|your", re.I)
 
 
 def _strip_harakat(text: str) -> str:
@@ -420,10 +432,16 @@ async def check_text(text: str, deep: bool = False) -> dict:
     level_d = None
     m = PERSONAL_FATWA.search(text)
     if m:
-        level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None}
+        level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None,
+                   "form": "ruling_in_answer" if _ANSWER_FORM.search(m.group(0)) else "question", "matched": m.group(0)}
         if settings.fatwa_search:
             try:
-                level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, m.start())), 25)
+                where = m.start()
+                if level_d["form"] == "ruling_in_answer":  # search with the question the answer replies to, if quoted
+                    q_end = text.rfind("؟", 0, where)
+                    q_end = q_end if q_end >= 0 else text.rfind("?", 0, where)
+                    where = q_end if q_end >= 0 else where
+                level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, where)), 25)
             except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
                 log.warning("fatwa search failed: %s", e)
     # Positions in the text as received (plan item 24), so an API user can place each note.

@@ -75,6 +75,7 @@ const T = {
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
     leveldFound: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. هذه فتاوى منشورة للعالمين الجليلين في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما. اختيرت بتقارب الألفاظ بين السؤال وعناوين الفتاوى، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق حالتك.",
+    leveldRuling: "في النص حكم على حالة شخصية بعينها، والفتوى في الحالة الخاصة لمفتٍ يعرف الواقعة.",
     leveldBody: (b) => `فإن لم يوجد فيها ما يستوفي الحالة، فيُرجى سؤال ${b}.`,
     bodyLink: "موقع الرئاسة العامة للبحوث العلمية والإفتاء",
     fatwasOf: (n) => `فتاوى ${n}`, fq: "السؤال", fopen: "أول الجواب بنصه", fsource: "المصدر",
@@ -208,6 +209,7 @@ const T = {
     matchedArabic: "Arabic source matched by the model",
     leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
     leveldFound: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Below are published fatwas of the two scholars on close questions, quoted in Arabic exactly as on their sites. They were chosen by word overlap between the question and the fatwa titles; the language model neither wrote nor chose them, so check that they match your case.",
+    leveldRuling: "The text rules on one person's own case; a fatwa on a particular case belongs to a mufti who knows its facts.",
     leveldBody: (b) => `If they do not cover the case, ask ${b}.`,
     bodyLink: "General Presidency of Scholarly Research and Ifta (official site)",
     fatwasOf: (n) => `Fatwas of ${n}`, fq: "Question", fopen: "Opening of the answer, verbatim", fsource: "Source",
@@ -646,6 +648,7 @@ function render(r) {
         `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
       h = `<p>${esc(t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "");
     }
+    if (r.level_d.form === "ruling_in_answer") h = `<p class="line warn">${esc(t().leveldRuling)}</p>` + h;
     ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
   $("annotated").innerHTML = renderAnnotated(lastText, r.citations);
