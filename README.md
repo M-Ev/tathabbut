@@ -99,7 +99,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 
 | Path | What |
 |---|---|
-| `app/extract.py` | rule-based citation extraction (Arabic, English), references like (البقرة: 255) or (2:255) |
+| `app/extract.py` | rule-based citation extraction (Arabic, English, Urdu, Indonesian), references like (البقرة: 255), (2:255) or (QS. 2:255) |
 | `app/quran.py` | Mushaf matching on a consonant skeleton, word diff, reference check |
 | `app/dorar.py` | Dorar hadith search filtered to the approved scholars, with cache and spacing |
 | `app/scholars.py` | approved scholars, groups, wording rules, narrator-statement rule |
@@ -107,6 +107,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | `app/pipeline.py` | the checking pipeline and referral logic |
 | `static/` | Arabic/English web interface in the challenge identity |
 | `data/quran.json` | Mushaf text (King Fahd Complex) and its English translation by al-Hilali & Muhsin Khan (King Fahd Complex, 1417 AH); Saheeh International is kept only to recognise English quotes |
+| `data/translations/` | King Fahd Complex Urdu (Junagarhi) and Indonesian translations from quranpedia.net, with pinned sha256 (`scripts/fetch_translations.py`) |
 | `eval/` | synthetic evaluation set and runner |
 
 ## التوثيق · Documentation

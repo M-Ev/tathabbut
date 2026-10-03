@@ -19,6 +19,8 @@ POST /api/check
 | `citations[].span` | `[start, end]` character offsets of the citation (marker and quote) in the text sent |
 | `citations[].quote_span` | offsets of the quoted words alone |
 | `citations[].tier` | `documented`, `supported`, `not_supported`, `verify`, `refer` |
+| `citations[].lang` | `ar`, `en`, `ur` or `id`. An Urdu or Indonesian hadith comes back as status `language_referral` (not searched, counted as unchecked) |
+| `citations[].quran.translation` | for an Urdu or Indonesian verse quote: the King Fahd Complex translation's `text`, `name_ar`, `name_en`, `url` and file `sha256` |
 | `coverage` | `complete`, `gaps` (`text_truncated`, `citations_truncated`, `citations_unchecked`, `unsupported_language`; `rules_only` is informative), counts |
 | `level_d` | a personal fatwa question: the two scholars' published fatwas and the official body |
 | `disclaimer` | `ar` / `en` line to show with any result |

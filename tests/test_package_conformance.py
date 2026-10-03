@@ -84,5 +84,5 @@ def test_p5_transparency_and_privacy(monkeypatch):
 
 def test_p5_unsupported_language_is_said_not_guessed(fake_dorar):
     fake_dorar({})
-    r = run(check_text("رسول اللہ ﷺ نے فرمایا کہ اعمال کا دارومدار نیتوں پر ہے اور یہ بات بہت اہم ہے"))
-    assert r["unsupported_language"] == "ur" and r["decision"]["action"] == "annotate"
+    r = run(check_text("Le Prophète a dit que les actes ne valent que par les intentions et que chacun sera rétribué"))
+    assert r["unsupported_language"] == "fr" and r["decision"]["action"] == "annotate"

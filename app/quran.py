@@ -4,6 +4,7 @@ The Quran text is never generated: every result shows the Mushaf text loaded fro
 """
 import bisect
 import difflib
+import hashlib
 import json
 import re
 import unicodedata
@@ -13,7 +14,7 @@ from pathlib import Path
 
 from rapidfuzz import fuzz, process
 
-from .normalize import ar_words, normalize_ar, normalize_en, skeleton_ar, word_skeleton
+from .normalize import ar_words, normalize_ar, normalize_en, normalize_id, normalize_ur, skeleton_ar, word_skeleton
 from .spelling import to_common_word
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "quran.json"
@@ -97,7 +98,8 @@ class QuranMatch:
     diff: list = field(default_factory=list)  # [{"op": "equal|replace|delete|insert", "quoted": str, "mushaf": str}]
     occurrences: int = 0
     via: str = ""  # arabic | english | english_llm
-    matched_translation: str = ""  # for English quotes: which translation the quote matched (hilali | saheeh)
+    matched_translation: str = ""  # which translation the quote matched (hilali | saheeh | ur_junagarhi | id_kfc)
+    translation: dict | None = None  # Urdu or Indonesian quotes: the approved translation's text, name and link
     reference_given: str = ""
     reference_ok: bool | None = None
     # What actually sits at the reference the author wrote, to explain a wrong reference.
@@ -180,6 +182,7 @@ class Quran:
                 self._by_first.setdefault(key, []).append(k)
         self._windows: dict[int, tuple[list, list]] = {}
         self._en = {"hilali": [x.norm_en for x in self.ayat], "saheeh": [x.norm_en_saheeh for x in self.ayat]}
+        self.translations = self._load_translations(path.parent / "translations")
         names = {}
         for s in self.surahs.values():
             names[normalize_ar(s["ar"])] = s["n"]
@@ -341,13 +344,80 @@ class Quran:
             m.status = "exact"
         return m
 
-    def match_english(self, quote: str, prefer: tuple[int, int] | None = None) -> QuranMatch:
-        q = normalize_en(quote)
+    def _load_translations(self, folder: Path) -> dict:
+        """Plan item 36: the King Fahd Complex Urdu and Indonesian translations, fetched from quranpedia.net
+        by scripts/fetch_translations.py with a pinned sha256. A missing file only turns that language off."""
+        out = {}
+        for lang, file, norm in (("ur", "ur_junagarhi.json", normalize_ur), ("id", "id_kfc.json", normalize_id)):
+            p = folder / file
+            if not p.exists():
+                continue
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            blob = json.dumps(doc["verses"], ensure_ascii=False, sort_keys=True).encode()
+            if hashlib.sha256(blob).hexdigest() != doc["sha256"] or len(doc["verses"]) != len(self.ayat):
+                continue  # a changed or partial file is never used; the language is then said to be unchecked
+            texts = [doc["verses"].get(f"{x.surah}:{x.ayah}", "") for x in self.ayat]
+            if lang == "ur":
+                texts = [unicodedata.normalize("NFKC", t) for t in texts]  # the source writes لا as the glyph ﻻ
+            # Every number in these translations is a footnote marker (Indonesian: 1 to 1610 in order; Urdu: one,
+            # at 6:28). The file keeps them as fetched so its sha256 matches; they are dropped for matching and display.
+            texts = [re.sub(r" +([,.;:!?])", r"\1", re.sub(r"\d+(?:b(?=\W))?", "", t)).replace("  ", " ") for t in texts]
+            out[lang] = {"name": file.removesuffix(".json"), "source": doc["source"], "sha256": doc["sha256"],
+                         "texts": texts, "index": [norm(t) for t in texts], "norm": norm}
+        return out
+
+    def match_translation(self, quote: str, lang: str, prefer: tuple[int, int] | None = None) -> QuranMatch:
+        """An Urdu or Indonesian quote, matched against that language's approved translation only."""
+        tr = self.translations.get(lang)
+        if not tr:
+            return QuranMatch(status="not_found", via=lang)
+        m = self._match_tr(tr["norm"](quote), tr, prefer, lang)
+        if m.surah is not None:
+            i, j = self.index[(m.surah, m.ayah_from)], self.index[(m.surah, m.ayah_to)]
+            src = tr["source"]
+            m.translation = {
+                "lang": lang, "text": " ".join(tr["texts"][k] for k in range(i, j + 1)),
+                "name_ar": src["name_ar"], "name_en": src["name_en"],
+                "url": src["url"].replace("{s}", str(m.surah)), "sha256": tr["sha256"],
+            }
+        return m
+
+    # Measured by eval/translation_census.py: token_set_ratio alone lets an invented sentence made of common
+    # words reach 85; also requiring the words in order (partial_ratio) leaves no invented sentence above 77.
+    TR_FLOOR, TR_EXACT = 80, 95
+
+    def _match_tr(self, q: str, tr: dict, prefer, via: str) -> QuranMatch:
         if len(q.split()) < 5:
-            return QuranMatch(status="not_found", via="english")
+            return QuranMatch(status="not_found", via=via)
+        index = tr["index"]
+        top = process.extract(q, index, scorer=fuzz.token_set_ratio, limit=10, score_cutoff=50)
+        ks = [k for _, _, k in top]
+        if prefer and prefer in self.index and self.index[prefer] not in ks:
+            ks.append(self.index[prefer])
+        scored = [(min(fuzz.token_set_ratio(q, index[k]), fuzz.partial_ratio(q, index[k])), k) for k in ks]
+        if not scored:
+            return QuranMatch(status="not_found", via=via)
+        score, i = max(scored, key=lambda x: (x[0], -x[1]))
+        if prefer and prefer in self.index:
+            k = self.index[prefer]
+            s2 = dict((b, a) for a, b in scored).get(k, 0)
+            if s2 >= score - 3 and s2 >= self.TR_FLOOR:  # identical or near-identical ayat: accept the cited one
+                i, score = k, s2
+        if score < self.TR_FLOOR:
+            return QuranMatch(status="not_found", via=via, score=round(score, 1))
+        m = self._build(i, i, "exact" if score >= self.TR_EXACT else "differs", q, score, via)
+        m.matched_translation = tr["name"]
+        return m
+
+    def match_english(self, quote: str, prefer: tuple[int, int] | None = None) -> QuranMatch:
+        return self._match_index(normalize_en(quote), self._en, prefer, "english")
+
+    def _match_index(self, q: str, indexes: dict, prefer, via: str) -> QuranMatch:
+        if len(q.split()) < 5:
+            return QuranMatch(status="not_found", via=via)
         # The quote may follow either translation; keep whichever matches better.
         found = []
-        for name, index in self._en.items():
+        for name, index in indexes.items():
             best = process.extractOne(q, index, scorer=fuzz.token_set_ratio, score_cutoff=60)
             if not best:
                 continue
@@ -359,11 +429,11 @@ class Quran:
                     i, score = k, s2
             found.append((score, i, name))
         if not found:
-            return QuranMatch(status="not_found", via="english")
+            return QuranMatch(status="not_found", via=via)
         score, i, name = max(found)
         if score < 75:
-            return QuranMatch(status="not_found", via="english", score=round(score, 1))
-        m = self._build(i, i, "exact" if score >= 90 else "differs", quote, score, "english")
+            return QuranMatch(status="not_found", via=via, score=round(score, 1))
+        m = self._build(i, i, "exact" if score >= 90 else "differs", q, score, via)
         m.matched_translation = name
         return m
 

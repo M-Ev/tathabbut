@@ -16,8 +16,8 @@ const T = {
     modelUsed: (n) => `استُعين بعلّام في هذا الفحص (${n} ث).`,
     modelNotUsed: "لم يُستعن بالنموذج اللغوي في هذا الفحص.",
     busy: "طلبات كثيرة من هذا الجهاز في دقائق قليلة. انتظر قليلًا ثم أعد المحاولة.",
-    unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية.",
-    unsupportedPart: "وفي النص كلام بلغة غير مدعومة بعد، فلم يُفحص منه إلا الاستشهادات العربية والإنجليزية أعلاه.",
+    unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية، والآيات المنقولة بترجمة المجمع الأردية أو الإندونيسية.",
+    unsupportedPart: "وفي النص كلام بلغة غير مدعومة بعد، فلم يُفحص منه إلا الاستشهادات أعلاه.",
     summary: (s, n) => [`الاستشهادات <b>${n(s.total)}</b>`, s.documented && `مطابق للمصحف <b>${n(s.documented)}</b>`, s.supported && `تؤيده المصادر <b>${n(s.supported)}</b>`, s.not_supported && `لا تؤيده المصادر المعتمدة <b>${n(s.not_supported)}</b>`, s.verify && `يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b>`, s.refer && `يُحال إلى مختص <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "منهج الأداة",
     m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، ويُنبَّه على ما اختلف عن لفظ المصحف أو عن موضع الآية، مع إظهار النص الصحيح والسورة والآية. نص القرآن لا يُولَّد أبدًا.",
@@ -44,14 +44,15 @@ const T = {
       found_similar: "وُجدت روايات بلفظ مقارب، لا بلفظه",
       not_found: "لم نجد حكمًا لأحد علماء الحديث المعتمدين على هذا النص",
       needs_model: "النص مترجم، والبحث عن أصله العربي يحتاج إلى النموذج اللغوي",
+      language_referral: "حديث بغير العربية والإنجليزية، فلم نبحث عن أصله آليًا، ونحيله إلى المختص",
       source_error: "تعذّر الوصول إلى الموسوعة الحديثية الآن",
       source_offline: "البحث في الموسوعة الحديثية غير مفعّل",
       error: "حدث خطأ أثناء الفحص",
     },
     surah: "سورة", ayahWord: "الآية", ayatWord: "الآيات",
     fixesHead: ["ورد في النص", "في المصحف"], missing: "(سقط من النص)", extra: "(ليس في المصحف)",
-    translationLbl: "ترجمة معاني القرآن الكريم (الهلالي ومحسن خان، مجمع الملك فهد ١٤١٧هـ، عن موقع QuranEnc.com، الإصدار ١٫١٫٢)", trName: { hilali: "الهلالي ومحسن خان (مجمع الملك فهد)", saheeh: "صحيح إنترناشونال" },
-    ayahLink: "الآية في موسوعة قرآنبيديا", trLink: "الترجمة الإنجليزية وحواشيها",
+    translationLbl: "ترجمة معاني القرآن الكريم (الهلالي ومحسن خان، مجمع الملك فهد ١٤١٧هـ، عن موقع QuranEnc.com، الإصدار ١٫١٫٢)", trName: { hilali: "الهلالي ومحسن خان (مجمع الملك فهد)", saheeh: "صحيح إنترناشونال", ur_junagarhi: "جوناكري الأردية (مجمع الملك فهد)", id_kfc: "المجمع الإندونيسية (مع وزارة الشؤون الدينية الإندونيسية)" },
+    ayahLink: "الآية في موسوعة قرآنبيديا", trLink: "الترجمة الإنجليزية وحواشيها", trLinkOther: "الترجمة في قرآنبيديا",
     occurrences: (n) => `تتكرر هذه العبارة في ${arPlaces(n)} من المصحف، وهذا أحدها.`,
     wrongRef: (given, where) => `العزو المكتوب ${given} يحتاج إلى تصحيح، والصواب: ${where}.`,
     rightRef: (given) => `العزو المكتوب ${given} صحيح.`,
@@ -104,6 +105,7 @@ const T = {
       copyRule: "نص القرآن يُنقل بلفظه كما في المصحف، والأسلم نسخه من مصدر موثوق.",
       alefChanged: (a, b) => `في «${a}» ألف ليست في رسم المصحف «${b}»، فهي لفظ آخر.`,
       riwaya: "قارنّا بمصحف مجمع الملك فهد برواية حفص عن عاصم. فإن كان النقل على قراءة متواترة أخرى فليس خطأً، ويُراجَع فيه مختص في القراءات.",
+      trDiffers: (pct, p, tr) => `الترجمة المنقولة لا تطابق حرفيًا ترجمة ${tr} التي نقارن بها (تقارب ${pct})، وأقرب آية لمعناها ${p}. ترجمات المعاني تختلف، فالمرجع هو الأصل العربي.`,
       enDiffers: (pct, p) => `الترجمة المنقولة لا تطابق حرفيًا أيًّا من الترجمتين اللتين نقارن بهما (تقارب ${pct})، وأقرب آية لمعناها ${p}. ترجمات المعاني تختلف، فالمرجع هو الأصل العربي.`,
       notInMushaf: (n) => `بحثنا في آيات المصحف كلها (${n} آية)، فلم نجد نصًا يطابقه أو يقاربه.`,
       notInTranslation: (n) => `قارنّا النص بترجمة معاني آيات المصحف كلها (${n} آية)، فلم نجد ما يقاربه. والمقارنة بالترجمة لا تكفي للحكم بأنه ليس آية، ولذلك نحيله إلى المختص.`,
@@ -145,8 +147,8 @@ const T = {
     modelUsed: (n) => `ALLaM was used in this check (${n} s).`,
     modelNotUsed: "The language model was not used in this check.",
     busy: "Too many requests from this device in a few minutes. Please wait a little and try again.",
-    unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today.",
-    unsupportedPart: "Part of the text is in a language not supported yet; only the Arabic and English citations above were checked.",
+    unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today, and verses quoted in the King Fahd Complex Urdu or Indonesian translation.",
+    unsupportedPart: "Part of the text is in a language not supported yet; only the citations above were checked.",
     summary: (s, n) => [`Citations <b>${n(s.total)}</b>`, s.documented && `matches the Mushaf <b>${n(s.documented)}</b>`, s.supported && `supported by the sources <b>${n(s.supported)}</b>`, s.not_supported && `not supported by the approved sources <b>${n(s.not_supported)}</b>`, s.verify && `needs more verification <b>${n(s.verify)}</b>`, s.refer && `refer to a specialist <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "Method",
     m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; any word or reference that differs is pointed out, with the correct text, surah and ayah shown. Quran text is never generated.",
@@ -173,14 +175,15 @@ const T = {
       found_similar: "Narrations with similar, not identical, wording were found",
       not_found: "No grading by the approved hadith scholars was found",
       needs_model: "This is a translation; finding its Arabic source needs the language model",
+      language_referral: "A hadith in a language other than Arabic or English; its source was not searched automatically, so it is referred to a specialist",
       source_error: "The hadith encyclopedia could not be reached",
       source_offline: "Hadith encyclopedia lookup is turned off",
       error: "An error occurred during the check",
     },
     surah: "Surah", ayahWord: "ayah", ayatWord: "ayat",
     fixesHead: ["As quoted", "In the Mushaf"], missing: "(left out)", extra: "(not in the Mushaf)",
-    translationLbl: "Translation of the meanings (al-Hilali & Muhsin Khan, King Fahd Complex 1417 AH; via QuranEnc.com v1.1.2)", trName: { hilali: "al-Hilali & Muhsin Khan (King Fahd Complex)", saheeh: "Saheeh International" },
-    ayahLink: "This verse on Quranpedia", trLink: "Full translation with the translators' notes",
+    translationLbl: "Translation of the meanings (al-Hilali & Muhsin Khan, King Fahd Complex 1417 AH; via QuranEnc.com v1.1.2)", trName: { hilali: "al-Hilali & Muhsin Khan (King Fahd Complex)", saheeh: "Saheeh International", ur_junagarhi: "Junagarhi Urdu (King Fahd Complex)", id_kfc: "King Fahd Complex Indonesian (with Indonesia's Ministry of Religious Affairs)" },
+    ayahLink: "This verse on Quranpedia", trLink: "Full translation with the translators' notes", trLinkOther: "This translation on Quranpedia",
     occurrences: (n) => `This phrase occurs in ${n} places in the Mushaf; this is one of them.`,
     wrongRef: (given, where) => `The reference ${given} needs correcting; it should be ${where}.`,
     rightRef: (given) => `The reference ${given} is correct.`,
@@ -239,6 +242,7 @@ const T = {
       copyRule: "Quran text must be quoted exactly as in the Mushaf; it is safest to copy it from a reliable source.",
       alefChanged: (a, b) => `«${a}» has an alef that the Mushaf's «${b}» does not have, so it is a different word.`,
       riwaya: "We compared with the King Fahd Complex Mushaf in the narration of Hafs from Asim. If the quote follows another mutawatir reading, it is not an error; a specialist in the readings can confirm.",
+      trDiffers: (pct, p, tr) => `The quoted translation does not match the ${tr} translation word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
       enDiffers: (pct, p) => `The quoted translation does not match the approved translations word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
       notInMushaf: (n) => `We searched all ${n} verses of the Mushaf and found nothing matching or close to it.`,
       notInTranslation: (n) => `We compared the text with a translation of the meanings of all ${n} verses and found nothing close. A translation comparison is not enough to say it is not a verse, which is why it is referred to a specialist.`,
@@ -338,7 +342,7 @@ function verdictFor(c) {
     if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "warn"] : [v.not_in_translation, "warn"];
   }
   if (c.status === "graded" && hd.fabricated_by && hd.fabricated_by.length) return [v.gradedFab, "bad"];
-  const cls = { graded: "ok", found_similar: "warn", not_found: "warn", needs_model: "warn", source_error: "warn", error: "bad" }[c.status] || "";
+  const cls = { graded: "ok", found_similar: "warn", not_found: "warn", needs_model: "warn", language_referral: "warn", source_error: "warn", error: "bad" }[c.status] || "";
   return [v[c.status] || c.status, cls];
 }
 
@@ -363,7 +367,11 @@ function renderMushaf(q, c) {
   let h = `<div class="mushaf"><div class="mushaf-inner">
     <div class="mushaf-head">${esc(place(q))}</div>
     <p class="ayat">${ayat}</p>`;
-  if (lang === "en" || c.lang === "en") h += `<p class="translation"><span class="lbl">${esc(t().translationLbl)}</span>${esc(q.translation_en)}</p>`;
+  if (q.translation) {
+    // Plan item 36: the approved translation in the quote's own language, beside the Mushaf text.
+    const tr = q.translation;
+    h += `<p class="translation" dir="${tr.lang === "ur" ? "rtl" : "ltr"}" lang="${esc(tr.lang)}"><span class="lbl" dir="${lang === "ar" ? "rtl" : "ltr"}">${esc(lang === "ar" ? tr.name_ar : tr.name_en)}</span>${esc(tr.text)}</p>`;
+  } else if (lang === "en" || c.lang === "en") h += `<p class="translation"><span class="lbl">${esc(t().translationLbl)}</span>${esc(q.translation_en)}</p>`;
   h += `</div></div>`;
   if (changed.length) {
     h += `<table class="fixes"><thead><tr><th>${esc(t().fixesHead[0])}</th><th>${esc(t().fixesHead[1])}</th></tr></thead><tbody>`;
@@ -374,7 +382,8 @@ function renderMushaf(q, c) {
   }
   if (q.occurrences > 1) h += `<p class="line note">${esc(t().occurrences(q.occurrences))}</p>`;
   h += `<p class="after"><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(t().ayahLink)}</a>`;
-  if (lang === "en" || c.lang === "en") h += ` · <a href="${esc(q.translation_url)}" target="_blank" rel="noopener">${esc(t().trLink)}</a>`;
+  if (q.translation) h += ` · <a href="${esc(q.translation.url)}" target="_blank" rel="noopener">${esc(t().trLinkOther)}</a>`;
+  else if (lang === "en" || c.lang === "en") h += ` · <a href="${esc(q.translation_url)}" target="_blank" rel="noopener">${esc(t().trLink)}</a>`;
   h += `</p>`;
   return h;
 }
@@ -482,7 +491,8 @@ function reasonsFor(c) {
         else out.push(r.changed(d.quoted, d.mushaf));
       }
       out.push(r.riwaya, r.copyRule);
-    } else if (c.status === "differs") out.push(r.enDiffers(pct(q.score), place(q)));
+    } else if (c.status === "differs" && q.translation) out.push(r.trDiffers(pct(q.score), place(q), t().trName[q.matched_translation]));
+    else if (c.status === "differs") out.push(r.enDiffers(pct(q.score), place(q)));
     if (q.reference_given && q.reference_ok === false && q.cited) {
       out.push(r.refWritten(q.reference_given));
       const cp = place({ surah_name_ar: q.cited.surah_name_ar, surah_name_en: q.cited.surah_name_en, ayah_from: q.cited.ayah, ayah_to: q.cited.ayah });
@@ -586,7 +596,7 @@ function renderEntry(c) {
     <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
       <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>
     <p class="verdict ${cls}">${esc(verdict)}</p>
-    <p class="as-quoted"><span class="lbl">${esc(t().asQuoted)}</span><q><bdi dir="${c.lang === "ar" ? "rtl" : "ltr"}">${esc(c.quote)}</bdi></q></p>`;
+    <p class="as-quoted"><span class="lbl">${esc(t().asQuoted)}</span><q><bdi dir="${c.lang === "ar" || c.lang === "ur" ? "rtl" : "ltr"}">${esc(c.quote)}</bdi></q></p>`;
   // Evidence first, then the explanation, then what to do.
   for (const n of c.notes || []) if (t().notes[n]) h += `<p class="line ${n === "match_by_model" ? "warn" : "note"}">${esc(t().notes[n])}</p>`;
   if (c.matched_arabic) h += `<p class="as-quoted"><span class="lbl">${esc(t().matchedArabic)}</span>${esc(c.matched_arabic)}</p>`;

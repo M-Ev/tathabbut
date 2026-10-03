@@ -242,8 +242,21 @@ def _referral(reason_ar: str, reason_en: str, field: str = "hadith") -> dict:
     return {"ar": f"{reason_ar} يُحال إلى {ar} للتحقق.", "en": f"{reason_en} Please refer to {en}."}
 
 
+_LANG_NAME = {"ur": ("بالأردية", "in Urdu"), "id": ("بالإندونيسية", "in Indonesian")}
+
+
 async def check_hadith(c: Candidate, out: dict) -> None:
     quote = c.quote
+    if c.lang in _LANG_NAME:
+        # Plan item 36: no approved Urdu or Indonesian hadith translation to match against, and the model
+        # does not cover these languages, so the hadith is referred rather than guessed.
+        ar, en = _LANG_NAME[c.lang]
+        out["status"] = "language_referral"
+        out["referral"] = _referral(
+            f"النص {ar}، وليس لدينا مصدر معتمد لترجمة الحديث {ar} نطابقه عليه، فلم نبحث عن أصله آليًا.",
+            f"The text is {en}; there is no approved {en.split()[-1]} hadith translation to match it against, so its source was not searched automatically.",
+        )
+        return
     if c.lang != "ar":
         if not llm.available():
             out["status"] = "needs_model"
@@ -320,8 +333,13 @@ async def check_quran(c: Candidate, out: dict) -> None:
     Q = get_quran()
     prefer = (c.ref_surah, c.ref_ayah) if c.ref_surah else None
     marked = c.marker not in ("unmarked", "model")  # the author presented it as Quran
-    m: QuranMatch = Q.match_arabic(c.quote, prefer, marked) if c.lang == "ar" else Q.match_english(c.quote, prefer)
-    if m.status == "not_found" and c.lang != "ar" and llm.available():
+    if c.lang == "ar":
+        m: QuranMatch = Q.match_arabic(c.quote, prefer, marked)
+    elif c.lang in Q.translations:
+        m = Q.match_translation(c.quote, c.lang, prefer)
+    else:
+        m = Q.match_english(c.quote, prefer)
+    if m.status == "not_found" and c.lang == "en" and llm.available():
         arabic = await llm.arabic_search_wording(c.quote, "quran")
         out["search_wording_ar"] = arabic
         if arabic:
@@ -356,8 +374,13 @@ async def check_quran(c: Candidate, out: dict) -> None:
                     out["hadith"] = info
                     out["notes"].append("quran_claim_found_in_hadith")
         found_as_hadith = "quran_claim_found_in_hadith" in out["notes"]
-        why = (("لم نجد هذا النص في المصحف.", "This text was not found in the Mushaf.") if c.lang == "ar"
-               else ("لم نجد آية تقابل هذه الترجمة.", "We could not match this to any verse."))
+        if c.lang == "ar":
+            why = ("لم نجد هذا النص في المصحف.", "This text was not found in the Mushaf.")
+        elif c.lang in _LANG_NAME:
+            why = (f"لم نجد آية تقابل هذا النص في ترجمة المجمع المعتمدة {_LANG_NAME[c.lang][0]}.",
+                   f"We could not match this to any verse of the approved translation {_LANG_NAME[c.lang][1]}.")
+        else:
+            why = ("لم نجد آية تقابل هذه الترجمة.", "We could not match this to any verse.")
         out["referral"] = _referral(*why, "hadith" if found_as_hadith else "quran")
     if m.reference_ok is False:
         out["notes"].append("wrong_reference")
@@ -475,7 +498,7 @@ DISCLAIMER = {
     "en": "Tathabbut is an automated, AI-assisted tool, not a scholar or a mufti. It checked the citations only, not the explanation or the reasoning.",
 }
 POLICY = json.loads((Path(__file__).resolve().parent.parent / "data" / "chatbot_policy.json").read_text(encoding="utf-8"))
-_UNCHECKED = {"source_error", "source_offline", "needs_model", "error"}
+_UNCHECKED = {"source_error", "source_offline", "needs_model", "language_referral", "error"}
 
 
 def _coverage_report(result: dict, truncated: dict, deep: bool) -> dict:
@@ -527,7 +550,7 @@ def _compare_attribution(written: dict | None, out: dict) -> dict | None:
     if not written:
         return None
     hd = out.get("hadith") or {}
-    if out["status"] in ("source_error", "source_offline", "needs_model", "error") or not hd:
+    if out["status"] in _UNCHECKED or not hd:
         return {**written, "checked": False, "confirmed": [], "not_found_in": []}
     found = {_BOOK_KEY[x["book"]] for x in hd.get("sahihayn", []) if x["book"] in _BOOK_KEY}
     return {**written, "checked": True, "confirmed": [b for b in written["books"] if b in found],
@@ -573,7 +596,7 @@ def _hadith_tier_from_gradings(r: dict) -> str:
     return "verify"
 
 
-# Plan item 8: v1 checks Arabic and English only. Text in another language is said to be unchecked,
+# Plan item 8: v1 checks Arabic and English; plan item 36 adds Urdu and Indonesian Quran quotes. Text in another language is said to be unchecked,
 # never reported as "no citation found".
 _URDU_PERSIAN = re.compile("[ٹڈڑںےۓھہپچژگ]")
 _EN = re.compile(r"\b(?:the|and|of|to|is|in|that|he|said|allah|prophet|you|we|they|this|for|with)\b", re.I)
@@ -587,13 +610,13 @@ _OTHER_LATIN = {
 def unsupported_language(text: str) -> str | None:
     arabic_script = len(re.findall("[؀-ۿ]", text))
     if arabic_script and len(_URDU_PERSIAN.findall(text)) >= max(3, arabic_script // 100):
-        return "ur" if re.search("[ٹڈڑںےۓ]", text) else "fa"
+        return None if re.search("[ٹڈڑںےۓ]", text) else "fa"
     words = re.findall(r"[A-Za-zÀ-ÿçğışöü]+", text)
     if len(words) >= 6:
         en = len(_EN.findall(text))
         lang, n = max(((k, len(rx.findall(text))) for k, rx in _OTHER_LATIN.items()), key=lambda x: x[1])
         if n >= 3 and n > 2 * en:
-            return lang
+            return None if lang == "id" else lang
     return None
 
 

@@ -43,3 +43,11 @@ does the report give a hit rate ("a fitting fatwa among those shown"). Until the
 added. `python3 eval/run_trap_eval.py --via-space https://3rb-tathabbut.hf.space` records what the live site shows,
 then applies the rules before and after the coverage guard offline; without `--via-space` it re-scores the
 recorded results. Writes `trap_report.md`, including the cost on `hadith_cases.jsonl`.
+
+## Urdu and Indonesian verse quotes (plan item 36)
+
+`python3 eval/translation_census.py` writes `translation_report.md`: 900 quotes per language taken from 300 seeded
+ayat of the King Fahd Complex translation (as written, one word dropped, one word swapped), and 18 sentences per
+language that are not ayat (`negatives/ur.txt`, `negatives/id.txt`, written by Claude for a speaker to review).
+Same matcher as the app. The floor was chosen on these cases, so the numbers are optimistic until real quotes
+are tried.

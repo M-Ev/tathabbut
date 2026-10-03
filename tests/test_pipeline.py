@@ -1,6 +1,7 @@
 import json
 
 from app.dorar import parse_api_json, parse_site_html
+from app.normalize import skeleton_ar
 from app.pipeline import check_text
 from app.scholars import find_scholar, is_hadith_level_grading
 
@@ -207,11 +208,50 @@ def test_fatwa_question_with_nothing_close_still_refers(fake_dorar, fake_fatwa_s
 
 
 def test_unsupported_language_is_said_not_checked(fake_dorar):
-    # Plan item 8: Urdu used to be treated as Arabic and reported as "no citation".
+    # Plan item 8: a language with no approved translation is said to be unchecked, never "no citation".
     fake_dorar({})
-    r = run(check_text("نبی کریم صلی اللہ علیہ وسلم نے فرمایا کہ اعمال کا دارومدار نیتوں پر ہے"))
-    assert r["unsupported_language"] == "ur"
+    r = run(check_text("پیامبر اکرم فرمود که اعمال به نیت‌ها بستگی دارد و هر کس به آنچه نیت کرده می‌رسد"))
+    assert r["unsupported_language"] == "fa"
     assert run(check_text("قال رسول الله ﷺ: «الدين النصيحة»"))["unsupported_language"] is None
+
+
+def test_urdu_and_indonesian_verses_are_traced_through_the_complex_translations(fake_dorar):
+    # Plan item 36: the quote is matched against the King Fahd Complex translation of its own language.
+    fake_dorar({})
+    r = run(check_text("اللہ تعالیٰ فرماتا ہے: «پس یقیناً مشکل کے ساتھ آسانی ہے»۔ اور نبی کریم ﷺ نے فرمایا کہ اعمال کا دارومدار نیتوں پر ہے۔"))
+    assert r["unsupported_language"] is None
+    q, h = r["citations"]
+    assert (q["lang"], q["status"], q["quran"]["ref"]) == ("ur", "verified", "94:5")
+    tr = q["quran"]["translation"]
+    assert tr["lang"] == "ur" and "جوناكري" in tr["name_ar"] and tr["url"].endswith("/surah/1/94/book/1966")
+    assert skeleton_ar(q["quran"]["mushaf_text"]) == skeleton_ar("فإن مع العسر يسرا")  # the Mushaf wording is shown first
+    # No approved Urdu hadith translation: referred, counted as unchecked, never searched by guesswork.
+    assert (h["lang"], h["status"], h["tier"]) == ("ur", "language_referral", "refer")
+    assert h["id"] in r["coverage"]["unchecked_citations"] and r["decision"]["action"] == "annotate"
+
+    r = run(check_text('Allah SWT berfirman: "Karena sesungguhnya sesudah kesulitan itu ada kemudahan" (QS. 94:5)'))
+    c = r["citations"][0]
+    assert (c["lang"], c["status"], c["quran"]["ref"], c["quran"]["reference_ok"]) == ("id", "verified", "94:5", True)
+    assert "1" not in c["quran"]["translation"]["text"]  # footnote numbers are dropped
+
+
+def test_invented_urdu_sentence_is_not_tied_to_a_verse(fake_dorar):
+    # token_set_ratio alone tied this to 58:22 at 81.9 (eval/translation_census.py).
+    fake_dorar({})
+    r = run(check_text("اللہ تعالیٰ فرماتا ہے: «بے شک اللہ صبر کرنے والوں کو پسند کرتا ہے اور ہمیشہ ان کے ساتھ ہے»۔"))
+    c = r["citations"][0]
+    assert c["lang"] == "ur" and c["status"] == "not_in_mushaf" and c["quran"]["surah"] is None
+    assert "الأردية" in c["referral"]["ar"]
+
+
+def test_changed_translation_file_is_never_used(tmp_path):
+    from app.quran import DATA, Quran
+    (tmp_path / "translations").mkdir()
+    (tmp_path / "quran.json").write_text(DATA.read_text(encoding="utf-8"), encoding="utf-8")
+    doc = json.loads((DATA.parent / "translations" / "ur_junagarhi.json").read_text(encoding="utf-8"))
+    doc["verses"]["94:5"] = "تبدیل شدہ متن"
+    (tmp_path / "translations" / "ur_junagarhi.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    assert Quran(tmp_path / "quran.json").translations == {}
 
 
 def test_short_ayah_in_brackets_and_one_word(fake_dorar):

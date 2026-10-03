@@ -60,3 +60,39 @@ def is_arabic(text: str) -> bool:
         return False
     arabic = sum(1 for c in letters if "؀" <= c <= "ۿ" or "ݐ" <= c <= "ݿ")
     return arabic / len(letters) > 0.5
+
+
+# Plan item 36: Urdu and Indonesian quotes are matched against the King Fahd Complex translations.
+_UR_MAP = str.maketrans({
+    "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
+    "ي": "ی", "ى": "ی", "ئ": "ی", "ې": "ی",
+    "ك": "ک",
+    "ه": "ہ", "ة": "ہ", "ۃ": "ہ", "ۂ": "ہ",
+    "ؤ": "و",
+})
+_URDU_ONLY = re.compile("[ٹڈڑںےۓہ]")
+_EN_WORDS = re.compile(r"\b(?:the|and|of|to|is|in|that|he|said|you|we|they|this|for|with|who|not|be)\b", re.I)
+_ID_WORDS = re.compile(
+    r"\b(?:dan|yang|ini|itu|dengan|untuk|dari|tidak|kita|kami|adalah|akan|bahwa|ia|kepada|mereka|orang|atas|kamu|sesungguhnya)\b",
+    re.I,
+)
+
+
+def normalize_ur(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)  # ﻻ in the source text -> لا
+    text = re.sub(r"\[[^\]]*\]|\([^)]*\)", " ", text)
+    text = _DIACRITICS.sub("", text).translate(_UR_MAP)
+    text = "".join(c if unicodedata.category(c).startswith("L") else " " for c in text)
+    return _SPACES.sub(" ", text).strip()
+
+
+def normalize_id(text: str) -> str:
+    return normalize_en(text.replace("’", "'").replace("'", ""))
+
+
+def quote_lang(text: str) -> str:
+    """ar | ur | en | id: which index a quote is matched against."""
+    if is_arabic(text):
+        return "ur" if len(_URDU_ONLY.findall(text)) >= 2 else "ar"
+    n_id, n_en = len(_ID_WORDS.findall(text)), len(_EN_WORDS.findall(text))
+    return "id" if n_id >= 2 and n_id > n_en else "en"
