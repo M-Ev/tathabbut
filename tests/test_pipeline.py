@@ -220,3 +220,16 @@ def test_short_ayah_in_brackets_and_one_word(fake_dorar):
     a, b = r["citations"]
     assert a["status"] == "verified" and a["quran"]["ref"] == "103:1"
     assert b["status"] == "too_short" and b["tier"] == "refer"
+
+
+def test_fatwa_ranking_needs_a_shared_word_in_the_title_and_weighs_rare_words():
+    # Item 45 (live run, 4 Oct): a long multi-part question about hair removal carried an unrelated title
+    # through «حديثًا» and the spouse words, and «القرآن» never met «القران».
+    from app.fatwa import _rank, question_terms
+    terms = question_terms("أسلمت حديثًا وزوجتي نصرانية، هل يبقى زواجنا؟")
+    assert "حديثا" not in terms
+    unrelated = ("هل تحرم إزالة شعر البدن ؟", "قبل الزواج كنت أحلق، وبعد زواجي نهاني زوجي")
+    assert _rank(terms, [unrelated])[0] == 0
+    t = question_terms("هل يجوز للمرأة الحائض قراءة القرآن من الجوال؟")
+    close, common = _rank(t, [("حكم قراءة المرأة للقرآن أثناء فترة الحيض للحاجة",), ("هل يجوز للمرأة أن تذهب إلى السوق",)])
+    assert close >= 60 > common

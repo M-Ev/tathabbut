@@ -28,3 +28,11 @@ read on Dorar keeps empty grading fields and `"status": null` in `expected`.
    `--dry-run` works offline: it prints each case's queries and URLs and flags extraction mismatches.
 2. `python3 eval/run_eval.py --cases eval/hadith_cases.jsonl --deep`: the four English cases need the
    model (`--deep`). Like every run, this rewrites `eval/report.md`.
+
+## Fatwa matching (plan item 45)
+
+`fatwa_cases.jsonl` (12 questions, drafted by Claude except the package's own p.6 case and one from the plan)
+are personal fatwa questions. `python3 eval/run_fatwa_eval.py` sends each one, as the app does, to
+binbaz.org.sa and binothaimeen.net and writes `fatwa_report.md`: the words searched and the fatwas shown.
+The team's Sharia reviewer marks, per question, the fatwa URLs she judges fitting in `acceptable`; only then
+does the report give a hit rate ("a fitting fatwa among those shown"). Until then it claims none.

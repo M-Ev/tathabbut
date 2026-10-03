@@ -18,6 +18,7 @@ Privacy: only the question sentence (without names, numbers or the rest of the t
 """
 import asyncio
 import html
+import math
 import logging
 import re
 import time
@@ -33,7 +34,7 @@ from .normalize import normalize_ar
 log = logging.getLogger("tathabbut")
 
 PER_SCHOLAR = 3
-MIN_SCORE = 60  # share of the question's words in a fatwa's title (0-100); measured in eval/fatwa_cases.jsonl
+MIN_SCORE = 60  # rarity-weighted share of the question's words in a fatwa (0-100); see eval/fatwa_report.md
 MIN_INTERVAL = 0.5  # seconds between requests to the same site
 
 BINBAZ_SEARCH = "https://binbaz.org.sa/api/search"
@@ -68,6 +69,7 @@ _STOP = set(normalize_ar(w) for w in """
 هل يجوز يحل لي لنا علي علينا ما ماذا حكم أنا انا أنت نحن في من على إلى الى عن مع أن ان إن أو او ثم و يا
 هذا هذه ذلك تلك الذي التي كذا كذلك فعل أفعل افعل أعمل اعمل شيء شي بعض كل عند دولة بلد بلاد الشيخ فضيلة سماحة
 أريد اريد أسأل اسال سؤال السؤال قال يقول كان يكون صار لو إذا اذا قد لقد ليس لا نعم هو هي هم أني اني
+لأني لاني لأنني لانني لأن لان بسبب بدل فقط حديثا مؤخرا أحيانا احيانا دائما أي شخص يمكن ممكن
 """.split())
 
 
@@ -101,19 +103,42 @@ def _stem(w: str) -> str:
     return _SUFFIX.sub("", w) if len(w) > 3 else w
 
 
+def _hits(q: list[str], text: str) -> set[int]:
+    """Indexes of the question's stems found in `text`."""
+    words = [_stem(w) for w in normalize_ar(text).split()]
+    return {i for i, a in enumerate(q) if any(a == b or (len(a) >= 3 and fuzz.ratio(a, b) >= 85) for b in words)}
+
+
+def _rank(terms: str, docs: list[tuple[str, ...]]) -> list[float]:
+    """Score each candidate (title first, then any question text) by the share of the question's words it
+    contains (0-100), each word weighted by how rare it is among the candidates, so «حائض» counts for more
+    than «زوج» when every result is about marriage. A candidate whose title shares no word scores 0, so a
+    long multi-part question cannot carry an unrelated title."""
+    q = [_stem(w) for w in normalize_ar(terms).split()]
+    if not q or not docs:
+        return [0.0] * len(docs)
+    hits = []
+    for texts in docs:
+        title = _hits(q, texts[0]) if texts and texts[0] else set()
+        best = title
+        for x in texts[1:]:
+            if x:
+                h = _hits(q, x)
+                if len(h) > len(best):
+                    best = h
+        hits.append(best if title else set())
+    n = len(docs)
+    df = [sum(1 for h in hits if i in h) for i in range(len(q))]
+    # A word no candidate contains weighs as much as the rarest word found, so missing words lower the
+    # score as they would unweighted, and a rare shared word still counts for more than a common one.
+    w = [math.log(1 + (n + 1) / (1 + max(d, 1))) for d in df]
+    total = sum(w)
+    return [round(100.0 * sum(w[i] for i in h) / total, 1) for h in hits]
+
+
 def _score(terms: str, *texts: str) -> float:
-    """Share of the question's words found in the fatwa's title or question (0-100), word by word."""
-    q = [_stem(w) for w in terms.split()]
-    if not q:
-        return 0.0
-    best = 0.0
-    for x in texts:
-        if not x:
-            continue
-        words = [_stem(w) for w in normalize_ar(x).split()]
-        hit = sum(1 for a in q if any(a == b or (len(a) >= 3 and fuzz.ratio(a, b) >= 85) for b in words))
-        best = max(best, 100.0 * hit / len(q))
-    return round(best, 1)
+    """Unweighted share of the question's words in one candidate (kept for tests and reports)."""
+    return _rank(terms, [texts])[0]
 
 
 def _text(fragment: str) -> str:
@@ -168,14 +193,25 @@ class FatwaClient:
 
     # Ibn Baz ---------------------------------------------------------------------------------------------
     async def binbaz(self, terms: str) -> list[dict]:
-        r = await self._req("binbaz", "GET", BINBAZ_SEARCH, params={"q": terms, "type": "fatwa", "page": 1})
-        found = []
-        for it in (r.json().get("Search") or {}).get("results", [])[:10]:
-            # «id» opens the fatwa (the site redirects to its canonical address); «reference» is another number.
-            ref, title = it.get("id"), (it.get("title") or "").strip()
-            if ref and title:
-                found.append({"ref": ref, "title": title, "score": _score(terms, title)})
-        found = [f for f in sorted(found, key=lambda f: -f["score"]) if f["score"] >= MIN_SCORE][:PER_SCHOLAR]
+        # The site's search needs every word; when it finds too little, retry with the longest words only.
+        words = terms.split()
+        longest = sorted(words, key=len, reverse=True)
+        tries = [words, [_search_stem(w) for w in words], [w for w in words if w in longest[:3]],
+                 [w for w in words if w in longest[:2]]]
+        items, seen = [], set()
+        for q in dict.fromkeys(" ".join(t) for t in tries if t):
+            r = await self._req("binbaz", "GET", BINBAZ_SEARCH, params={"q": q, "type": "fatwa", "page": 1})
+            for it in (r.json().get("Search") or {}).get("results", [])[:10]:
+                # «id» opens the fatwa (the site redirects to its canonical address); «reference» is another number.
+                ref, title = it.get("id"), (it.get("title") or "").strip()
+                if ref and title and ref not in seen:
+                    seen.add(ref)
+                    items.append({"ref": ref, "title": title})
+            if len(items) >= 10:
+                break
+        for f, sc in zip(items, _rank(terms, [(f["title"],) for f in items])):
+            f["score"] = sc
+        found = [f for f in sorted(items, key=lambda f: -f["score"]) if f["score"] >= MIN_SCORE][:PER_SCHOLAR]
         out = []
         for f in found:
             try:
@@ -215,7 +251,9 @@ class FatwaClient:
             if not it.get("id") or not title or "السؤال" not in content or re.search(r"-\s*\d+\s*$", title):
                 continue
             question = content.split("الجواب", 1)[0][:400]
-            found.append({"id": it["id"], "title": title, "score": _score(terms, title, question)})
+            found.append({"id": it["id"], "title": title, "question": question})
+        for f, sc in zip(found, _rank(terms, [(f["title"], f["question"]) for f in found])):
+            f["score"] = sc
         found = [f for f in sorted(found, key=lambda f: -f["score"]) if f["score"] >= MIN_SCORE][:PER_SCHOLAR]
         out = []
         for f in found:
