@@ -78,7 +78,7 @@ async def health():
 async def sources():
     """Every source the tool uses, for API users to cite. All are from the challenge's scientific package except
     the level د referral: the package says to refer to a qualified body and names none, so the team chose the
-    official fatwa body and the two scholars' fatwa sites (links only)."""
+    two scholars' fatwa sites first and then the official fatwa body (links only)."""
     from .pipeline import FATWA_BODY, FATWA_REFERENCES
     from .scholars import SCHOLARS
 

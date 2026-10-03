@@ -21,7 +21,8 @@ STRONG_MATCH = 85
 WEAK_MATCH = 60
 
 # Level د: the package says the tool gives no ruling of its own and refers to a qualified body; it names none.
-# A personal case needs a living mufti who knows the facts, so the official fatwa body comes first.
+# Team decision (3 Oct): the reader looks first in the two scholars' published fatwas below; if none covers
+# the case, the official fatwa body.
 FATWA_BODY = {
     "ar": "جهة الإفتاء الرسمية في بلدك، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء",
     "en": "the official fatwa authority in your country (in Saudi Arabia: the General Presidency of Scholarly Research and Ifta)",

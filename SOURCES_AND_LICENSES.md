@@ -16,13 +16,13 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 ### Fatwa referral for level د (team's choice, not in the package's reference table)
 
-The package says that for personal fatwa questions the tool «لا يقدم … حكمًا مستقلًا؛ يوضح المعلومات العامة ويحيل إلى جهة مؤهلة», and names no body. The team relies on the following, in this order. A personal case needs a living mufti who knows the facts, so the official body comes first; the two scholars (may Allah have mercy on them) are where the reader can find their published fatwas on general questions. The tool links to these only: it never quotes, searches, summarises or picks a fatwa, and nothing from them enters a result.
+The package says that for personal fatwa questions the tool «لا يقدم … حكمًا مستقلًا؛ يوضح المعلومات العامة ويحيل إلى جهة مؤهلة», and names no body. The team relies on the following, in this order (team decision, 3 Oct 2026): the reader looks first in the published fatwas of the two scholars (may Allah have mercy on them), whose fatwas the team accepts; if none covers the case, the official fatwa body. The tool links to these only: it never quotes, searches, summarises or picks a fatwa, and nothing from them enters a result.
 
 | Referral | Used for | How |
 |---|---|---|
-| جهة الإفتاء الرسمية في بلد المستخدم، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Where a personal fatwa question is referred | Link only |
-| الموقع الرسمي لسماحة الشيخ عبدالعزيز بن باز (binbaz.org.sa) | Reading his published fatwas, linked under the referral | Link only, no content copied |
-| الموقع الرسمي لفضيلة الشيخ محمد بن صالح العثيمين (binothaimeen.net) | Reading his published fatwas, linked under the referral | Link only, no content copied |
+| الموقع الرسمي لسماحة الشيخ عبدالعزيز بن باز (binbaz.org.sa) | First: where the reader looks for the question in his published fatwas | Link only, no content copied |
+| الموقع الرسمي لفضيلة الشيخ محمد بن صالح العثيمين (binothaimeen.net) | First: where the reader looks for the question in his published fatwas | Link only, no content copied |
+| جهة الإفتاء الرسمية في بلد المستخدم، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Then: where the question goes if the two scholars' fatwas do not cover the case | Link only |
 
 ### How each domain of the package's reference table is covered
 

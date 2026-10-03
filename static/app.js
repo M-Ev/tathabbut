@@ -59,8 +59,8 @@ const T = {
     sahihayn: (list) => `ورد بهذا اللفظ أو بلفظ قريب منه في ${list}، بحسب نتائج الدرر السنية.`, and: " و",
     brackets: "ما بين المعقوفين [ ] من صياغة الدرر السنية لا من لفظ المحدّث: تضعه حين تختصر كلامه أو تعبّر عن معناه، أو حين يُفهم الحكم من كلامه دون تصريح، أو حين يُبنى على شرطٍ نصّ عليه المحدّث في مقدمة كتابه. وما خارج المعقوفين فهو لفظه.", bracketsLink: "تنبيهات الدرر السنية العلمية", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
-    leveld: (b) => `يبدو أن في النص سؤالًا عن حالة شخصية. تثبّت لا يفتي، فيُرجى سؤال ${b}.`,
-    leveldRefs: "ولقراءة ما نُشر من فتاوى أهل العلم في المسائل العامة (والحالة الخاصة يُسأل عنها المفتي):",
+    leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
+    leveldBody: (b) => `فإن لم يوجد فيها ما يستوفي الحالة، فيُرجى سؤال ${b}.`,
     why: "سبب هذه النتيجة",
     tier: { documented: "موثّق المصدر", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     tierLbl: "حالة الدليل",
@@ -159,8 +159,8 @@ const T = {
     glossNote: "Each grading is in Arabic exactly as the scholar wrote it. The English term beside it is the English headword in Jamhara, Islamic Content Vocabulary (islamic-content.com/dictionary), the term reference named in the challenge's scientific package; the group is Tathabbut's grouping for colour. Neither is a new grading.",
     brackets: "Text in square brackets [ ] is Dorar's wording, not the scholar's: Dorar uses it when it shortens or rephrases his statement, when the grading is understood from his words rather than stated outright, or when it follows from a condition he set in the introduction of his book. Words outside the brackets are his.", bracketsLink: "Dorar's scientific notes", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
-    leveld: (b) => `The text seems to include a personal fatwa question. Tathabbut does not issue fatwas; please ask ${b}.`,
-    leveldRefs: "To read scholars' published fatwas on general questions (a personal case is for a mufti to answer):",
+    leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
+    leveldBody: (b) => `If they do not cover the case, ask ${b}.`,
     why: "Why this result",
     tier: { documented: "Traced to source", verify: "Needs more verification", refer: "Refer to a specialist" },
     tierLbl: "Evidence status",
@@ -461,8 +461,8 @@ function render(r) {
     const b = r.level_d.body;
     const refs = (r.level_d.references || []).map((x) =>
       `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
-    ld.innerHTML = `<p>${esc(t().leveld(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></p>`
-      + (refs ? `<p class="refs-h">${esc(t().leveldRefs)}</p><ul class="refs">${refs}</ul>` : "");
+    ld.innerHTML = `<p>${esc(t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "")
+      + `<p>${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></p>`;
   }
   $("results").innerHTML = r.citations.map(renderEntry).join("");
 }
