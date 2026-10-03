@@ -252,3 +252,11 @@ html[dir="ltr"] .ar-inline { text-align: left; }
 .cite-word { font-size: var(--fs-xs); color: var(--ink-2); margin-inline-start: 6px; }
 .entry:focus { outline: none; }
 .entry:focus-visible { outline: var(--rule-strong) solid var(--accent); outline-offset: 4px; }
+
+/* test cases panel (plan item 34) */
+.cases { margin: var(--s-6) 0 0; border-top: var(--hair) solid var(--line); padding-top: var(--s-4); }
+.cases summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.cases-list { list-style: none; margin: var(--s-2) 0 0; padding: 0; }
+.cases-list li { padding: var(--s-2) 0; border-bottom: var(--hair) solid var(--line); }
+.cases-list .case { display: block; text-align: start; min-height: 44px; }
+.cases-list .fine { display: block; }

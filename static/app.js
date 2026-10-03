@@ -88,6 +88,7 @@ const T = {
     copyNo: { found_similar: "لا يُنسخ: اللفظ المنقول لا يطابق الروايات.", not_found: "لا يُنسخ: لم نجد له مصدرًا.", not_in_mushaf: "لا يُنسخ: لم نجده في المصحف.", other: "لا يُنسخ: لم يكتمل التحقق." },
     rawaHu: (b, n) => `رواه ${b} (${n})`, gradedBy: (who, g, src) => `حكم ${who}: «${g}» (${src})`,
     meta: (d, v) => `فحص تثبّت بتاريخ ${d}، الإصدار ${v}. هذا التقرير يخص الاستشهادات المذكورة فقط، وليس شهادة على النص كله.`,
+    casesTitle: "جرّب حالات الاختبار", expected: "النتيجة المتوقعة",
     tierLbl: "حالة الدليل",
     tierShort: { documented: "مطابق", supported: "مؤيَّد", not_supported: "غير مؤيَّد", verify: "تحقَّق", refer: "إحالة" },
     textTitle: "النص المفحوص", textNote: "المعلَّم استشهادات فُحصت، والنقر عليه ينقل إلى نتيجته. وما سواه كلام الكاتب، لم يُفحص.",
@@ -222,6 +223,7 @@ const T = {
     copyNo: { found_similar: "Not copyable: the quoted wording does not match the narrations.", not_found: "Not copyable: no source was found.", not_in_mushaf: "Not copyable: not found in the Mushaf.", other: "Not copyable: the check is incomplete." },
     rawaHu: (b, n) => `Narrated by ${b} (${n})`, gradedBy: (who, g, src) => `${who}: «${g}» (${src})`,
     meta: (d, v) => `Tathabbut check of ${d}, version ${v}. This report covers the citations listed only; it does not vouch for the text as a whole.`,
+    casesTitle: "Try the test cases", expected: "Expected result",
     tierLbl: "Evidence status",
     tierShort: { documented: "matches", supported: "supported", not_supported: "not supported", verify: "verify", refer: "refer" },
     textTitle: "The text checked", textNote: "Marked passages are the citations checked; select one to go to its result. Everything else is the writer's own words and was not checked.",
@@ -265,6 +267,23 @@ const T = {
   },
 };
 
+// Plan item 34: eight test cases a judge can run, each with the result the team expects.
+const CASES = [
+  { text: "قال تعالى: ﴿إن مع العسر يسرا﴾", ar: "آية صحيحة بالإملاء الشائع ← «مطابق للمصحف» (الشرح ٦)", en: "A correct ayah in common spelling → matches the Mushaf (al-Sharh 6)" },
+  { text: "قال تعالى: ﴿يا أيها الذين آمنوا إن جاءكم فاسق بخبر فتبينوا﴾", ar: "آية منقولة بخطأ ← كلمة مخالفة ونص المصحف (الحجرات ٦)", en: "A misquoted ayah → one word differs, with the Mushaf text (al-Hujurat 6)" },
+  { text: "قال تعالى: «إن الله مع الصابرين» (البقرة 200)", ar: "عزو خطأ ← الآية صحيحة والرقم خطأ، وموضعها البقرة ١٥٣", en: "Wrong reference → the ayah is right, the number wrong; it is al-Baqarah 153" },
+  { text: "قال رسول الله ﷺ: «إنما الأعمال بالنيات» متفق عليه.", ar: "حديث في الصحيحين ← «تؤيده المصادر»، والعزو يوافق", en: "A hadith in both Sahihs → supported, and the written attribution agrees" },
+  { text: "قال رسول الله ﷺ: «اطلبوا العلم ولو في الصين» رواه البخاري.", ar: "موضوع منسوب إلى البخاري ← «لا تؤيده المصادر المعتمدة» بالأحمر، ولم يوجد في صحيح البخاري", en: "Fabricated, attributed to al-Bukhari → not supported (red), not found in Sahih al-Bukhari" },
+  { text: "قال رسول الله ﷺ: «أحب الأعمال إلى الله أدومها وإن كثر»", ar: "قول غُيّرت كلمة فيه («وإن قل») ← لفظ مقارب، لا يأخذ حكم الحديث", en: "One word changed («وإن قل») → a similar wording; it does not take the hadith's grading" },
+  { text: "قال رسول الله ﷺ: «من غشنا فليس منا»", ar: "حديث في صحيح مسلم مع حكم على رواية أطول ← «تؤيده المصادر»، وحكم الرواية الأطول معروض بتنبيه", en: "In Sahih Muslim, with a grading of a longer narration → supported; the longer one is shown with a note" },
+  { text: "أنا طلقت زوجتي وهي حائض، فهل يقع الطلاق؟", ar: "سؤال فتوى شخصية ← فتاوى الشيخين المنشورة ثم جهة الإفتاء، ولا حكم من الأداة", en: "A personal fatwa question → the two scholars' published fatwas, then the official body; no ruling from the tool" },
+];
+
+function renderCases() {
+  $("cases-list").innerHTML = CASES.map((c, i) =>
+    `<li><button type="button" class="linkish case" data-case="${i}">${esc(num(i + 1))}. ${esc(c.text)}</button><span class="fine">${esc(t().expected)}: ${esc(lang === "ar" ? c.ar : c.en)}</span></li>`).join("");
+}
+
 const SAMPLES = {
   ar: "أيها الإخوة، يقول الله تعالى: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا إِذَا جَاءَكُمْ فَاسِقٌ بِخَبَرٍ فَتَبَيَّنُوا﴾ (البقرة: 6).\nوقال رسول الله ﷺ: «إنما الأعمال بالنيات».\nوفي الحديث: «اطلبوا العلم ولو في الصين».\nومن يتق الله يجعل له مخرجا ويرزقه من حيث لا يحتسب، فلا تيأسوا.\nوقال تعالى: «النظافة من الإيمان».",
   en: "The Prophet (ﷺ) said: \"Actions are judged by intentions.\"\nAllah says in the Quran: \"Indeed, with hardship comes ease\" (94:6).\nThe Prophet (pbuh) said: \"Seek knowledge even if you have to go to China.\"",
@@ -294,6 +313,7 @@ function applyLang() {
   document.title = lang === "ar" ? "تثبّت · مدقق الاستشهادات الشرعية" : "Tathabbut · Islamic citation checker";
   if (lastResult) render(lastResult);
   showBanner();
+  renderCases();
 }
 
 function place(q) {
@@ -712,6 +732,13 @@ $("results").addEventListener("click", async (e) => {
   }
   b.textContent = t().copied;
   setTimeout(() => { b.textContent = t().copy; }, 2000);
+});
+$("cases-list").addEventListener("click", (e) => {
+  const b = e.target.closest("button.case");
+  if (!b) return;
+  $("text").value = CASES[+b.dataset.case].text;
+  $("text").dispatchEvent(new Event("input"));
+  check();
 });
 $("annotated").addEventListener("click", (e) => {
   const a = e.target.closest(".cite-mark");
