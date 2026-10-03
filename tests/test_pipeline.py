@@ -345,3 +345,21 @@ def test_model_pick_must_share_its_own_wording(fake_dorar, fake_llm):
     c = r["citations"][0]
     assert c["status"] == "not_found" and "model_pick_rejected" in c["notes"] and c["tier"] == "refer"
     assert r["model"]["calls"] == 2
+
+
+def test_chatbot_decision_follows_the_policy_and_never_passes_a_partial_check(fake_dorar, monkeypatch):
+    # Plan item 24: pass / annotate / block from data/chatbot_policy.json; the answer is never rewritten.
+    from app.config import settings
+    fake_dorar({"اطلبوا": "dorar_site_fabricated.html"})
+    r = run(check_text("قال تعالى: ﴿قُلْ هُوَ اللَّهُ أَحَدٌ﴾"))
+    assert r["decision"]["action"] == "pass" and r["decision"]["rewrites_answer"] is False
+    assert r["citations"][0]["span"][0] >= 0 and r["coverage"]["complete"]
+    r = run(check_text("قال تعالى: ﴿قال هو الله أحد﴾"))
+    assert r["decision"]["action"] == "block"
+    r = run(check_text("قال رسول الله ﷺ: «اطلبوا العلم ولو في الصين»"))
+    assert r["decision"]["action"] == "block"
+    monkeypatch.setattr(settings, "max_citations", 1)
+    r = run(check_text("قال تعالى: ﴿قُلْ هُوَ اللَّهُ أَحَدٌ﴾ وقال: ﴿اللَّهُ الصَّمَدُ﴾"))
+    assert r["decision"]["action"] == "annotate" and not r["coverage"]["complete"]
+    assert any(x.get("rule") == "not_fully_checked" for x in r["decision"]["reasons"])
+    assert r["disclaimer"]["ar"] and r["versions"]["chatbot_policy"]

@@ -1,0 +1,17 @@
+{
+  "_about": "Plan item 24: what an Islamic chatbot should do with an answer before showing it, from Tathabbut's check. The team's default; an operator may edit it. The tool never rewrites the answer, and an answer it could not check in full never passes.",
+  "name": "tathabbut-default",
+  "version": "2026-10-04",
+  "block": {
+    "tiers": ["not_supported"],
+    "quran_statuses": ["differs", "not_in_mushaf", "too_short"],
+    "hadith_statuses": ["not_found"],
+    "why": "A Quran quote that differs from the Mushaf, a hadith the approved sources do not support, or a hadith no source was found for is not shown to users as such."
+  },
+  "annotate": {
+    "tiers": ["verify", "refer"],
+    "fatwa_question": true,
+    "why": "Show the answer with the tool's note beside the citation, or the referral for a personal fatwa question."
+  },
+  "never_pass_when_unchecked": true
+}

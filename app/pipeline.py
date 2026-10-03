@@ -15,6 +15,7 @@ from .extract import Candidate, extract
 from .glossary import gloss_book, gloss_grade
 from .normalize import normalize_ar, skeleton_ar
 from .quran import QuranMatch, get_quran
+from .version import VERSION
 from .scholars import EDITORS, GROUP_LABELS, IMAMS, find_scholar, grade_flags, is_hadith_level_grading
 
 log = logging.getLogger("tathabbut")
@@ -425,7 +426,10 @@ async def check_text(text: str, deep: bool = False) -> dict:
                 level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, m.start())), 25)
             except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
                 log.warning("fatwa search failed: %s", e)
-    return {
+    # Positions in the text as received (plan item 24), so an API user can place each note.
+    for out, c in zip(results, cands):
+        out["span"] = [c.start, c.end]
+    result = {
         "citations": results,
         "truncated": truncated if (truncated["text_chars"] > truncated["checked_chars"]
                                    or truncated["citations_found"] > truncated["citations_checked"]) else None,
@@ -438,6 +442,59 @@ async def check_text(text: str, deep: bool = False) -> dict:
                   "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
     }
+    result["coverage"] = _coverage_report(result, truncated, deep)
+    result["decision"] = chatbot_decision(result)
+    result["disclaimer"] = DISCLAIMER
+    result["versions"] = {"app": VERSION["commit"], "display_rules": DISPLAY_RULES["status"],
+                          "chatbot_policy": POLICY["version"], "model": llm.backend.name}
+    return result
+
+
+DISCLAIMER = {
+    "ar": "تثبّت أداة آلية مدعومة بالذكاء الاصطناعي وليست عالمًا ولا مفتيًا. تحققت من الاستشهادات وحدها، لا من صحة الشرح أو الاستدلال.",
+    "en": "Tathabbut is an automated, AI-assisted tool, not a scholar or a mufti. It checked the citations only, not the explanation or the reasoning.",
+}
+POLICY = json.loads((Path(__file__).resolve().parent.parent / "data" / "chatbot_policy.json").read_text(encoding="utf-8"))
+_UNCHECKED = {"source_error", "source_offline", "needs_model", "error"}
+
+
+def _coverage_report(result: dict, truncated: dict, deep: bool) -> dict:
+    """What was and was not checked: an answer is "complete" only if nothing was cut or left unchecked."""
+    unchecked = [c["id"] for c in result["citations"] if c["status"] in _UNCHECKED]
+    gaps = []
+    if truncated["text_chars"] > truncated["checked_chars"]:
+        gaps.append("text_truncated")
+    if truncated["citations_found"] > truncated["citations_checked"]:
+        gaps.append("citations_truncated")
+    if unchecked:
+        gaps.append("citations_unchecked")
+    if result["unsupported_language"]:
+        gaps.append("unsupported_language")
+    if not deep or not result["model"]["used"]:
+        gaps.append("rules_only")  # citations written without any marker may be missed; informative, not a gap in itself
+    return {**truncated, "unchecked_citations": unchecked, "gaps": gaps,
+            "complete": not [g for g in gaps if g != "rules_only"]}
+
+
+def chatbot_decision(result: dict, policy: dict | None = None) -> dict:
+    """pass / annotate / block for a chatbot answer, from data/chatbot_policy.json (plan item 24)."""
+    p = policy or POLICY
+    reasons, action = [], "pass"
+    for c in result["citations"]:
+        b = p["block"]
+        if (c["tier"] in b["tiers"] or (c["type"] == "quran" and c["status"] in b["quran_statuses"])
+                or (c["type"] == "hadith" and c["status"] in b["hadith_statuses"])):
+            reasons.append({"citation": c["id"], "action": "block", "tier": c["tier"], "status": c["status"]})
+        elif c["tier"] in p["annotate"]["tiers"]:
+            reasons.append({"citation": c["id"], "action": "annotate", "tier": c["tier"], "status": c["status"]})
+    if result.get("level_d") and p["annotate"].get("fatwa_question"):
+        reasons.append({"citation": None, "action": "annotate", "rule": "fatwa_question"})
+    if p.get("never_pass_when_unchecked") and not result["coverage"]["complete"]:
+        reasons.append({"citation": None, "action": "annotate", "rule": "not_fully_checked", "gaps": result["coverage"]["gaps"]})
+    acts = {r["action"] for r in reasons}
+    action = "block" if "block" in acts else ("annotate" if acts else "pass")
+    return {"action": action, "reasons": reasons, "policy": {"name": p["name"], "version": p["version"]},
+            "rewrites_answer": False}
 
 
 

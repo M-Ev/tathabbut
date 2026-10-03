@@ -27,6 +27,7 @@ const T = {
     privacy: "لا نحفظ نصك، ولا يُرسل إلى الدرر السنية إلا لفظ الحديث المستخرج. وعند الاستعانة بعلّام يُرسل النص إلى النموذج على خادم الفريق.",
     disclosure: "تثبّت أداة آلية مدعومة بالذكاء الاصطناعي، وليست عالمًا ولا مفتيًا.",
     apiLink: "الواجهة البرمجية لفحص إجابات روبوتات المحادثة",
+    botDemo: "جرّب فحص إجابة روبوت المحادثة قبل عرضها",
     footer: "فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
     quran: "آية", hadith: "حديث", asQuoted: "ورد في النص", byModel: "اكتشفه النموذج اللغوي",
     v: {
@@ -147,6 +148,7 @@ const T = {
     privacy: "Your text is not stored. Only the extracted hadith wording is sent to Dorar. When ALLaM is used, the text is sent to the model on the team's server.",
     disclosure: "Tathabbut is an AI-assisted tool, not a scholar or a mufti.",
     apiLink: "API for checking chatbot answers",
+    botDemo: "Try checking a chatbot answer before it is shown (Arabic page)",
     footer: "Team Qayd al-Awabid · AI Challenge in Serving Islamic Content",
     quran: "Quran", hadith: "Hadith", asQuoted: "As quoted", byModel: "found by the language model",
     v: {
@@ -559,6 +561,7 @@ function render(r) {
   }
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
+  if (r.disclaimer) $("disclaimer").textContent = r.disclaimer[lang] || r.disclaimer.ar;
   const md = r.model || {};
   $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds)) : t().modelNotUsed)}</span>`;
   const tr = r.truncated;

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تثبّت · فحص إجابة روبوت المحادثة</title>
+<meta name="description" content="عرض الاستخدام الثاني لتثبّت: إجابة روبوت المحادثة كما كتبها، وما يراه مستخدمه بعد فحصها.">
+<link rel="stylesheet" href="/static/fonts/fonts.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap mast-row">
+    <div>
+      <p class="wordmark"><a href="/" class="home-link">تثبّت</a></p>
+      <p class="tagline">فحص إجابة روبوت المحادثة قبل عرضها</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="compose" aria-labelledby="bot-h">
+    <h1 id="bot-h" class="section-h">إجابة الروبوت</h1>
+    <p class="lede">يرسل روبوت المحادثة إجابته إلى تثبّت قبل عرضها، فيقرر وفق سياسة مكتوبة: تُعرض، أو تُعرض مع ملاحظة، أو تُوقف. ولا يعيد تثبّت كتابة الإجابة.</p>
+    <textarea id="answer" rows="7" maxlength="8000" placeholder="الصق إجابة الروبوت هنا"></textarea>
+    <div class="compose-foot">
+      <p class="samples"><span>أمثلة:</span>
+        <button type="button" class="linkish" data-sample="bad">إجابة فيها خطأ</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="linkish" data-sample="good">إجابة سليمة</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="linkish" data-sample="fatwa">سؤال فتوى</button>
+      </p>
+    </div>
+    <div class="compose-actions">
+      <span></span>
+      <button id="go" class="primary" type="button">افحص الإجابة</button>
+    </div>
+  </section>
+
+  <p id="status" class="status" aria-live="polite"></p>
+
+  <section id="out" class="bot-compare" hidden aria-label="المقارنة">
+    <div class="bot-col">
+      <h2 class="section-h">كما كتبها الروبوت</h2>
+      <div id="orig" class="bot-text"></div>
+    </div>
+    <div class="bot-col">
+      <h2 class="section-h">ما يراه المستخدم <span id="action" class="tier"></span></h2>
+      <div id="seen" class="bot-text"></div>
+      <ul id="notes" class="bot-notes"></ul>
+      <p id="disc" class="fine"></p>
+    </div>
+  </section>
+
+  <section class="about">
+    <p class="fine">السياسة الافتراضية في <code>data/chatbot_policy.json</code>: تُوقف الإجابة إن خالفت آية لفظ المصحف، أو كان فيها حديث لا تؤيده المصادر المعتمدة أو لم يوجد له مصدر. وتُعرض مع ملاحظة إن احتاج استشهاد مزيدًا من التحقق، أو كان فيها سؤال فتوى، أو لم يُفحص كل ما فيها. والطريقة في <a href="https://github.com/M-Ev/tathabbut/blob/main/docs/api.md">docs/api.md</a>.</p>
+    <p class="fine"><a href="/">العودة إلى تثبّت</a></p>
+  </section>
+</main>
+<script src="/static/chatbot.js"></script>
+</body>
+</html>
