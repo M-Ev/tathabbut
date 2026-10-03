@@ -78,7 +78,7 @@ async def health():
 async def sources():
     """Every source the tool uses, for API users to cite. All are from the challenge's scientific package except
     the level د referral: the package says to refer to a qualified body and names none, so the team chose the
-    two scholars' fatwa sites first and then the official fatwa body (links only)."""
+    two scholars' published fatwas first (shown verbatim with their source, app/fatwa.py) and then the official fatwa body."""
     from .pipeline import FATWA_BODY, FATWA_REFERENCES
     from .scholars import SCHOLARS
 
@@ -93,7 +93,7 @@ async def sources():
         "terms": "موسوعة الجمهرة - مفردات المحتوى الإسلامي (islamic-content.com/dictionary)",
         "fatwa_referral": FATWA_BODY,
         "fatwa_references": FATWA_REFERENCES,
-        "fatwa_referral_note": "Team's choice for level د: the package says «يحيل إلى جهة مؤهلة» and names no body. The tool links to these and never quotes or relies on a fatwa in its results.",
+        "fatwa_referral_note": "Team's choice for level د: the package says «يحيل إلى جهة مؤهلة» and names no body. The tool shows the two scholars' published fatwas on close questions verbatim with source and link (Ibn Baz in full; Ibn al-Uthaymeen question and opening line, as the foundation reserves its rights). They are found by each site's own search and ordered by word overlap; the language model never writes or picks a fatwa.",
     }
 
 

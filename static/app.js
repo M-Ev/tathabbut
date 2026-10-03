@@ -60,7 +60,12 @@ const T = {
     brackets: "ما بين المعقوفين [ ] من صياغة الدرر السنية لا من لفظ المحدّث: تضعه حين تختصر كلامه أو تعبّر عن معناه، أو حين يُفهم الحكم من كلامه دون تصريح، أو حين يُبنى على شرطٍ نصّ عليه المحدّث في مقدمة كتابه. وما خارج المعقوفين فهو لفظه.", bracketsLink: "تنبيهات الدرر السنية العلمية", searchDorar: "ابحث بنفسك في الدرر السنية",
     matchedArabic: "الأصل العربي الذي طابقه النموذج",
     leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
+    leveldFound: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. هذه فتاوى منشورة للعالمين الجليلين في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما. اختيرت بتقارب الألفاظ بين السؤال وعناوين الفتاوى، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق حالتك.",
     leveldBody: (b) => `فإن لم يوجد فيها ما يستوفي الحالة، فيُرجى سؤال ${b}.`,
+    bodyLink: "موقع الرئاسة العامة للبحوث العلمية والإفتاء",
+    fatwasOf: (n) => `فتاوى ${n}`, fq: "السؤال", fopen: "أول الجواب بنصه", fsource: "المصدر",
+    ffull: "اعرض الفتوى كاملة", ffullSite: "اعرض الفتوى كاملة في موقع المؤسسة", flink: "رابط الفتوى في الموقع",
+    fnone: "لم نجد في فتاواه المنشورة ما يقارب ألفاظ السؤال.", ferror: "تعذّر الوصول إلى موقعه الآن.", fsearch: "ابحث بنفسك في موقعه",
     why: "سبب هذه النتيجة",
     tier: { documented: "مطابق للمصحف", supported: "تؤيده المصادر", not_supported: "لا تؤيده المصادر المعتمدة", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     rulesDraft: "قواعد حالة الدليل مسودة من الفريق، تنتظر توقيع المراجِعة الشرعية.", rulesSigned: (who, d) => `قواعد حالة الدليل راجعتها ووقّعتها ${who} في ${d}.`,
@@ -161,7 +166,12 @@ const T = {
     brackets: "Text in square brackets [ ] is Dorar's wording, not the scholar's: Dorar uses it when it shortens or rephrases his statement, when the grading is understood from his words rather than stated outright, or when it follows from a condition he set in the introduction of his book. Words outside the brackets are his.", bracketsLink: "Dorar's scientific notes", searchDorar: "Search Dorar yourself",
     matchedArabic: "Arabic source matched by the model",
     leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
+    leveldFound: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Below are published fatwas of the two scholars on close questions, quoted in Arabic exactly as on their sites. They were chosen by word overlap between the question and the fatwa titles; the language model neither wrote nor chose them, so check that they match your case.",
     leveldBody: (b) => `If they do not cover the case, ask ${b}.`,
+    bodyLink: "General Presidency of Scholarly Research and Ifta (official site)",
+    fatwasOf: (n) => `Fatwas of ${n}`, fq: "Question", fopen: "Opening of the answer, verbatim", fsource: "Source",
+    ffull: "Show the full fatwa", ffullSite: "Read the full fatwa on the foundation's site", flink: "Fatwa page on the site",
+    fnone: "None of his published fatwas is close to the question's wording.", ferror: "His site could not be reached right now.", fsearch: "Search his site yourself",
     why: "Why this result",
     tier: { documented: "Matches the Mushaf", supported: "Supported by the sources", not_supported: "Not supported by the approved sources", verify: "Needs more verification", refer: "Refer to a specialist" },
     rulesDraft: "The evidence-status rules are the team's draft, awaiting the Sharia reviewer's signature.", rulesSigned: (who, d) => `The evidence-status rules were reviewed and signed by ${who} on ${d}.`,
@@ -455,6 +465,24 @@ function renderEntry(c) {
   return h + `</div></li>`;
 }
 
+// The two scholars' fatwas: their words verbatim, the site's own source line and link; nothing written by the tool.
+function renderScholarFatwas(sc) {
+  const ar = (x) => `<bdi dir="rtl" lang="ar">${esc(x)}</bdi>`;
+  let h = `<section class="fatwas"><h3 class="fatwas-h">${esc(t().fatwasOf(lang === "ar" ? sc.ar : sc.en))}</h3>`;
+  if (sc.error) h += `<p class="fine">${esc(t().ferror)} <a href="${esc(sc.site)}" target="_blank" rel="noopener">${esc(lang === "ar" ? sc.site_ar : sc.site_en)}</a></p>`;
+  else if (!sc.fatwas.length) h += `<p class="fine">${esc(t().fnone)} <a href="${esc(sc.search_url)}" target="_blank" rel="noopener">${esc(t().fsearch)}</a></p>`;
+  for (const f of sc.fatwas) {
+    h += `<article class="fatwa"><p class="fatwa-title">${ar(f.title)}</p>`;
+    if (f.question) h += `<p class="fatwa-part"><span class="lbl">${esc(t().fq)}</span>${ar(f.question)}</p>`;
+    if (f.opening) h += `<p class="fatwa-part"><span class="lbl">${esc(t().fopen)}</span>${ar(f.opening)}</p>`;
+    if (f.answer) h += `<details class="fatwa-full"><summary>${esc(t().ffull)}</summary><div class="fatwa-text" dir="rtl" lang="ar">${esc(f.answer)}</div></details>`;
+    const src = [lang === "ar" ? sc.site_ar : sc.site_en, f.source].filter(Boolean).join("، ");
+    h += `<p class="after">${esc(t().fsource)}: ${esc(src)} · <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.answer || !f.opening ? t().flink : t().ffullSite)}</a></p></article>`;
+  }
+  h += `<p class="fine">${esc(lang === "ar" ? sc.terms_ar : sc.terms_en)}</p>`;
+  return h + `</section>`;
+}
+
 function render(r) {
   $("report").hidden = false;
   if (r.summary.total) {
@@ -467,10 +495,16 @@ function render(r) {
   ld.hidden = !r.level_d;
   if (r.level_d) {
     const b = r.level_d.body;
-    const refs = (r.level_d.references || []).map((x) =>
-      `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
-    ld.innerHTML = `<p>${esc(t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "")
-      + `<p>${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></p>`;
+    const found = r.level_d.fatwas && r.level_d.fatwas.scholars && r.level_d.fatwas.scholars.length;
+    let h;
+    if (found) {
+      h = `<p>${esc(t().leveldFound)}</p>` + r.level_d.fatwas.scholars.map(renderScholarFatwas).join("");
+    } else {
+      const refs = (r.level_d.references || []).map((x) =>
+        `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
+      h = `<p>${esc(t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "");
+    }
+    ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
   $("results").innerHTML = r.citations.map(renderEntry).join("");
 }

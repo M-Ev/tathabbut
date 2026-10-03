@@ -176,3 +176,31 @@ def test_distant_hadith_is_not_shown_under_a_quote_missing_from_the_mushaf(fake_
     r = run(check_text("قال الله تعالى: «اطلبوا العلم من المهد إلى اللحد في كل مكان»"))
     c = r["citations"][0]
     assert c["status"] == "not_in_mushaf" and c["hadith"] is None
+
+
+def test_fatwa_question_shows_the_two_scholars_fatwas_verbatim(fake_dorar):
+    # Plan items 42-44: found through each site's own search, ordered by word overlap, never by the model.
+    fake_dorar({})
+    r = run(check_text("هل يجوز لي الزواج بنية الطلاق وأنا مسافر للدراسة؟"))
+    ld = r["level_d"]
+    assert ld["detected"] and "alifta" in ld["body"]["url"]
+    baz, uth = ld["fatwas"]["scholars"]
+    assert baz["key"] == "binbaz" and uth["key"] == "uthaymeen"
+    (f,) = baz["fatwas"]  # the unrelated title is below the floor
+    assert f["title"] == "ما حكم الزواج بنية الطلاق؟" and f["question"] == "الزواج بنية الطلاق؟"
+    assert f["answer"].startswith("عند الجمهور لا بأس، وتركه أوْلى") and "الأحوط تركه" in f["answer"]  # verbatim, full
+    assert f["opening"] == "عند الجمهور لا بأس، وتركه أوْلى، الأكثرون يقولون لا بأس، هذا شيء بينه وبين ربه."
+    (u,) = uth["fatwas"]  # the book lesson is not a fatwa
+    assert "answer" not in u  # the foundation reserves its rights: opening line and link only
+    assert u["opening"] == "أول جملة في الجواب الاختباري." and u["source"] == "فتاوى نور على الدرب، الشريط رقم [1]"
+    assert u["url"].startswith("https://binothaimeen.net/") and u["url"].endswith("/u-1")
+    assert "مسافر" in ld["fatwas"]["terms"] and "يجوز" not in ld["fatwas"]["terms"]
+
+
+def test_fatwa_question_with_nothing_close_still_refers(fake_dorar, fake_fatwa_sites):
+    fake_dorar({})
+    fake_fatwa_sites()
+    r = run(check_text("أنا في دولة أوروبية، هل يجوز لي أن أفعل كذا في زواجي؟"))
+    ld = r["level_d"]
+    assert all(b["fatwas"] == [] and b["search_url"] for b in ld["fatwas"]["scholars"])
+    assert "بلدك" in ld["body"]["ar"]

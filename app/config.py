@@ -29,6 +29,8 @@ class Settings:
         "TATHABBUT_USER_AGENT",
         "Tathabbut/0.1 (citation checker for the Islamic Content AI Challenge; +https://github.com/M-Ev/tathabbut)",
     )
+    # Level د: search the two scholars' official sites for fatwas on close questions (app/fatwa.py)
+    fatwa_search: bool = _env("TATHABBUT_FATWA_SEARCH", "1") != "0"
     max_text_chars: int = int(_env("TATHABBUT_MAX_CHARS", "8000"))
     max_citations: int = int(_env("TATHABBUT_MAX_CITATIONS", "12"))
 

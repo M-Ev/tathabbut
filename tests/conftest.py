@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from app import dorar, llm
+from app import dorar, fatwa, llm
 
 FIX = Path(__file__).parent / "fixtures"
 
@@ -60,3 +60,35 @@ def fake_llm(monkeypatch):
 
 def run(coro):
     return asyncio.run(coro)
+
+
+def fatwa_transport(empty: bool = False):
+    """The two scholars' sites, from structural fixtures. Tests never reach the network."""
+
+    def handler(request: httpx.Request):
+        url = str(request.url)
+        if empty:
+            body = '{"Search": {"results": []}}' if "binbaz" in url else '{"data": []}'
+            return httpx.Response(200, text=body)
+        if "binbaz.org.sa/api/search" in url:
+            return httpx.Response(200, text=(FIX / "binbaz_search.json").read_text(encoding="utf-8"))
+        if "binbaz.org.sa/fatwas/" in url:
+            return httpx.Response(200, text=(FIX / "binbaz_fatwa.html").read_text(encoding="utf-8"))
+        if "search-data" in url:
+            return httpx.Response(200, text=(FIX / "uth_search.json").read_text(encoding="utf-8"))
+        if "lessons/audios/show" in url:
+            return httpx.Response(200, text=(FIX / "uth_show.json").read_text(encoding="utf-8"))
+        return httpx.Response(404)
+
+    return httpx.MockTransport(handler)
+
+
+@pytest.fixture(autouse=True)
+def fake_fatwa_sites(monkeypatch):
+    monkeypatch.setattr(fatwa, "MIN_INTERVAL", 0)
+    monkeypatch.setattr(fatwa, "_client", fatwa.FatwaClient(transport=fatwa_transport()))
+
+    def empty():
+        monkeypatch.setattr(fatwa, "_client", fatwa.FatwaClient(transport=fatwa_transport(empty=True)))
+
+    return empty

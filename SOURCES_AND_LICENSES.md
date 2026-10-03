@@ -16,12 +16,12 @@ Items marked ⚠ still need confirmation by the team before final submission.
 
 ### Fatwa referral for level د (team's choice, not in the package's reference table)
 
-The package says that for personal fatwa questions the tool «لا يقدم … حكمًا مستقلًا؛ يوضح المعلومات العامة ويحيل إلى جهة مؤهلة», and names no body. The team relies on the following, in this order (team decision, 3 Oct 2026): the reader looks first in the published fatwas of the two scholars (may Allah have mercy on them), whose fatwas the team accepts; if none covers the case, the official fatwa body. The tool links to these only: it never quotes, searches, summarises or picks a fatwa, and nothing from them enters a result.
+The package says that for personal fatwa questions the tool «لا يقدم … حكمًا مستقلًا؛ يوضح المعلومات العامة ويحيل إلى جهة مؤهلة», and names no body. The team relies on the following, in this order (team decision, 3 Oct 2026): the reader looks first in the published fatwas of the two scholars (may Allah have mercy on them), whose fatwas the team accepts; if none covers the case, the official fatwa body. Since 4 Oct 2026 (owner's decision on 3 Oct: «تجيب فتاويهم لازم», then «نص الفتوى»), the tool shows the two scholars' published fatwas on close questions, verbatim, with their source and link (`app/fatwa.py`). They are found through each site's own search and ordered by word overlap with the question; the language model never writes, summarises or picks a fatwa. A fatwa is shown as published, never as the tool's answer to the user's case, and the official body is always named after them.
 
 | Referral | Used for | How |
 |---|---|---|
-| الموقع الرسمي لسماحة الشيخ عبدالعزيز بن باز (binbaz.org.sa) | First: where the reader looks for the question in his published fatwas | Link only, no content copied |
-| الموقع الرسمي لفضيلة الشيخ محمد بن صالح العثيمين (binothaimeen.net) | First: where the reader looks for the question in his published fatwas | Link only, no content copied |
+| الموقع الرسمي لسماحة الشيخ عبدالعزيز بن باز (binbaz.org.sa) | First: his published fatwas on close questions | Full text verbatim with source and link. Terms (site footer, checked 3 Oct 2026): «جميع الحقوق محفوظة والنقل متاح لكل مسلم بشرط ذكر المصدر» |
+| موقع مؤسسة الشيخ محمد بن صالح العثيمين الخيرية (binothaimeen.net) | First: his published fatwas on close questions | Question and the opening line of the answer verbatim, source and a link to the full fatwa on the foundation's site. Terms (checked 3 Oct 2026): «جميع الحقوق محفوظة © لمؤسسة الشيخ محمد بن صالح العثيمين الخيرية», and the Shaykh's word on the homepage asks that his words not be published elsewhere without permission. The full text is not shown unless the foundation permits it; any permission request is sent by the team, and none has been sent or received yet |
 | جهة الإفتاء الرسمية في بلد المستخدم، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Then: where the question goes if the two scholars' fatwas do not cover the case | Link only |
 
 ### How each domain of the package's reference table is covered

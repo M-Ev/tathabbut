@@ -8,7 +8,7 @@ from pathlib import Path
 
 from rapidfuzz import fuzz
 
-from . import llm
+from . import fatwa, llm
 from .config import settings
 from .dorar import DorarResult, get_dorar
 from .extract import Candidate, extract
@@ -31,7 +31,8 @@ FATWA_BODY = {
     "url": "https://www.alifta.gov.sa",
 }
 # The team relies on these two scholars' published fatwas (team's choice; not in the package's reference table).
-# The tool links to their official sites only: it never quotes, searches, summarises or picks a fatwa.
+# app/fatwa.py finds their fatwas on close questions through each site's own search and shows them verbatim with
+# their source; the language model never writes, summarises or picks a fatwa.
 FATWA_REFERENCES = [
     {"ar": "فتاوى سماحة الشيخ عبدالعزيز بن باز رحمه الله (الموقع الرسمي)",
      "en": "Fatwas of Shaykh Abd al-Aziz ibn Baz (official site)", "url": "https://binbaz.org.sa"},
@@ -311,10 +312,18 @@ async def check_text(text: str, deep: bool = False) -> dict:
         out["tier"] = evidence_tier(out)
         results.append(out)
 
-    fatwa = bool(PERSONAL_FATWA.search(text))
+    level_d = None
+    m = PERSONAL_FATWA.search(text)
+    if m:
+        level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None}
+        if settings.fatwa_search:
+            try:
+                level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, m.start())), 25)
+            except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
+                log.warning("fatwa search failed: %s", e)
     return {
         "citations": results,
-        "level_d": {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES} if fatwa else None,
+        "level_d": level_d,
         "summary": _summary(results),
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
         "model": {"backend": llm.backend.name, "used": deep and llm.available(), "dropped_unverifiable": dropped},
@@ -349,6 +358,13 @@ def _hadith_tier(r: dict) -> str:
     if cats and cats <= set(rules["not_supported_categories"]):
         return "not_supported"
     return "verify"
+
+
+def _sentence_at(text: str, pos: int) -> str:
+    """The sentence holding the fatwa question: only its topic words are sent to the two scholars' sites."""
+    start = max(text.rfind(ch, 0, pos) for ch in ".!؟?\n") + 1
+    ends = [i for i in (text.find(ch, pos) for ch in ".!؟?\n") if i != -1]
+    return text[start : min(ends) if ends else len(text)].strip()
 
 
 def evidence_tier(r: dict) -> str:
