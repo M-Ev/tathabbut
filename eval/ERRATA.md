@@ -19,7 +19,7 @@ Every fault the team found in its own results during the build days (4 to 6 Octo
 | 13 | Behind the hosting proxy all visitors shared one request limit | plan item 16 (inferred, not observed) | 12060d7 | per visitor |
 | 14 | More than 12 citations were cut with no word | plan item 18 | 12060d7 | «فُحص أول ١٢ استشهادًا من ١٥» |
 | 15 | «هل علي بن أبي طالب أول من أسلم؟» treated as a fatwa question; «أنا طلقت زوجتي وهي حائض» missed | plan item 32 | 2398948 | both right |
-| 16 | The published `eval/report.md` showed the four hadith cases as "source error" | preflight | this commit | report now runs on the live site (`--via-space`) and says where it ran |
+| 16 | The published `eval/report.md` showed the four hadith cases as "source error" | preflight | 17dab76 | report now runs on the live site (`--via-space`) and says where it ran |
 
 Known and open:
 - Three hadith whose narration Dorar shows abbreviated or worded differently («من حسن إسلام المرء...», «تبسمك في وجه أخيك...», «تفكر ساعة...») now read as a similar wording (cost of fault 11's fix).
