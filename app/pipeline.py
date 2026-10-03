@@ -428,7 +428,9 @@ async def check_text(text: str, deep: bool = False) -> dict:
                 log.warning("fatwa search failed: %s", e)
     # Positions in the text as received (plan item 24), so an API user can place each note.
     for out, c in zip(results, cands):
-        out["span"] = [c.start, c.end]
+        out["span"] = [c.start, c.end]  # marker and quote («قال رسول الله ﷺ: «...»»)
+        q = text.find(c.quote, c.start, c.end + 2)
+        out["quote_span"] = [q, q + len(c.quote)] if q >= 0 else [c.start, c.end]  # the quoted words alone
     result = {
         "citations": results,
         "truncated": truncated if (truncated["text_chars"] > truncated["checked_chars"]

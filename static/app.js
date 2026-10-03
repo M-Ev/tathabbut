@@ -83,7 +83,13 @@ const T = {
     why: "سبب هذه النتيجة",
     tier: { documented: "مطابق للمصحف", supported: "تؤيده المصادر", not_supported: "لا تؤيده المصادر المعتمدة", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     rulesDraft: "قواعد حالة الدليل مسودة من الفريق، تنتظر توقيع المراجِعة الشرعية.", rulesSigned: (who, d) => `قواعد حالة الدليل راجعتها ووقّعتها ${who} في ${d}.`,
+    copy: "انسخ الاستشهاد بمصدره", copied: "نُسخ",
+    copyNo: { found_similar: "لا يُنسخ: اللفظ المنقول لا يطابق الروايات.", not_found: "لا يُنسخ: لم نجد له مصدرًا.", not_in_mushaf: "لا يُنسخ: لم نجده في المصحف.", other: "لا يُنسخ: لم يكتمل التحقق." },
+    rawaHu: (b, n) => `رواه ${b} (${n})`, gradedBy: (who, g, src) => `حكم ${who}: «${g}» (${src})`,
+    meta: (d, v) => `فحص تثبّت بتاريخ ${d}، الإصدار ${v}. هذا التقرير يخص الاستشهادات المذكورة فقط، وليس شهادة على النص كله.`,
     tierLbl: "حالة الدليل",
+    tierShort: { documented: "مطابق", supported: "مؤيَّد", not_supported: "غير مؤيَّد", verify: "تحقَّق", refer: "إحالة" },
+    textTitle: "النص المفحوص", textNote: "المعلَّم استشهادات فُحصت، والنقر عليه ينقل إلى نتيجته. وما سواه كلام الكاتب، لم يُفحص.",
     report: "أبلغ عن خطأ في هذه النتيجة", reportNote: "يُنشر البلاغ علنًا في GitHub ومعه النص المقتبس.",
     r: {
       compared: "قارنّا كلمات النص بنص المصحف حرفًا حرفًا، دون اعتبار للتشكيل ولا لفروق الرسم العثماني والإملائي.",
@@ -210,7 +216,13 @@ const T = {
     why: "Why this result",
     tier: { documented: "Matches the Mushaf", supported: "Supported by the sources", not_supported: "Not supported by the approved sources", verify: "Needs more verification", refer: "Refer to a specialist" },
     rulesDraft: "The evidence-status rules are the team's draft, awaiting the Sharia reviewer's signature.", rulesSigned: (who, d) => `The evidence-status rules were reviewed and signed by ${who} on ${d}.`,
+    copy: "Copy the citation with its source", copied: "Copied",
+    copyNo: { found_similar: "Not copyable: the quoted wording does not match the narrations.", not_found: "Not copyable: no source was found.", not_in_mushaf: "Not copyable: not found in the Mushaf.", other: "Not copyable: the check is incomplete." },
+    rawaHu: (b, n) => `Narrated by ${b} (${n})`, gradedBy: (who, g, src) => `${who}: «${g}» (${src})`,
+    meta: (d, v) => `Tathabbut check of ${d}, version ${v}. This report covers the citations listed only; it does not vouch for the text as a whole.`,
     tierLbl: "Evidence status",
+    tierShort: { documented: "matches", supported: "supported", not_supported: "not supported", verify: "verify", refer: "refer" },
+    textTitle: "The text checked", textNote: "Marked passages are the citations checked; select one to go to its result. Everything else is the writer's own words and was not checked.",
     report: "Report a problem with this result", reportNote: "Reports are public GitHub issues and include the quoted text.",
     r: {
       compared: "We compared the text with the Mushaf letter by letter, ignoring diacritics and Uthmani versus standard spelling.",
@@ -259,6 +271,7 @@ const SAMPLES = {
 const REPO = "https://github.com/M-Ev/tathabbut";
 let lang = "ar";
 let lastResult = null;
+let lastText = "";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const t = () => T[lang];
@@ -500,6 +513,35 @@ function renderWhy(c, cls) {
   return `<details class="why"${cls === "ok" ? "" : " open"}><summary>${esc(t().why)}</summary><ul>${li}</ul></details>`;
 }
 
+// Plan item 28: the copied text is built from the source fields only, never from the quote as written.
+function copyFor(c) {
+  const q = c.quran || {};
+  if (c.type === "quran") {
+    if (!(["verified", "differs"].includes(c.status) && q.surah != null && q.via === "arabic")) return { no: t().copyNo[c.status] || t().copyNo.other };
+    const text = (q.ayat && q.ayat.length ? q.ayat.map((a) => a.text) : [q.mushaf_text]).join(" ");
+    const a = q.ayah_from === q.ayah_to ? q.ayah_from : `${q.ayah_from}-${q.ayah_to}`;
+    return { text: `﴿${glyphs(text)}﴾ [${q.surah_name_ar}: ${a}]` };
+  }
+  const hd = c.hadith || {};
+  if (c.status !== "graded") return { no: t().copyNo[c.status] || t().copyNo.other };
+  const items = (hd.groups || []).flatMap((g) => g.items);
+  if ((hd.sahihayn || []).length) {
+    const first = items.find((i) => i.book === hd.sahihayn[0].book && i.number === hd.sahihayn[0].number) || items[0];
+    const by = hd.sahihayn.map((x) => `${x.book.replace("صحيح ", "")} (${x.number})`).join("، و");
+    return { text: `«${first.text}» رواه ${by}.\n${hd.sahihayn[0].url || hd.search_url}` };
+  }
+  const same = items.filter((i) => (i.match || "same") === "same" && i.similarity >= 85);
+  if (!same.length) return { no: t().copyNo.other };
+  const lines = same.map((i) => `حكم ${i.scholar_ar}: «${i.grade}» (${i.book}، ${i.number}) ${i.url || ""}`.trim());
+  return { text: `«${same[0].text}»\n${lines.join("\n")}` };
+}
+
+function copyButton(c) {
+  const x = copyFor(c);
+  if (x.no) return `<p class="after copy-row"><button type="button" class="linkish copy" disabled>${esc(t().copy)}</button> <span class="fine">${esc(x.no)}</span></p>`;
+  return `<p class="after copy-row"><button type="button" class="linkish copy" data-copy="${esc(x.text)}">${esc(t().copy)}</button></p>`;
+}
+
 function reportLink(c) {
   const q = c.quran || {};
   const body = [
@@ -518,7 +560,7 @@ function renderEntry(c) {
   // orange for everything that needs attention or a specialist (data/display_rules.json).
   const fab = ((c.hadith || {}).fabricated_by || []).length > 0;
   const tierCls = { documented: "ok", supported: "ok", not_supported: fab ? "bad" : "warn", verify: "warn", refer: "warn" }[c.tier] || "";
-  let h = `<li class="entry" style="--i:${c.id - 1}"><div class="entry-no">${num(c.id)}</div><div>
+  let h = `<li class="entry" id="c-${c.id}" tabindex="-1" style="--i:${c.id - 1}"><div class="entry-no">${num(c.id)}</div><div>
     <p class="entry-kind">${esc(kind)}${c.found_by === "model" ? ` · ${esc(t().byModel)}` : ""}
       <span class="tier ${tierCls}">${esc(t().tierLbl)}: ${esc(t().tier[c.tier] || "")}</span></p>
     <p class="verdict ${cls}">${esc(verdict)}</p>
@@ -530,6 +572,7 @@ function renderEntry(c) {
   if (c.hadith) h += renderGradings(c.hadith);
   h += renderWhy(c, cls);
   if (c.referral) h += `<p class="refer">${esc(c.referral[lang])}</p>`;
+  h += copyButton(c);
   h += reportLink(c);
   return h + `</div></li>`;
 }
@@ -552,6 +595,27 @@ function renderScholarFatwas(sc) {
   return h + `</section>`;
 }
 
+// Plan item 27: the text as pasted, each citation marked with an icon and a word (never colour alone).
+const TIER_ICON = { documented: "✓", supported: "✓", not_supported: "✕", verify: "!", refer: "؟" };
+function tierClass(c) {
+  const fab = ((c.hadith || {}).fabricated_by || []).length > 0;
+  return { documented: "ok", supported: "ok", not_supported: fab ? "bad" : "warn", verify: "warn", refer: "warn" }[c.tier] || "";
+}
+function renderAnnotated(text, cits) {
+  if (!text || !cits.length) return "";
+  let h = "", at = 0;
+  const sp = (c) => c.quote_span || c.span;
+  for (const c of [...cits].filter(sp).sort((a, b) => sp(a)[0] - sp(b)[0])) {
+    const [s, e] = sp(c);
+    if (s < at || e > text.length) continue;
+    h += esc(text.slice(at, s));
+    h += `<a class="cite-mark ${tierClass(c)}" href="#c-${c.id}" data-c="${c.id}"><span class="cite-badge" aria-hidden="true">${TIER_ICON[c.tier] || ""} ${esc(num(c.id))}</span>${esc(text.slice(s, e))}<span class="cite-word">${esc(t().tierShort[c.tier] || "")}</span></a>`;
+    at = e;
+  }
+  h += esc(text.slice(at));
+  return `<details class="annot" open><summary>${esc(t().textTitle)}</summary><p class="fine">${esc(t().textNote)}</p><div class="annot-text" dir="auto">${h}</div></details>`;
+}
+
 function render(r) {
   $("report").hidden = false;
   if (r.summary.total) {
@@ -562,6 +626,8 @@ function render(r) {
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
   if (r.disclaimer) $("disclaimer").textContent = r.disclaimer[lang] || r.disclaimer.ar;
+  const day = new Date().toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { year: "numeric", month: "long", day: "numeric" });
+  $("report-meta").textContent = t().meta(day, (r.versions || {}).app || "—");
   const md = r.model || {};
   $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds)) : t().modelNotUsed)}</span>`;
   const tr = r.truncated;
@@ -582,6 +648,8 @@ function render(r) {
     }
     ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
+  $("annotated").innerHTML = renderAnnotated(lastText, r.citations);
+  $("annotated").hidden = !r.citations.length;
   $("results").innerHTML = r.citations.map(renderEntry).join("");
 }
 
@@ -596,6 +664,7 @@ async function check() {
     if (res.status === 429) { $("status").textContent = t().busy; return; }
     if (!res.ok) throw new Error(res.status);
     lastResult = await res.json();
+    lastText = text;
     $("status").textContent = "";
     render(lastResult);
     health();
@@ -631,6 +700,24 @@ function showBanner() {
 }
 
 $("go").addEventListener("click", check);
+$("results").addEventListener("click", async (e) => {
+  const b = e.target.closest("button.copy[data-copy]");
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copy); } catch (err) {
+    const ta = document.createElement("textarea"); ta.value = b.dataset.copy; document.body.append(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e2) { /* nothing more to try */ } ta.remove();
+  }
+  b.textContent = t().copied;
+  setTimeout(() => { b.textContent = t().copy; }, 2000);
+});
+$("annotated").addEventListener("click", (e) => {
+  const a = e.target.closest(".cite-mark");
+  if (!a) return;
+  e.preventDefault();
+  const el = $("c-" + a.dataset.c);
+  el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+});
 $("text").addEventListener("input", updateCounter);
 $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) check(); });
 document.querySelectorAll("[data-sample]").forEach((b) => b.addEventListener("click", () => {

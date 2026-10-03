@@ -16,7 +16,8 @@ POST /api/check
 | `decision.action` | `pass` (show as is), `annotate` (show with the notes), `block` (do not show the cited text as such) |
 | `decision.reasons[]` | per citation: `citation` (id), `action`, `tier`, `status`; or a `rule`: `fatwa_question`, `not_fully_checked` |
 | `decision.policy` | policy `name` and `version` that decided |
-| `citations[].span` | `[start, end]` character offsets of the citation in the text sent |
+| `citations[].span` | `[start, end]` character offsets of the citation (marker and quote) in the text sent |
+| `citations[].quote_span` | offsets of the quoted words alone |
 | `citations[].tier` | `documented`, `supported`, `not_supported`, `verify`, `refer` |
 | `coverage` | `complete`, `gaps` (`text_truncated`, `citations_truncated`, `citations_unchecked`, `unsupported_language`; `rules_only` is informative), counts |
 | `level_d` | a personal fatwa question: the two scholars' published fatwas and the official body |
