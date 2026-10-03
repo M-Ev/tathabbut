@@ -7,8 +7,13 @@ This file documents the starting version: everything in this repository up to co
 `e73f92f391d707c6c8964ce040545901af891c4a` (pushed to GitHub on 1 October 2026) was built **before 4 October 2026** (1 October 2026), after the team qualified,
 with the AI tools listed in SOURCES_AND_LICENSES.md. A git tag could not be pushed from the build environment, so the commit hash is the record.
 
-Commits made on 1 to 3 October after that one (applying the challenge's scientific package, wording, tests and baseline measurements) are also
-part of the starting version. The last commit before 4 October will be named here as the final starting point; everything after it is in CHANGELOG.md.
+Commits made on 1 to 3 October after that one (applying the challenge's scientific package, wording, tests and baseline measurements,
+the fatwa referral, repository housekeeping and the API documentation) are also part of the starting version.
+
+**Final starting point:** commit `1bc66fbdf6603fe974d5f0f91b400a88a21c31c3` (pushed 3 October 2026, 06:09 UTC = 09:09 Riyadh),
+the last commit on `main` when the build window opened at 4 October 2026 00:00 Riyadh time (3 October 21:00 UTC).
+Everything after it was done during the build days and is listed in CHANGELOG.md.
+To see only the evaluated work: `git diff 1bc66fb..main`.
 
 ## What the starting version contains
 
