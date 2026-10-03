@@ -307,3 +307,15 @@ def test_health_reports_dorar_and_the_rate_limit_sees_the_visitor():
         headers = {"x-forwarded-for": "6.6.6.6, 203.0.113.9"}
         client = type("C", (), {"host": "10.0.0.1"})()
     assert main._client_ip(R()) == "203.0.113.9"
+
+
+def test_written_attribution_is_compared_with_the_sahihayn_line(fake_dorar):
+    # Plan item 19: «رواه البخاري» and «متفق عليه» are read and compared, said as what the search found.
+    fake_dorar({"إنما": "dorar_site.html", "اطلبوا": "dorar_site_fabricated.html"})
+    c = run(check_text("قال رسول الله ﷺ: «إنما الأعمال بالنيات» متفق عليه."))["citations"][0]
+    assert c["attribution"]["confirmed"] == ["bukhari", "muslim"] and c["tier"] == "supported"
+    c = run(check_text("قال رسول الله ﷺ: «اطلبوا العلم ولو في الصين» رواه البخاري."))["citations"][0]
+    assert c["attribution"]["not_found_in"] == ["bukhari"]
+    assert c["tier"] == "not_supported" and "firm_form" in c["notes"]
+    c = run(check_text("رُوي عن النبي ﷺ أنه قال: «اطلبوا العلم ولو في الصين»"))["citations"][0]
+    assert c["cautious"] and "firm_form" not in c["notes"]

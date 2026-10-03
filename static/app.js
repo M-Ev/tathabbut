@@ -61,6 +61,7 @@ const T = {
     ijtihad: "اختلفت أحكام علماء الحديث المعتمدين، وكلها اجتهاد يُعرض كما هو دون ترجيح.",
     gradeCols: ["العالِم", "الحكم بنصه", "المصادر"], died: (y) => `ت ${y}هـ`,
     sourceText: "نص الحديث في المصدر", rawi: "الراوي", openDorar: "في الدرر السنية",
+    bookName: { bukhari: "صحيح البخاري", muslim: "صحيح مسلم" },
     longerText: (n) => `هذا الحكم على رواية أطول (${n} كلمة) ورد فيها اللفظ المنقول، لا على اللفظ المنقول وحده، فلا تُبنى عليه حالة الدليل.`,
     partialText: (w) => `في النص المنقول ما لم نجده في هذه الرواية: «${w}». فالحكم على لفظ مقارب، لا على النص المنقول.`,
     narrator: (n) => `أُخفي ${n} من أقوال علماء الحديث المعتمدين لأنها حكم على راوٍ لا على الحديث.`,
@@ -103,6 +104,10 @@ const T = {
       searched: (q) => `بحثنا عن «${q}» في الموسوعة الحديثية للدرر السنية، مقصورًا على علماء الحديث المعتمدين في الأداة.`,
       foundN: (n, pct) => `عدد أحكامهم التي وجدناها على روايات هذا الحديث: ${n}، وأقرب الروايات لفظًا إلى النص بنسبة ${pct}.`,
       notWord: "اللفظ المنقول لا يطابق ألفاظ الروايات تمامًا.",
+      attrOk: (w, b) => `كُتب في النص «${w}»، ووافق ذلك نتائج البحث: ورد في ${b}.`,
+      attrMissing: (w, b) => `كُتب في النص «${w}»، ولم نجده في ${b} ضمن نتائج البحث في الموسوعة الحديثية.`,
+      attrUnchecked: (w) => `كُتب في النص «${w}»، ولم نتمكن من مقارنته بالمصدر الآن.`,
+      firmForm: "نُسب في النص بصيغة الجزم، وأحكام العلماء المعتمدين على لفظه لا تؤيده. وما لم يثبت يُذكر بصيغة «رُوي» مع بيان حكمه.",
       longerOnly: "وجدنا اللفظ المنقول داخل روايات أطول، وأحكامها على الرواية كلها، فلا نبني عليها حالة الدليل.",
       quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فتعليلها في كتب علماء الحديث المعتمدين.",
       noneFound: "فلم نجد لأحدهم حكمًا على نص يقارب هذا.",
@@ -173,6 +178,7 @@ const T = {
     ijtihad: "The approved hadith scholars' gradings differ; each is scholarly ijtihad (reasoned judgment), shown as it is with no preference.",
     gradeCols: ["Scholar", "Grading (verbatim Arabic)", "Sources"], died: (y) => `d. ${y} AH`,
     sourceText: "Hadith text in the source", rawi: "Narrator", openDorar: "on Dorar",
+    bookName: { bukhari: "Sahih al-Bukhari", muslim: "Sahih Muslim" },
     longerText: (n) => `This grading is of a longer narration (${n} words) that contains the quoted words, not of the quoted words alone, so it does not decide the evidence status.`,
     partialText: (w) => `The quote has words not found in this narration: «${w}». The grading is of a similar wording, not of the quoted text.`,
     narrator: (n) => `${n} statement(s) by the approved hadith scholars are not shown, as they assess a narrator, not this hadith.`,
@@ -221,6 +227,10 @@ const T = {
       searched: (q) => `We searched for «${q}» in the Dorar hadith encyclopedia, limited to the tool's approved hadith scholars.`,
       foundN: (n, pct) => `We found ${n} of their gradings on narrations of this hadith; the closest wording is ${pct} close to the text.`,
       notWord: "The quoted wording does not exactly match the narrations.",
+      attrOk: (w, b) => `The text says «${w}», and the search agrees: it is in ${b}.`,
+      attrMissing: (w, b) => `The text says «${w}», but we did not find it in ${b} among the hadith encyclopedia's search results.`,
+      attrUnchecked: (w) => `The text says «${w}»; we could not compare this with the source right now.`,
+      firmForm: "The text attributes it firmly («the Prophet ﷺ said»), while the approved scholars' gradings of this wording do not support it. What is not established is cited with «it is narrated» together with its grading.",
       longerOnly: "The quoted words were found inside longer narrations; their gradings are of the whole narration, so the evidence status is not based on them.",
       quoteOnly: "Gradings are quoted verbatim from their sources. The tool neither explains nor weighs them; the reasons are in the scholars' own books.",
       noneFound: "None of them has a grading on a text close to this one.",
@@ -379,7 +389,8 @@ function renderGradings(hd) {
   }
   const groups = hd.groups || [];
   const all = groups.flatMap((g) => g.items);
-  const cats = new Set(all.map((i) => (i.grade_gloss || {}).category).filter((c) => c && c !== "narrators"));
+  // Disagreement is about this wording only; a longer narration or a near wording is another text.
+  const cats = new Set(all.filter((i) => !i.match || i.match === "same").map((i) => (i.grade_gloss || {}).category).filter((c) => c && c !== "narrators"));
   if (cats.size > 1) h += `<p class="line note">${esc(t().ijtihad)}</p>`;
   for (const g of groups) {
     h += `<table class="grades"><caption>${esc(lang === "ar" ? g.label_ar : g.label_en)}</caption>
@@ -454,6 +465,14 @@ function reasonsFor(c) {
     }
     if (c.status === "not_found" && hd.query) out.push(r.noneFound, r.notMeaning);
     if ((c.notes || []).includes("hadith_is_quran")) out.push(r.isQuran);
+    const at = c.attribution;
+    if (at) {
+      const names = (ks) => ks.map((k) => t().bookName[k]).join(t().and);
+      if (!at.checked) out.push(r.attrUnchecked(at.written));
+      else if (at.not_found_in.length) out.push(r.attrMissing(at.written, names(at.not_found_in)));
+      else out.push(r.attrOk(at.written, names(at.confirmed)));
+    }
+    if ((c.notes || []).includes("firm_form")) out.push(r.firmForm);
   }
   return out;
 }

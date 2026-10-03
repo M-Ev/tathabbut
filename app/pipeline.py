@@ -399,7 +399,12 @@ async def check_text(text: str, deep: bool = False) -> dict:
             out["status"] = "error"
             out["error"] = type(e).__name__
             out["referral"] = _referral("حدث خطأ أثناء التحقق.", "An error occurred while checking.")
+        if c.type == "hadith":
+            out["cautious"] = c.cautious
+            out["attribution"] = _compare_attribution(c.attribution, out)
         out["tier"] = evidence_tier(out)
+        if out["tier"] == "not_supported" and c.type == "hadith" and not c.cautious and c.found_by == "rules":
+            out["notes"].append("firm_form")  # «قال رسول الله ﷺ» for what the sources do not support
         results.append(out)
 
     level_d = None
@@ -425,7 +430,30 @@ async def check_text(text: str, deep: bool = False) -> dict:
 
 
 
+_BOOK_KEY = {"صحيح البخاري": "bukhari", "صحيح مسلم": "muslim"}
+
+
+def _compare_attribution(written: dict | None, out: dict) -> dict | None:
+    """Plan item 19: a written «رواه البخاري» / «متفق عليه» against the Sahihayn line of Dorar's results.
+    Said as what the search found, never as «ليس في البخاري»."""
+    if not written:
+        return None
+    hd = out.get("hadith") or {}
+    if out["status"] in ("source_error", "source_offline", "needs_model", "error") or not hd:
+        return {**written, "checked": False, "confirmed": [], "not_found_in": []}
+    found = {_BOOK_KEY[x["book"]] for x in hd.get("sahihayn", []) if x["book"] in _BOOK_KEY}
+    return {**written, "checked": True, "confirmed": [b for b in written["books"] if b in found],
+            "not_found_in": [b for b in written["books"] if b not in found]}
+
+
 def _hadith_tier(r: dict) -> str:
+    tier = _hadith_tier_from_gradings(r)
+    if tier == "supported" and (r.get("attribution") or {}).get("not_found_in"):
+        return "verify"  # the written attribution did not match what the search found
+    return tier
+
+
+def _hadith_tier_from_gradings(r: dict) -> str:
     """Apply data/display_rules.json (written and signed by the Sharia reviewer) to the gradings found.
     Only the gradings of the matching text count; the tool never prefers one scholar over another."""
     rules = DISPLAY_RULES

@@ -52,6 +52,43 @@ REF_NAME = re.compile(
 SENTENCE_END = re.compile(
     r"[.!؟?\n]|[\(\[]\s*(?:\d|سورة|Surah|Qur|[ء-ي]+\s*[:：]|[ء-ي]+(?:\s+[ء-ي]+)?\s*[0-9٠-٩]{1,3}\s*[\)\]])"
 )
+# «رُوي عن النبي ﷺ أنه قال:» is the cautious form for a narration not established (صيغة التمريض).
+HADITH_RUWIYA_AR = re.compile(
+    r"(?<![ء-ي])(?:رُوي|روي|ويُروى|يُروى|يروى|ويروى)(?:\s+عن\s+(?:رسول\s+الله|النبي|النبيّ)" + HONORIFIC_AR
+    + r"(?:\s*(?:أنه|انه))?(?:\s*قال)?\s*[:：]?|\s*[:：])\s*"
+)
+# Written attribution to the two Sahihs (plan item 19), Arabic and English.
+ATTR_AR = re.compile(
+    r"(?:رواه|أخرجه|خرّجه|روى|أخرج)\s+(?:الإمامان\s+|الإمام\s+)?(?P<a>البخاري|مسلم|الشيخان)(?:\s+و\s*(?:الإمام\s+)?(?P<b>مسلم|البخاري))?"
+    r"|(?P<both>متفق\s+عليه|في\s+الصحيحين)|في\s+صحيح\s+(?:الإمام\s+)?(?P<c>البخاري|مسلم)"
+)
+ATTR_EN = re.compile(
+    r"\(\s*(?:Sahih\s+)?(?:al-)?(?P<a>Bukhari|Muslim)(?:\s*(?:and|&|,)\s*(?:Sahih\s+)?(?:al-)?(?P<b>Bukhari|Muslim))?[^)]{0,25}\)"
+    r"|Sahih\s+(?:al-)?(?P<c>Bukhari|Muslim)|(?:narrated|reported|recorded|related)\s+by\s+(?:al-)?(?P<d>Bukhari|Muslim)"
+    r"|(?P<both>agreed\s+upon|in\s+both\s+Sahihs?)",
+    re.I,
+)
+_BOOK = {"البخاري": "bukhari", "مسلم": "muslim", "bukhari": "bukhari", "muslim": "muslim"}
+
+
+def _attribution(text: str, start: int, end: int) -> dict | None:
+    """A written attribution in the same sentence: after the quote (up to the next quote or line), or before
+    the marker («روى البخاري أن النبي ﷺ قال: ...»)."""
+    after = re.split(r"[«\n﴿\"“]", text[end : end + 70].lstrip("»\"”' "), maxsplit=1)[0]
+    before = re.split(r"[.!؟?\n»]", text[max(0, start - 70) : start])[-1]
+    for chunk in (after, before):
+        m = ATTR_AR.search(chunk) or ATTR_EN.search(chunk)
+        if not m:
+            continue
+        g = m.groupdict()
+        if g.get("both") or g.get("a") == "الشيخان":
+            books = ["bukhari", "muslim"]
+        else:
+            books = [_BOOK[x.lower() if x.isascii() else x] for x in (g.get("a"), g.get("b"), g.get("c"), g.get("d")) if x]
+        return {"written": m.group(0).strip(" ()"), "books": list(dict.fromkeys(books))}
+    return None
+
+
 # A follow-on hadith in a list: «وقال: «...»» or «وعنه: ...» right after a hadith already found in the same paragraph.
 HADITH_FOLLOW_AR = re.compile(r"(?<![ء-ي])(?:وقال(?:\s+(?:أيضًا|أيضا))?|وعنه)\s*[:：]\s*")
 
@@ -68,6 +105,8 @@ class Candidate:
     ref_ayah: int | None = None
     ref_label: str = ""
     found_by: str = "rules"
+    attribution: dict | None = None  # a written «رواه البخاري» / «متفق عليه» near a hadith (plan item 19)
+    cautious: bool = False  # attributed with «رُوي» / «يُروى», not with «قال رسول الله ﷺ»
 
     def overlaps(self, other: "Candidate") -> bool:
         return self.start < other.end and other.start < self.end
@@ -129,7 +168,7 @@ def extract(text: str) -> list[Candidate]:
         _add(found, Candidate("quran", _clean_quote(m.group(1)), m.start(), m.end(), "ar", "﴿﴾"))
 
     # 2) Marker + quote.
-    for rx, kind in ((QURAN_AR, "quran"), (HADITH_AR, "hadith"), (QURAN_EN, "quran"), (HADITH_EN, "hadith")):
+    for rx, kind in ((QURAN_AR, "quran"), (HADITH_AR, "hadith"), (HADITH_RUWIYA_AR, "hadith"), (QURAN_EN, "quran"), (HADITH_EN, "hadith")):
         for m in rx.finditer(text):
             span = _take_quote(text, m.end())
             if not span:
@@ -169,6 +208,10 @@ def extract(text: str) -> list[Candidate]:
 
     # References written after a quote are checked against where the text really is.
     for c in found:
+        if c.type == "hadith":
+            c.attribution = _attribution(text, c.start, c.end)
+            lead = text[max(0, c.start - 14) : c.start] + " " + c.marker
+            c.cautious = bool(re.search(r"(?<![ء-ي])(?:رُوي|روي|يُروى|يروى|ويُروى|ويروى)(?![ء-ي])", lead))
         if c.type == "quran":
             ref = _reference_after(text, c.end)
             if ref:
