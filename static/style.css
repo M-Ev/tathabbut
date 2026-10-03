@@ -155,7 +155,8 @@ details[open] > :not(summary) { animation: open var(--dur-2) var(--ease); }
 .mushaf-head { text-align: center; font-size: var(--fs-xs); color: var(--ink-2); border-bottom: var(--hair) solid var(--line); padding-bottom: var(--s-2); margin-bottom: var(--s-2); direction: rtl; }
 .ayat { font-family: var(--font-quran); font-size: var(--fs-quran); line-height: var(--lh-quran); text-align: center; direction: rtl; margin: 0; color: var(--ink); }
 .ayah-end { font-family: var(--font-quran); color: var(--accent); white-space: nowrap; margin: 0 var(--s-1); }
-.ayat mark { background: var(--ok-tint); color: inherit; border-radius: var(--r-1); padding: 0 var(--s-1); }
+/* the Mushaf word is never boxed: a light underline only (sacred text first) */
+.ayat mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--ok); text-decoration-thickness: 2px; text-underline-offset: 8px; text-decoration-skip-ink: none; }
 .translation { direction: ltr; text-align: left; font-size: var(--fs-sm); color: var(--ink-2); margin: var(--s-2) 0 0; padding-top: var(--s-2); border-top: var(--hair) solid var(--line); }
 
 /* correction table */
@@ -195,6 +196,12 @@ details[open] > :not(summary) { animation: open var(--dur-2) var(--ease); }
 .method dd { margin: 0; color: var(--ink-2); }
 .fine { font-size: var(--fs-xs); color: var(--ink-3); margin: var(--s-1) 0; }
 .foot { margin-top: var(--s-6); padding: var(--s-4) 0 var(--s-7); border-top: var(--hair) solid var(--line); font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* touch targets: 44px at least for every control that stands alone (WCAG 2.5.5, DGA) */
+#lang, .samples .linkish, .why summary, .grades summary, .api-link { display: inline-flex; align-items: center; min-height: 44px; }
+.why summary { display: flex; }
+.check { min-height: var(--touch); }
+.check input { width: 22px; height: 22px; margin: 11px 0; }
 
 @media (max-width: 600px) {
   :root { --fs-2xl: 34px; --fs-quran: 24px; --fs-lg: 18px; }

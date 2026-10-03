@@ -422,12 +422,18 @@ function reasonsFor(c) {
   return out;
 }
 
+// In the English view an Arabic reference such as «(البقرة: 154)» must keep its own direction inside the sentence.
+const AR_RUN = /[(\[]?[\u0600-\u06FF][\u0600-\u06FF\u0660-\u06690-9\s:،.\-–]*[\u0600-\u06FF\u0660-\u06690-9][)\]]?/g;
+function bidi(escaped) {
+  return lang === "en" ? escaped.replace(AR_RUN, (m) => `<bdi dir="rtl">${m}</bdi>`) : escaped;
+}
+
 function renderWhy(c, cls) {
   const items = reasonsFor(c);
   if (!items.length) return "";
   const li = items.map((x) => typeof x === "string"
-    ? `<li>${esc(x)}</li>`
-    : `<li>${esc(x.text)}<span class="cited">${esc(x.quran)}</span></li>`).join("");
+    ? `<li>${bidi(esc(x))}</li>`
+    : `<li>${bidi(esc(x.text))}<span class="cited">${esc(x.quran)}</span></li>`).join("");
   return `<details class="why"${cls === "ok" ? "" : " open"}><summary>${esc(t().why)}</summary><ul>${li}</ul></details>`;
 }
 
