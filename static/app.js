@@ -9,6 +9,8 @@ const T = {
     checking: "نستخرج الاستشهادات، ثم نطابق الآيات مع المصحف، ونبحث عن الأحاديث في الدرر السنية…", checkingDeep: "نراجع المصادر… وقد يستغرق النموذج اللغوي دقيقة أو أكثر.",
     failed: "تعذّر الفحص الآن، حاول مرة أخرى.", reportTitle: "نتيجة الفحص",
     none: "لم نجد في النص آية أو حديثًا مستشهدًا به.",
+    unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية.",
+    unsupportedPart: "وفي النص كلام بلغة غير مدعومة بعد، فلم يُفحص منه إلا الاستشهادات العربية والإنجليزية أعلاه.",
     summary: (s, n) => [`الاستشهادات <b>${n(s.total)}</b>`, s.documented && `مطابق للمصحف <b>${n(s.documented)}</b>`, s.supported && `تؤيده المصادر <b>${n(s.supported)}</b>`, s.not_supported && `لا تؤيده المصادر المعتمدة <b>${n(s.not_supported)}</b>`, s.verify && `يحتاج مزيدًا من التحقق <b>${n(s.verify)}</b>`, s.refer && `يُحال إلى مختص <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "منهج الأداة",
     m1t: "القرآن", m1: "يُطابق النص مع مصحف مجمع الملك فهد، ويُنبَّه على ما اختلف عن لفظ المصحف أو عن موضع الآية، مع إظهار النص الصحيح والسورة والآية. نص القرآن لا يُولَّد أبدًا.",
@@ -27,6 +29,7 @@ const T = {
       differs: (n) => `لفظ الآية يختلف عن المصحف في ${arPlaces(n)}`,
       differsEn: "الترجمة قريبة من هذه الآية، وليست بلفظ إحدى الترجمتين المعتمدتين في الأداة",
       not_in_mushaf: "لم نجد هذا النص في المصحف",
+      too_short: "النص أقصر من أن نتحقق منه آليًا",
       not_in_translation: "لم نجد آية تقابل هذه الترجمة",
       graded: "وُجد في كتب الحديث، وهذه أحكام علماء الحديث المعتمدين عليه",
       gradedFab: "وُجد في كتب الحديث، ومن علماء الحديث المعتمدين من حكم عليه بالوضع أو البطلان أو بأنه لا أصل له",
@@ -80,6 +83,8 @@ const T = {
       missing: (b) => `سقط من النص «${b}».`,
       extra: (a) => `زيد في النص «${a}»، وليس في الآية.`,
       copyRule: "نص القرآن يُنقل بلفظه كما في المصحف، والأسلم نسخه من مصدر موثوق.",
+      alefChanged: (a, b) => `في «${a}» ألف ليست في رسم المصحف «${b}»، فهي لفظ آخر.`,
+      riwaya: "قارنّا بمصحف مجمع الملك فهد برواية حفص عن عاصم. فإن كان النقل على قراءة متواترة أخرى فليس خطأً، ويُراجَع فيه مختص في القراءات.",
       enDiffers: (pct, p) => `الترجمة المنقولة لا تطابق حرفيًا أيًّا من الترجمتين اللتين نقارن بهما (تقارب ${pct})، وأقرب آية لمعناها ${p}. ترجمات المعاني تختلف، فالمرجع هو الأصل العربي.`,
       notInMushaf: (n) => `بحثنا في آيات المصحف كلها (${n} آية)، فلم نجد نصًا يطابقه أو يقاربه.`,
       notInTranslation: (n) => `قارنّا النص بترجمة معاني آيات المصحف كلها (${n} آية)، فلم نجد ما يقاربه. والمقارنة بالترجمة لا تكفي للحكم بأنه ليس آية، ولذلك نحيله إلى المختص.`,
@@ -109,6 +114,8 @@ const T = {
     checking: "Extracting citations, matching verses with the Mushaf and searching hadith on Dorar…", checkingDeep: "Checking the sources… the language model may take a minute or more.",
     failed: "The check failed. Please try again.", reportTitle: "Result",
     none: "No Quran verse or hadith citation was found in the text.",
+    unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today.",
+    unsupportedPart: "Part of the text is in a language not supported yet; only the Arabic and English citations above were checked.",
     summary: (s, n) => [`Citations <b>${n(s.total)}</b>`, s.documented && `matches the Mushaf <b>${n(s.documented)}</b>`, s.supported && `supported by the sources <b>${n(s.supported)}</b>`, s.not_supported && `not supported by the approved sources <b>${n(s.not_supported)}</b>`, s.verify && `needs more verification <b>${n(s.verify)}</b>`, s.refer && `refer to a specialist <b>${n(s.refer)}</b>`].filter(Boolean).join(" · "),
     howTitle: "Method",
     m1t: "Quran", m1: "Matched against the King Fahd Complex Mushaf; any word or reference that differs is pointed out, with the correct text, surah and ayah shown. Quran text is never generated.",
@@ -127,6 +134,7 @@ const T = {
       differs: (n) => n === 1 ? "The wording differs from the Mushaf in one place" : `The wording differs from the Mushaf in ${n} places`,
       differsEn: "Close to this verse, but not in the wording of either approved translation",
       not_in_mushaf: "We did not find this text in the Mushaf",
+      too_short: "The text is too short to check automatically",
       not_in_translation: "We could not match this to any verse",
       graded: "Found in hadith sources, with these gradings by the approved hadith scholars",
       gradedFab: "Found in hadith sources; some of the approved hadith scholars graded it fabricated, false or baseless",
@@ -186,6 +194,8 @@ const T = {
       missing: (b) => `«${b}» is missing from the text.`,
       extra: (a) => `«${a}» was added; it is not in the verse.`,
       copyRule: "Quran text must be quoted exactly as in the Mushaf; it is safest to copy it from a reliable source.",
+      alefChanged: (a, b) => `«${a}» has an alef that the Mushaf's «${b}» does not have, so it is a different word.`,
+      riwaya: "We compared with the King Fahd Complex Mushaf in the narration of Hafs from Asim. If the quote follows another mutawatir reading, it is not an error; a specialist in the readings can confirm.",
       enDiffers: (pct, p) => `The quoted translation does not match the approved translations word for word (${pct} close); the nearest verse in meaning is ${p}. Translations of the meanings vary; the Arabic is the reference.`,
       notInMushaf: (n) => `We searched all ${n} verses of the Mushaf and found nothing matching or close to it.`,
       notInTranslation: (n) => `We compared the text with a translation of the meanings of all ${n} verses and found nothing close. A translation comparison is not enough to say it is not a verse, which is why it is referred to a specialist.`,
@@ -256,12 +266,17 @@ function verdictFor(c) {
       const n = (q.diff || []).filter((d) => d.op !== "equal").length || 1;
       return [v.differs(n) + (q.reference_ok === false ? v.badRefToo : ""), "warn"];  // gentle: attention, not alarm
     }
+    if (c.status === "too_short") return [v.too_short, "warn"];
     if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "warn"] : [v.not_in_translation, "warn"];
   }
   if (c.status === "graded" && hd.fabricated_by && hd.fabricated_by.length) return [v.gradedFab, "bad"];
   const cls = { graded: "ok", found_similar: "warn", not_found: "warn", needs_model: "warn", source_error: "warn", error: "bad" }[c.status] || "";
   return [v[c.status] || c.status, cls];
 }
+
+// U+065E (open fatha tanween in this Mushaf encoding) shows as a box in many fonts; U+08F1 is the same mark
+// and renders (plan item 9). Display only: matching always uses the data as published.
+const glyphs = (x) => (x || "").replace(/\u065E/g, "\u08F1");
 
 function markWords(text, words) {
   let html = esc(text);
@@ -276,7 +291,7 @@ function renderMushaf(q, c) {
   const changed = (q.diff || []).filter((d) => d.op !== "equal");
   const marked = changed.flatMap((d) => (d.mushaf ? d.mushaf.split(" ") : []));
   const ayat = (q.ayat && q.ayat.length ? q.ayat : [{ ayah: q.ayah_from, text: q.mushaf_text }])
-    .map((a) => `${markWords(a.text, marked)}<span class="ayah-end">۝${arDigits(a.ayah)}</span>`).join(" ");
+    .map((a) => `${markWords(glyphs(a.text), marked.map(glyphs))}<span class="ayah-end">۝${arDigits(a.ayah)}</span>`).join(" ");
   let h = `<div class="mushaf"><div class="mushaf-inner">
     <div class="mushaf-head">${esc(place(q))}</div>
     <p class="ayat">${ayat}</p>`;
@@ -285,7 +300,7 @@ function renderMushaf(q, c) {
   if (changed.length) {
     h += `<table class="fixes"><thead><tr><th>${esc(t().fixesHead[0])}</th><th>${esc(t().fixesHead[1])}</th></tr></thead><tbody>`;
     for (const d of changed) {
-      h += `<tr><td class="was">${esc(d.quoted || t().missing)}</td><td class="is">${esc(d.mushaf || t().extra)}</td></tr>`;
+      h += `<tr><td class="was">${esc(d.quoted || t().missing)}</td><td class="is">${esc(glyphs(d.mushaf) || t().extra)}</td></tr>`;
     }
     h += `</tbody></table>`;
   }
@@ -392,9 +407,10 @@ function reasonsFor(c) {
       for (const d of (q.diff || []).filter((d) => d.op !== "equal")) {
         if (d.op === "delete") out.push(r.extra(d.quoted));
         else if (d.op === "insert") out.push(r.missing(d.mushaf));
+        else if (d.kind === "alef") out.push(r.alefChanged(d.quoted, d.mushaf));
         else out.push(r.changed(d.quoted, d.mushaf));
       }
-      out.push(r.copyRule);
+      out.push(r.riwaya, r.copyRule);
     } else if (c.status === "differs") out.push(r.enDiffers(pct(q.score), place(q)));
     if (q.reference_given && q.reference_ok === false && q.cited) {
       out.push(r.refWritten(q.reference_given));
@@ -402,6 +418,8 @@ function reasonsFor(c) {
       if (q.cited.exists) out.push({ text: r.refHolds(cp), quran: q.cited.text });
       else out.push(r.refNoAyah(lang === "ar" ? q.cited.surah_name_ar : q.cited.surah_name_en, num(q.cited.surah_ayat)));
       out.push(r.refActual(place(q)));
+    } else if (q.reference_given && q.reference_ok === false) {
+      out.push(r.refWritten(q.reference_given), r.refActual(place(q)));  // a surah named without an ayah
     } else if (q.reference_given) out.push(r.refRight(q.reference_given));
   }
   if (c.type === "quran" && c.status === "not_in_mushaf") {
@@ -433,7 +451,7 @@ function renderWhy(c, cls) {
   if (!items.length) return "";
   const li = items.map((x) => typeof x === "string"
     ? `<li>${bidi(esc(x))}</li>`
-    : `<li>${bidi(esc(x.text))}<span class="cited">${esc(x.quran)}</span></li>`).join("");
+    : `<li>${bidi(esc(x.text))}<span class="cited">${esc(glyphs(x.quran))}</span></li>`).join("");
   return `<details class="why"${cls === "ok" ? "" : " open"}><summary>${esc(t().why)}</summary><ul>${li}</ul></details>`;
 }
 
@@ -496,7 +514,8 @@ function render(r) {
     const rules = r.summary.hadith ? `<span class="fine rules-note">${esc(dr.status === "signed" ? t().rulesSigned(dr.reviewed_by, dr.reviewed_on) : t().rulesDraft)}</span>` : "";
     $("summary").innerHTML = t().summary(r.summary, (x) => esc(num(x))) + rules;
   }
-  else $("summary").textContent = t().none;
+  else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
+  if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
   const ld = $("leveld");
   ld.hidden = !r.level_d;
   if (r.level_d) {

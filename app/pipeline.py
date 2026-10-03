@@ -217,7 +217,8 @@ async def check_hadith(c: Candidate, out: dict) -> None:
 async def check_quran(c: Candidate, out: dict) -> None:
     Q = get_quran()
     prefer = (c.ref_surah, c.ref_ayah) if c.ref_surah else None
-    m: QuranMatch = Q.match_arabic(c.quote, prefer) if c.lang == "ar" else Q.match_english(c.quote, prefer)
+    marked = c.marker not in ("unmarked", "model")  # the author presented it as Quran
+    m: QuranMatch = Q.match_arabic(c.quote, prefer, marked) if c.lang == "ar" else Q.match_english(c.quote, prefer)
     if m.status == "not_found" and c.lang != "ar" and llm.available():
         arabic = await llm.arabic_search_wording(c.quote, "quran")
         out["search_wording_ar"] = arabic
@@ -236,6 +237,10 @@ async def check_quran(c: Candidate, out: dict) -> None:
         out["status"] = "verified"
     elif m.status == "differs":
         out["status"] = "differs"
+    elif m.status == "too_short":
+        # Plan item 3: a few letters cannot be told apart from a slip automatically; say so, never "not found".
+        out["status"] = "too_short"
+        out["referral"] = _referral("النص أقصر من أن نتحقق منه آليًا.", "The text is too short to check automatically.", "quran")
     else:
         out["status"] = "not_in_mushaf"
         if c.lang == "ar":
@@ -323,6 +328,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
                 log.warning("fatwa search failed: %s", e)
     return {
         "citations": results,
+        "unsupported_language": unsupported_language(text),
         "level_d": level_d,
         "summary": _summary(results),
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
@@ -358,6 +364,30 @@ def _hadith_tier(r: dict) -> str:
     if cats and cats <= set(rules["not_supported_categories"]):
         return "not_supported"
     return "verify"
+
+
+# Plan item 8: v1 checks Arabic and English only. Text in another language is said to be unchecked,
+# never reported as "no citation found".
+_URDU_PERSIAN = re.compile("[ٹڈڑںےۓھہپچژگ]")
+_EN = re.compile(r"\b(?:the|and|of|to|is|in|that|he|said|allah|prophet|you|we|they|this|for|with)\b", re.I)
+_OTHER_LATIN = {
+    "fr": re.compile(r"\b(?:le|la|les|des|est|et|une|dans|que|qui|pour|sur|il|nous|vous|du|au)\b", re.I),
+    "id": re.compile(r"\b(?:dan|yang|ini|itu|dengan|untuk|dari|tidak|kita|kami|adalah|akan|bahwa|ia)\b", re.I),
+    "tr": re.compile(r"\b(?:ve|bir|bu|için|ile|olan|çok|da|de|gibi|ama|ki)\b", re.I),
+}
+
+
+def unsupported_language(text: str) -> str | None:
+    arabic_script = len(re.findall("[؀-ۿ]", text))
+    if arabic_script and len(_URDU_PERSIAN.findall(text)) >= max(3, arabic_script // 100):
+        return "ur" if re.search("[ٹڈڑںےۓ]", text) else "fa"
+    words = re.findall(r"[A-Za-zÀ-ÿçğışöü]+", text)
+    if len(words) >= 6:
+        en = len(_EN.findall(text))
+        lang, n = max(((k, len(rx.findall(text))) for k, rx in _OTHER_LATIN.items()), key=lambda x: x[1])
+        if n >= 3 and n > 2 * en:
+            return lang
+    return None
 
 
 def _sentence_at(text: str, pos: int) -> str:

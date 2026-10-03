@@ -26,7 +26,9 @@ HADITH_AR = re.compile(
 QURAN_AR = re.compile(
     r"(?:(?:قال|يقول|وقال|ويقول|قول)\s+(?:الله|ربنا)(?:\s+(?:تعالى|عز وجل|سبحانه(?:\s+وتعالى)?|جل وعلا|تبارك وتعالى))?"
     + r"|(?:قال|يقول|وقال|قوله|وقوله)\s+(?:تعالى|عز وجل|سبحانه(?:\s+وتعالى)?|جل وعلا)"
-    + r"|في\s+(?:كتابه\s+(?:الكريم|العزيز)|محكم\s+التنزيل|القرآن\s+الكريم))\s*[:：]?\s*"
+    + r"|في\s+(?:كتابه\s+(?:الكريم|العزيز)|محكم\s+التنزيل|القرآن\s+الكريم))"
+    # «يقول الله تعالى في سورة الشعراء:» names the surah; the name is a reference, not part of the ayah (item 4).
+    + r"(?:\s+في\s+سورة\s+(?P<surah>[ء-ي]+(?:\s+[ء-ي]+)?)(?=\s*[:：]))?\s*[:：]?\s*"
 )
 HADITH_EN = re.compile(
     r"(?:the\s+)?(?:Prophet(?:\s+Muhammad)?|Messenger(?:\s+of\s+(?:Allah|God))?|Rasul(?:ullah|\s+Allah))"
@@ -135,7 +137,11 @@ def extract(text: str) -> list[Candidate]:
             s, e = span
             quote = _clean_quote(text[s:e])
             lang = "ar" if is_arabic(quote) else "en"
-            _add(found, Candidate(kind, quote, m.start(), e, lang, m.group(0).strip()))
+            cand = Candidate(kind, quote, m.start(), e, lang, m.group(0).strip())
+            named = m.groupdict().get("surah")
+            if named and get_quran().surah_number(named):
+                cand.ref_surah, cand.ref_label = get_quran().surah_number(named), f"سورة {named}"
+            _add(found, cand)
 
     # 2b) «وقال: «...»» continuing a list of hadith: only after a hadith already found in the same paragraph,
     # so a bare «وقال:» elsewhere (a person speaking) is never taken as a hadith.
@@ -181,13 +187,13 @@ def _scan_unmarked_quran(text: str, min_words: int = 5, min_skeleton: int = 20) 
     out, i = [], 0
     while i + min_words <= len(words):
         sk = "".join(skeleton_ar(w[0]) for w in words[i : i + min_words])
-        if sk not in q.full:
+        if sk not in q.full and sk not in q.full_common:
             i += 1
             continue
         j = i + min_words
         while j < len(words):
             nxt = sk + skeleton_ar(words[j][0])
-            if nxt not in q.full:
+            if nxt not in q.full and nxt not in q.full_common:
                 break
             sk, j = nxt, j + 1
         if len(sk) >= min_skeleton:

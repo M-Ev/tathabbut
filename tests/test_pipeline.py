@@ -204,3 +204,19 @@ def test_fatwa_question_with_nothing_close_still_refers(fake_dorar, fake_fatwa_s
     ld = r["level_d"]
     assert all(b["fatwas"] == [] and b["search_url"] for b in ld["fatwas"]["scholars"])
     assert "بلدك" in ld["body"]["ar"]
+
+
+def test_unsupported_language_is_said_not_checked(fake_dorar):
+    # Plan item 8: Urdu used to be treated as Arabic and reported as "no citation".
+    fake_dorar({})
+    r = run(check_text("نبی کریم صلی اللہ علیہ وسلم نے فرمایا کہ اعمال کا دارومدار نیتوں پر ہے"))
+    assert r["unsupported_language"] == "ur"
+    assert run(check_text("قال رسول الله ﷺ: «الدين النصيحة»"))["unsupported_language"] is None
+
+
+def test_short_ayah_in_brackets_and_one_word(fake_dorar):
+    fake_dorar({})
+    r = run(check_text("قال تعالى: ﴿والعصر﴾ وقال: ﴿فتثبتوا﴾"))
+    a, b = r["citations"]
+    assert a["status"] == "verified" and a["quran"]["ref"] == "103:1"
+    assert b["status"] == "too_short" and b["tier"] == "refer"

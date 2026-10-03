@@ -6,6 +6,7 @@ import bisect
 import difflib
 import json
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -13,12 +14,61 @@ from pathlib import Path
 from rapidfuzz import fuzz, process
 
 from .normalize import ar_words, normalize_ar, normalize_en, skeleton_ar, word_skeleton
+from .spelling import to_common_word
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "quran.json"
 
 # Minimum skeleton length for a span to count as a Quran quote (avoids matching common short phrases).
 MIN_SKELETON = 10
 MIN_SKELETON_FUZZY = 12
+# A quote the author marked as Quran (﴿﴾, «قال تعالى», a written reference) may be a whole short ayah
+# (﴿والعصر﴾، ﴿الله الصمد﴾). It is matched word for word, never inside a word; below this it is too short to check.
+MIN_SKELETON_MARKED = 3
+_ORNAMENTS = re.compile("[۞۩]")
+
+
+def _tokens(text: str) -> list[str]:
+    return [t for t in (_ORNAMENTS.sub("", w) for w in text.split()) if t]
+
+
+# Alef check (plan item 2). The skeleton drops every alef, so «قال» and ﴿قُلۡ﴾ meet. For words whose skeleton
+# matches, a full alef (or hamza) typed where the Mushaf has none, not even a dagger alef, is a real difference.
+_DIAC = re.compile("[ؐ-ًؚ-ٯٱ-ۭ]")
+_ALEFISH = set("اأإآٱءٰٕٔ")
+
+
+def alef_gaps(text: str) -> list[int]:
+    """For each place between skeleton letters, how many alef/hamza signs are written there."""
+    gaps = [0]
+    t = unicodedata.normalize("NFC", text).replace("وٰ", "ا")
+    for ch in t:
+        if ch in _ALEFISH:
+            gaps[-1] += 1
+        elif ch in "ىئیي":
+            gaps.append(0)
+        elif ch == "ؤ":
+            gaps.append(0)
+        elif "ء" <= ch <= "ي" or ch in "کة":
+            gaps.append(0)
+        # other marks, tatweel and spaces carry no letter
+    return gaps
+
+
+def extra_alef(quoted: str, mushaf: str, common: str = "") -> bool:
+    q = alef_gaps(quoted)
+    best = None
+    for ref in (mushaf, common):
+        if not ref:
+            continue
+        r = alef_gaps(ref)
+        if len(r) != len(q):
+            continue
+        best = r if best is None else [max(x, y) for x, y in zip(best, r)]
+    if best is None:
+        return False
+    # The two edge gaps can hold the neighbouring word's alef in the Mushaf; only inner gaps are compared,
+    # plus the first gap of the quote when it starts a word (an alef typed before the first letter).
+    return any(a > b for a, b in zip(q[1:-1], best[1:-1])) or q[0] > best[0]
 
 
 @dataclass
@@ -95,6 +145,40 @@ class Quran:
             pos += len(x.skeleton)
         self.full = "".join(parts)
         self._sk = [x.skeleton for x in self.ayat]
+        # Second index in common (imla'i) spelling (plan item 1): شيئا، إسرائيل، الليل، إبراهيم، ضحاها.
+        # Built once from the Mushaf by app/spelling.py; used for matching only, never shown.
+        self.tok, self.tok_sk, self.tok_common, self.tok_ayah = [], [], [], []
+        common_ayah = []
+        for i, x in enumerate(self.ayat):
+            parts = []
+            for w in _tokens(x.text):
+                cw = to_common_word(w, harakat=False)[0]
+                self.tok.append(w)
+                self.tok_sk.append(skeleton_ar(w))
+                self.tok_common.append(cw)
+                self.tok_ayah.append(i)
+                parts.append(cw)
+            common_ayah.append(skeleton_ar(" ".join(parts)))
+        self.common_starts, pos = [], 0
+        for sk in common_ayah:
+            self.common_starts.append(pos)
+            pos += len(sk)
+        self.full_common = "".join(common_ayah)
+        # Offsets where a word starts, so a quote of whole words is preferred to one that starts inside a word.
+        self.word_starts, self.common_word_starts, pos, cpos = set(), set(), 0, 0
+        for w, c in zip(self.tok_sk, self.tok_common):
+            self.word_starts.add(pos)
+            pos += len(w)
+            for part in c.split():
+                self.common_word_starts.add(cpos)
+                cpos += len(skeleton_ar(part))
+        self.word_starts.add(pos)
+        self.common_word_starts.add(cpos)
+        self._by_first: dict[str, list[int]] = {}
+        for k, (a, b) in enumerate(zip(self.tok_sk, self.tok_common)):
+            for key in {a, skeleton_ar(b.split()[0]) if b else a}:
+                self._by_first.setdefault(key, []).append(k)
+        self._windows: dict[int, tuple[list, list]] = {}
         self._en = {"hilali": [x.norm_en for x in self.ayat], "saheeh": [x.norm_en_saheeh for x in self.ayat]}
         names = {}
         for s in self.surahs.values():
@@ -126,40 +210,115 @@ class Quran:
             m.diff = word_diff(quote, mushaf)
         return m
 
-    def match_arabic(self, quote: str, prefer: tuple[int, int] | None = None) -> QuranMatch:
-        """prefer=(surah, ayah): when the phrase occurs in several places, pick the one the author cited."""
+    def match_arabic(self, quote: str, prefer: tuple[int, int] | None = None, marked: bool = False) -> QuranMatch:
+        """prefer=(surah, ayah): when the phrase occurs in several places, pick the one the author cited.
+        marked: the author presented the text as Quran (﴿﴾, «قال تعالى», a reference), so a short ayah is checked."""
         q = skeleton_ar(quote)
         if len(q) < MIN_SKELETON:
-            return QuranMatch(status="not_found", via="arabic")
-        positions, pos = [], self.full.find(q)
-        while pos >= 0:
-            positions.append(pos)
-            pos = self.full.find(q, pos + 1)
-        if positions:
-            spans = [(self._ayah_at(p), self._ayah_at(p + len(q) - 1)) for p in positions]
-            i, j = spans[0]
-            if prefer:
-                for a, b in spans:
-                    if self.ayat[a].surah == prefer[0] and self.ayat[a].ayah <= prefer[1] <= self.ayat[b].ayah:
-                        i, j = a, b
-                        break
-            return self._build(i, j, "exact", quote, 100.0, "arabic", len(positions))
+            if not marked or len(q) < MIN_SKELETON_MARKED:
+                return QuranMatch(status="not_found", via="arabic")
+            m = self._match_words(quote, prefer)
+            if m:
+                return m
+            # One word cannot be told apart from a slip or another reading; two or more were searched word for word.
+            return QuranMatch(status="too_short" if len(ar_words(quote)) < 2 else "not_found", via="arabic")
+        for full, starts, bounds in ((self.full, self.starts, self.word_starts),
+                                     (self.full_common, self.common_starts, self.common_word_starts)):
+            positions, pos = [], full.find(q)
+            while pos >= 0:
+                positions.append(pos)
+                pos = full.find(q, pos + 1)
+            if positions:
+                whole = [p for p in positions if p in bounds and p + len(q) in bounds]
+                positions = whole + [p for p in positions if p not in whole]
+                at = lambda p: bisect.bisect_right(starts, p) - 1  # noqa: E731
+                spans = list(dict.fromkeys((at(p), at(p + len(q) - 1)) for p in positions))
+                if prefer:
+                    i, j = self._preferred(spans, prefer)
+                    return self._exact(i, j, quote, len(positions))
+                # Prefer a place where the words match as written (﴿إِنَّ مَعَ ٱلۡعُسۡرِ يُسۡرٗا﴾ 94:6 over «فَإِنَّ» 94:5).
+                first = None
+                for i, j in spans[:20]:
+                    m = self._exact(i, j, quote, len(positions))
+                    if m.status == "exact":
+                        return m
+                    first = first or m
+                return first
         if len(q) < MIN_SKELETON_FUZZY:
+            if marked:
+                m = self._match_words(quote, prefer)
+                if m:
+                    return m
             return QuranMatch(status="not_found", via="arabic")
         return self._fuzzy_arabic(quote, q)
 
-    def _fuzzy_arabic(self, quote: str, q: str) -> QuranMatch:
-        # Windows of consecutive ayat at least as long as the quote, so a short ayah
-        # can never "contain" a long quote and a quote spanning ayat is still found.
+    def _preferred(self, spans, prefer):
+        if prefer:
+            for a, b in spans:
+                if self.ayat[a].surah == prefer[0] and (prefer[1] is None or self.ayat[a].ayah <= prefer[1] <= self.ayat[b].ayah):
+                    return a, b
+        return spans[0]
+
+    def _exact(self, i: int, j: int, quote: str, occurrences: int) -> QuranMatch:
+        """Same skeleton as the Mushaf; still a difference if a word carries an alef the Mushaf does not."""
+        m = self._build(i, j, "exact", quote, 100.0, "arabic", occurrences)
+        diff = word_diff(quote, m.mushaf_text)
+        if any(d["op"] != "equal" for d in diff):
+            m.status, m.diff, m.score = "differs", diff, 99.0
+        return m
+
+    def _match_words(self, quote: str, prefer) -> QuranMatch | None:
+        """Whole words only, in either spelling: a short quote must equal a run of Mushaf words."""
+        words = [skeleton_ar(w) for w in ar_words(quote)]
+        words = [w for w in words if w]
+        if not words:
+            return None
+        hits = []
+        for k in self._by_first.get(words[0], []):
+            for src in (self.tok_sk, None):
+                seq, n = [], k
+                while len(seq) < len(words) and n < len(self.tok):
+                    if src is None:
+                        seq.extend(skeleton_ar(x) for x in self.tok_common[n].split())
+                    else:
+                        seq.append(src[n])
+                    n += 1
+                if seq == words and self.ayat[self.tok_ayah[k]].surah == self.ayat[self.tok_ayah[n - 1]].surah:
+                    hits.append((self.tok_ayah[k], self.tok_ayah[n - 1]))
+                    break
+        hits = list(dict.fromkeys(hits))
+        if not hits:
+            return None
+        i, j = self._preferred(hits, prefer)
+        return self._exact(i, j, quote, len(hits))
+
+    def _windows_for(self, length: int) -> tuple[list, list]:
+        bucket = max(20, -(-length // 20) * 20)
+        if bucket in self._windows:
+            return self._windows[bucket]
         windows, spans = [], []
         n = len(self.ayat)
         for i in range(n):
             j, text = i, self._sk[i]
-            while (len(text) < len(q) or j == i) and j + 1 < n and j - i < 6 and self.ayat[j + 1].surah == self.ayat[i].surah:
+            while (len(text) < bucket or j == i) and j + 1 < n and j - i < 6 and self.ayat[j + 1].surah == self.ayat[i].surah:
                 j += 1
                 text += self._sk[j]
+            # At the end of a surah the window would stay shorter than the quote: reach back instead (item 5).
+            i0 = i
+            while len(text) < bucket and i0 - 1 >= 0 and i - i0 < 6 and self.ayat[i0 - 1].surah == self.ayat[i].surah:
+                i0 -= 1
+                text = self._sk[i0] + text
             windows.append(text)
-            spans.append((i, j))
+            spans.append((i0, j))
+        if len(self._windows) > 40:
+            self._windows.clear()
+        self._windows[bucket] = (windows, spans)
+        return windows, spans
+
+    def _fuzzy_arabic(self, quote: str, q: str) -> QuranMatch:
+        # Windows of consecutive ayat at least as long as the quote, so a short ayah can never "contain" a
+        # long quote and a quote spanning ayat is still found. Built once per length bucket (plan item 10).
+        windows, spans = self._windows_for(len(q))
         best = process.extractOne(q, windows, scorer=fuzz.partial_ratio, score_cutoff=70)
         if not best:
             return QuranMatch(status="not_found", via="arabic")
@@ -172,7 +331,9 @@ class Quran:
             i2 = self._ayah_at(base + align.dest_start)
             j2 = self._ayah_at(base + max(align.dest_end - 1, align.dest_start))
             i, j = max(i, i2), min(j, max(i2, j2))
-        threshold = 88 if len(q) < 30 else 82
+        # Short passages score lower for one changed word (plan item 6): 80 says "differs" rather than
+        # "not in the Mushaf"; measured on eval/synth_quran.py negatives (still 0 tied to an ayah).
+        threshold = 80 if len(q) < 30 else 82
         if score < threshold:
             return QuranMatch(status="not_found", via="arabic", score=round(score, 1))
         m = self._build(i, j, "differs", quote, score, "arabic")
@@ -216,8 +377,9 @@ class Quran:
         if m.surah is None:
             m.reference_ok = None
             return
-        m.reference_ok = m.surah == surah and m.ayah_from <= ayah <= m.ayah_to
-        if m.reference_ok is False:
+        # A surah named without an ayah («في سورة الشعراء:») is checked for the surah only.
+        m.reference_ok = m.surah == surah and (ayah is None or m.ayah_from <= ayah <= m.ayah_to)
+        if m.reference_ok is False and ayah is not None:
             s = self.surahs.get(surah)
             x = self.get(surah, ayah)
             m.cited = {
@@ -245,15 +407,23 @@ class Quran:
 
 
 def word_diff(quoted: str, mushaf: str) -> list:
-    """Word-level differences between a quote and the Mushaf text, compared by skeleton."""
+    """Word-level differences between a quote and the Mushaf text, compared by skeleton.
+    A word typed in common spelling (شيئا for ﴿شَيۡـٔٗا﴾) is the same word; a word with an alef the
+    Mushaf does not have («قال» for ﴿قُلۡ﴾) is a difference (op "replace", kind "alef")."""
     a, b = ar_words(quoted), mushaf.split()
     # Show the user's own spelling in the result, not the normalized form.
     original = [w for w in re.split(r"\s+", quoted) if re.search("[\u0621-\u064A]", w)]
     shown = [w.strip("«»\"“”(){}﴿﴾،,.:؛") for w in original] if len(original) == len(a) else a
-    a_sk = [word_skeleton(w) for w in a]
     b_sk = [word_skeleton(w) for w in ar_words(mushaf)]
     if len(b_sk) != len(b):  # normalization changed word count; fall back to normalized words
         b = ar_words(mushaf)
+    common = [to_common_word(w, harakat=False)[0] for w in b]
+    to_uthmani = {}
+    for u, c in zip(b_sk, common):
+        if " " not in c:
+            to_uthmani.setdefault(word_skeleton(normalize_ar(c)), u)
+    a_sk = [word_skeleton(w) for w in a]
+    a_sk = [x if x in b_sk else to_uthmani.get(x, x) for x in a_sk]
     sm = difflib.SequenceMatcher(a=a_sk, b=b_sk, autojunk=False)
     ops = sm.get_opcodes()
     # Trim leading/trailing Mushaf words outside the quoted span.
@@ -271,11 +441,28 @@ def word_diff(quoted: str, mushaf: str) -> list:
         o[3] = max(o[3], o[4] - (o[2] - o[1]))
     out = []
     for op, i1, i2, j1, j2 in ops:
-        quoted, mush = " ".join(shown[i1:i2]), " ".join(b[j1:j2])
-        if op != "equal" and skeleton_ar(quoted) == skeleton_ar(mush):
-            op = "equal"  # spelling only (يا أيها / يَـٰٓأَيُّهَا)
-        out.append({"op": op, "quoted": quoted, "mushaf": mush})
+        if op == "equal" and i2 - i1 > 1:  # compare word by word so an alef difference names its word
+            for k in range(i2 - i1):
+                out.extend(_pair(shown[i1 + k], b[j1 + k], common[j1 + k], "equal"))
+            continue
+        out.extend(_pair(" ".join(shown[i1:i2]), " ".join(b[j1:j2]), " ".join(common[j1:j2]), op))
+    # A quote may start or end inside a Mushaf word («إن» of ﴿فَإِنَّ﴾): that is a partial quote, not a change.
+    for k, test in ((0, str.endswith), (-1, str.startswith)):
+        if out and out[k]["op"] == "replace" and out[k].get("kind") != "alef" and " " not in out[k]["quoted"]:
+            sq, sm = skeleton_ar(out[k]["quoted"]), skeleton_ar(out[k]["mushaf"])
+            if sq and " " not in out[k]["mushaf"] and test(sm, sq):
+                out[k]["op"] = "equal"
     return out
+
+
+def _pair(quoted: str, mush: str, common: str, op: str) -> list:
+    sq = skeleton_ar(quoted)
+    same = sq == skeleton_ar(mush) or (common and sq == skeleton_ar(common))
+    if op != "equal" and same:
+        op = "equal"  # spelling only (يا أيها / يَـٰٓأَيُّهَا, شيئا / شَيۡـٔٗا)
+    if op == "equal" and quoted and extra_alef(quoted, mush, common):
+        return [{"op": "replace", "quoted": quoted, "mushaf": mush, "kind": "alef"}]
+    return [{"op": op, "quoted": quoted, "mushaf": mush}]
 
 
 @lru_cache(maxsize=1)
