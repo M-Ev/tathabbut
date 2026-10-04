@@ -43,6 +43,7 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 |---|---|---|
 | ALLaM-7B-Instruct-preview (SDAIA / HUMAIN), `humain-ai/ALLaM-7B-Instruct-preview` | Spotting citations the rules missed; Arabic search wording for non-Arabic quotes; picking which Arabic source text matches a translation. Never grades or rules. | Apache-2.0 (per the model's Hugging Face listing) |
 | GGUF 4-bit build: `bartowski/ALLaM-AI_ALLaM-7B-Instruct-preview-GGUF` (Q4_K_M) | Running ALLaM on a free CPU | Apache-2.0 |
+| Fallback (owner's decision, 4 Oct), called only when ALLaM is not available, e.g. `Qwen/Qwen3-235B-A22B-Instruct-2507` through Hugging Face Inference Providers | The same three jobs under the same guards; each report names the model that answered (`model.answered_by`) | The chosen model's own license (Qwen3: Apache-2.0) |
 
 ## AI tools used to build the project
 
@@ -74,4 +75,4 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 
 ## Data
 
-Only synthetic data: the evaluation cases in `eval/cases.jsonl` were drafted with Claude (see the tools table above); their review by the team's Sharia reviewer is pending. No user data is collected; user text is not stored or logged by the tool (the "report a problem" link opens a public GitHub issue containing the quoted text, and says so beside the link), and only extracted hadith wording is sent to Dorar. When the ALLaM option is used, the text is sent to the model on the team's own server.
+Only synthetic data: the evaluation cases in `eval/cases.jsonl` were drafted with Claude (see the tools table above); their review by the team's Sharia reviewer is pending. No user data is collected; user text is not stored or logged by the tool (the "report a problem" link opens a public GitHub issue containing the quoted text, and says so beside the link), and only extracted hadith wording is sent to Dorar. In the deep check the text is sent to ALLaM on the team's own server or, when ALLaM is not available, to the fallback model at its hosting provider; the report names the model.

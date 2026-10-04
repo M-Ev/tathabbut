@@ -482,6 +482,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
         "model": {"backend": llm.backend.name, "available": llm.available(), "requested": deep,
                   "used": usage["calls"] > 0, "calls": usage["calls"], "seconds": round(usage["seconds"], 1),
+                  "answered_by": usage.get("models", []), "configured": llm.describe(),
                   "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
     }
@@ -489,7 +490,8 @@ async def check_text(text: str, deep: bool = False) -> dict:
     result["decision"] = chatbot_decision(result)
     result["disclaimer"] = DISCLAIMER
     result["versions"] = {"app": VERSION["commit"], "display_rules": DISPLAY_RULES["status"],
-                          "chatbot_policy": POLICY["version"], "model": llm.backend.name}
+                          "chatbot_policy": POLICY["version"],
+                          "model": "+".join(usage.get("models", [])) or llm.backend.name}
     return result
 
 

@@ -13,6 +13,7 @@ This file lists every outside service the tool talks to, who runs it, whether it
 | فتاوى سماحة الشيخ عبدالعزيز بن باز: البحث `https://binbaz.org.sa/api/search` (بحث الموقع نفسه)، ثم صفحة الفتوى `https://binbaz.org.sa/fatwas/{id}` | الموقع الرسمي لسماحة الشيخ (مؤسسة الشيخ عبدالعزيز بن باز الخيرية). اختيار الفريق في المستوى (د)، خارج جدول الحزمة | كلمات موضوع سؤال الفتوى فقط (دون صيغة السؤال ولا بقية النص) · Only the topic words of the fatwa question | لا · No | عامة دون حساب. تذييل الموقع: «النقل متاح لكل مسلم بشرط ذكر المصدر»، فتُعرض الفتوى كاملة بنصها مع مصدرها ورابطها. فاصل 0.5 ثانية وتخزين مؤقت | `app/fatwa.py` |
 | فتاوى فضيلة الشيخ محمد بن صالح العثيمين: البحث `https://shekhcp.binothaimeen.net/api/search-data` (بحث الموقع نفسه)، ثم `https://shekhapi.binothaimeen.net/lessons/audios/show/{id}` | موقع مؤسسة الشيخ محمد بن صالح العثيمين الخيرية. اختيار الفريق في المستوى (د)، خارج جدول الحزمة | كلمات موضوع سؤال الفتوى فقط · Only the topic words of the fatwa question | لا · No | عامة دون حساب. الحقوق محفوظة للمؤسسة، فيُعرض السؤال وأول الجواب بنصه ورابط الفتوى في موقع المؤسسة، لا الفتوى كاملة · All rights reserved: question, opening line and link only | `app/fatwa.py` |
 | تنزيل علّام لتشغيله داخل الحاوية (الطريقة المحلية `llamacpp`) | نسخة GGUF عامة على Hugging Face: `bartowski/ALLaM-AI_ALLaM-7B-Instruct-preview-GGUF` | لا شيء من نص المستخدم؛ تنزيل ملف النموذج مرة واحدة · Nothing from the user; a one-time model download | لا · No | المستودع عام · Public repository | `app/llm.py` (`LlamaCppBackend`) |
+| نموذج بديل أقوى، يُستدعى فقط حين لا يكون علّام متاحًا (قرار الفريق 4 أكتوبر) · Fallback model, called only when ALLaM is not available | أي واجهة متوافقة مع OpenAI؛ المقترح موجّه Hugging Face (`https://router.huggingface.co/v1`) بنموذج مفتوح مثل `Qwen/Qwen3-235B-A22B-Instruct-2507` | النص المفحوص (حتى 3000 حرف) في الفحص المعمّق فقط، ويُذكر اسم النموذج في التقرير · The checked text, deep check only; the report names the model | نعم · Yes: `TATHABBUT_LLM_FALLBACK_API_KEY` | مفتاح وصول من حساب الفريق في Hugging Face بصلاحية Inference Providers، يوضع سرًّا في إعدادات الـ Space · A Hugging Face token with Inference Providers permission, as a Space secret | `app/llm.py` (`fallback`)، والعنوان في `TATHABBUT_LLM_FALLBACK_BASE_URL` والنموذج في `TATHABBUT_LLM_FALLBACK_MODEL` |
 
 الرابط الحي الآن يعمل بـ `TATHABBUT_LLM=none`، أي دون علّام، فلا يُرسل إليه شيء حتى يُفعَّل خادم الفريق. · The live link currently runs with `TATHABBUT_LLM=none`, so nothing is sent to a model until the team's endpoint is switched on.
 
@@ -38,12 +39,13 @@ This file lists every outside service the tool talks to, who runs it, whether it
 |---|---|---|
 | `HF_TOKEN` | سير النشر اليدوي `.github/workflows/deploy-space.yml` فقط؛ النشر المعتاد بإعادة بناء الـ Space من هذا المستودع ولا يحتاجه · Manual deploy workflow only | GitHub ← Settings ← Secrets and variables ← Actions |
 | `TATHABBUT_LLM_API_KEY` | الاتصال بخادم علّام · Calling the ALLaM endpoint | Hugging Face ← Space ← Settings ← Variables and secrets |
+| `TATHABBUT_LLM_FALLBACK_API_KEY` | الاتصال بالنموذج البديل · Calling the fallback model | Hugging Face ← Space ← Settings ← Variables and secrets |
 
 ## 5. أدوات الذكاء الاصطناعي في بناء المشروع · AI tools used to build the project
 
 الأداة نفسها لا تستدعي أي نموذج غير علّام، ولا تستدعي واجهة Claude البرمجية ولا تحمل مفتاحًا لها. أما أثناء التطوير فاستُعمل Claude من Anthropic عبر Claude Code بحساب الفريق: في الشيفرة والاختبارات، ومسودات حالات التقييم، والوثائق. والقائمة الكاملة ودور الفريق في سجل الأدوات والتراخيص [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
 
-The running tool calls no model other than ALLaM; it never calls the Claude API and holds no Claude key. During development, Claude (Anthropic) was used through Claude Code on the team's account for code and tests, drafts of the evaluation cases, and documentation. The full list and the team's role are in the tools and licenses log, [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
+The running tool calls ALLaM and, only when ALLaM is not available, the fallback model named in `/api/health` (`models.fallback`) and in each report (`model.answered_by`); it never calls the Claude API and holds no Claude key. During development, Claude (Anthropic) was used through Claude Code on the team's account for code and tests, drafts of the evaluation cases, and documentation. The full list and the team's role are in the tools and licenses log, [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
 
 ## 6. كيف يتحقق المحكّم · How a judge can verify
 

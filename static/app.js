@@ -13,7 +13,7 @@ const T = {
     truncatedCits: (a, b) => `فُحص أول ${a} استشهادًا من ${b} وُجدت في النص. افحص الباقي في طلب آخر.`,
     dorarDown: "الموسوعة الحديثية غير متاحة الآن: الآيات تُفحص كالمعتاد، والأحاديث تُحال إلى المختص حتى تعود.",
     modelOff: "الفحص المعمّق بعلّام غير متاح الآن لأن خادم النموذج متوقف، والفحص الأساسي يعمل كاملًا.",
-    modelUsed: (n) => `استُعين بعلّام في هذا الفحص (${n} ث).`,
+    modelUsed: (n, m) => m && !/ALLaM/i.test(m) ? `استُعين بالنموذج اللغوي ${m} في هذا الفحص (${n} ث)، لأن علّام لم يكن متاحًا وقتها.` : `استُعين بعلّام في هذا الفحص (${n} ث).`,
     modelNotUsed: "لم يُستعن بالنموذج اللغوي في هذا الفحص.",
     busy: "طلبات كثيرة من هذا الجهاز في دقائق قليلة. انتظر قليلًا ثم أعد المحاولة.",
     unsupported: "هذه اللغة غير مدعومة بعد، فلم يُفحص النص. يفحص تثبّت اليوم النصوص العربية والإنجليزية، والآيات المنقولة بالترجمات المعتمدة الأردية والإندونيسية والفرنسية.",
@@ -24,7 +24,7 @@ const T = {
     m2t: "الحديث", m2: "يُبحث عنه في الموسوعة الحديثية للدرر السنية، وتُنقل أحكام أئمة الحديث ثم أحكام المحققين المعاصرين بنصها، مع اسم قائل كل حكم، دون ترجيح بينها.",
     m3t: "إذا لم نجد مصدرًا", m3: "يقال ذلك صراحة ويُحال إلى المختص، وأسئلة الفتوى الشخصية تُحال إلى جهة الإفتاء.",
     m4t: "النموذج اللغوي", m4: "يستخرج ويطابق فقط، ولا يحكم على حديث ولا يفتي. وكل ما يقترحه يجب أن يرد بلفظه في النص المفحوص، وإلا حُذف.",
-    privacy: "لا نحفظ نصك، ولا يُرسل إلى الدرر السنية إلا لفظ الحديث المستخرج. وعند الاستعانة بعلّام يُرسل النص إلى النموذج على خادم الفريق.",
+    privacy: "لا نحفظ نصك، ولا يُرسل إلى الدرر السنية إلا لفظ الحديث المستخرج. وعند الفحص المعمّق يُرسل النص إلى علّام على خادم الفريق، وإن لم يكن متاحًا فإلى نموذج بديل لدى مزوّد استضافة، ويُذكر اسم النموذج في التقرير.",
     disclosure: "تثبّت أداة آلية مدعومة بالذكاء الاصطناعي، وليست عالمًا ولا مفتيًا.",
     apiLink: "الواجهة البرمجية لفحص إجابات روبوتات المحادثة",
     botDemo: "جرّب فحص إجابة روبوت المحادثة قبل عرضها",
@@ -126,7 +126,7 @@ const T = {
       quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فتعليلها في كتب علماء الحديث المعتمدين.",
       noneFound: "فلم نجد لأحدهم حكمًا على نص يقارب هذا.",
       notMeaning: "وعدم وجوده هنا ليس حكمًا عليه، ولذلك نحيله إلى المختص.",
-      modelWords: (w) => `استعان النموذج اللغوي علّام بكلمات عربية للبحث: «${w}»، ثم اختار الأصل الأقرب لمعنى الترجمة.`,
+      modelWords: (w) => `اقترح النموذج اللغوي كلمات عربية للبحث: «${w}»، ثم اختار من نتائج المصادر الأصل الأقرب لمعنى الترجمة.`,
       isQuran: "وجدنا هذا النص بلفظه في المصحف، فهو آية لا حديث.",
       needsModel: "النص بغير العربية، والبحث في الموسوعة الحديثية يكون باللفظ العربي، والنموذج اللغوي غير مفعّل الآن.",
     },
@@ -144,7 +144,7 @@ const T = {
     truncatedCits: (a, b) => `The first ${a} of ${b} citations found were checked. Check the rest in another request.`,
     dorarDown: "The hadith encyclopedia cannot be reached right now: verses are checked as usual, and hadith are referred to a specialist until it is back.",
     modelOff: "The deep check with ALLaM is unavailable right now because the model server is off; the basic check works in full.",
-    modelUsed: (n) => `ALLaM was used in this check (${n} s).`,
+    modelUsed: (n, m) => m && !/ALLaM/i.test(m) ? `The language model ${m} was used in this check (${n} s), because ALLaM was not available at the time.` : `ALLaM was used in this check (${n} s).`,
     modelNotUsed: "The language model was not used in this check.",
     busy: "Too many requests from this device in a few minutes. Please wait a little and try again.",
     unsupported: "This language is not supported yet, so the text was not checked. Tathabbut checks Arabic and English today, and verses quoted in the approved Urdu, Indonesian or French translation.",
@@ -155,7 +155,7 @@ const T = {
     m2t: "Hadith", m2: "Looked up in the Dorar hadith encyclopedia. Gradings by the classical imams of hadith, then by modern hadith editors, are quoted verbatim, each with the name of the scholar who gave it, with no preference between them.",
     m3t: "When no source is found", m3: "The tool says so plainly and refers you to a specialist; personal fatwa questions go to a fatwa authority.",
     m4t: "Language model", m4: "Only extracts and matches; it never grades a hadith or gives a fatwa. Anything it suggests must appear verbatim in the checked text, or it is dropped.",
-    privacy: "Your text is not stored. Only the extracted hadith wording is sent to Dorar. When ALLaM is used, the text is sent to the model on the team's server.",
+    privacy: "Your text is not stored. Only the extracted hadith wording is sent to Dorar. In the deep check the text is sent to ALLaM on the team's server or, when it is not available, to a fallback model at a hosting provider; the report names the model.",
     disclosure: "Tathabbut is an AI-assisted tool, not a scholar or a mufti.",
     apiLink: "API for checking chatbot answers",
     botDemo: "Try checking a chatbot answer before it is shown (Arabic page)",
@@ -263,7 +263,7 @@ const T = {
       quoteOnly: "Gradings are quoted verbatim from their sources. The tool neither explains nor weighs them; the reasons are in the scholars' own books.",
       noneFound: "None of them has a grading on a text close to this one.",
       notMeaning: "Not finding it here is not a judgment on it, which is why it is referred to a specialist.",
-      modelWords: (w) => `The ALLaM model suggested Arabic search words «${w}», then picked the source closest in meaning to the translation.`,
+      modelWords: (w) => `The language model suggested Arabic search words «${w}», then picked, among the sources' results, the one closest in meaning to the translation.`,
       isQuran: "This exact text is in the Mushaf, so it is a verse, not a hadith.",
       needsModel: "The text is not in Arabic; the hadith encyclopedia is searched in Arabic and the language model is off right now.",
     },
@@ -661,7 +661,7 @@ function render(r) {
   const day = new Date().toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { year: "numeric", month: "long", day: "numeric" });
   $("report-meta").textContent = t().meta(day, (r.versions || {}).app || "—");
   const md = r.model || {};
-  $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds)) : t().modelNotUsed)}</span>`;
+  $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds), (md.answered_by || []).join("، ")) : t().modelNotUsed)}</span>`;
   const tr = r.truncated;
   if (tr && tr.text_chars > tr.checked_chars) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedText(num(tr.checked_chars), num(tr.text_chars)))}</span>`;
   if (tr && tr.citations_found > tr.citations_checked) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().truncatedCits(num(tr.citations_checked), num(tr.citations_found)))}</span>`;
@@ -716,7 +716,7 @@ async function health() {
   try {
     const h = await (await fetch("/api/health")).json();
     dorarDown = h.dorar_enabled && h.dorar_reachable === false;
-    modelOff = !h.model_ready;
+    modelOff = !(h.model_ready || (h.models && h.models.fallback));
   } catch (e) { /* the check itself reports failures */ }
   showBanner();
 }

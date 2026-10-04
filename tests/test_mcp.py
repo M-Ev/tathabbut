@@ -33,3 +33,43 @@ def test_mcp_endpoint_lists_the_tools():
     assert r.status_code == 200
     names = {t["name"] for t in json.loads(r.text)["result"]["tools"]}
     assert names == {"check_citations", "get_ayah", "list_sources"}
+
+
+def test_allam_first_then_the_fallback_and_the_report_names_who_answered(monkeypatch):
+    from app import llm
+
+    class Off(llm._Backend):
+        name, label = "llamacpp", "ALLaM-7B-Instruct-preview"
+
+        def ready(self):
+            return False
+
+    class Strong(llm._Backend):
+        name, label = "openai", "Qwen/Qwen3-235B-A22B-Instruct-2507"
+
+        def ready(self):
+            return True
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '{"arabic": "إنما الأعمال بالنيات"}'
+
+    monkeypatch.setattr(llm, "backend", Off())
+    monkeypatch.setattr(llm, "fallback", Strong())
+    usage = {"calls": 0, "seconds": 0.0}
+    llm.USAGE.set(usage)
+    assert asyncio.run(llm.arabic_search_wording("Actions are but by intentions", "hadith")) == "إنما الأعمال بالنيات"
+    assert usage["models"] == ["Qwen/Qwen3-235B-A22B-Instruct-2507"]
+    assert llm.available() and llm.describe()["fallback"] == "Qwen/Qwen3-235B-A22B-Instruct-2507"
+
+    class On(Off):
+        def ready(self):
+            return True
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '{"arabic": "الطهور شطر الإيمان"}'
+
+    monkeypatch.setattr(llm, "backend", On())
+    usage = {"calls": 0, "seconds": 0.0}
+    llm.USAGE.set(usage)
+    asyncio.run(llm.arabic_search_wording("Cleanliness is half of faith", "hadith"))
+    assert usage["models"] == ["ALLaM-7B-Instruct-preview"]  # ALLaM answers whenever it is up

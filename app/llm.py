@@ -47,6 +47,10 @@ class LLMUnavailable(Exception):
 
 class _Backend:
     name = "none"
+    label = ""
+
+    def ready(self) -> bool:
+        return False
 
     async def chat(self, messages: list[dict], max_tokens: int = 256, schema: dict | None = None) -> str:
         raise LLMUnavailable("no language model configured")
@@ -55,15 +59,23 @@ class _Backend:
 class OpenAICompatible(_Backend):
     name = "openai"
 
-    schema_ok = True  # set to False once the server refuses response_format
+    def __init__(self, base_url: str | None = None, api_key: str | None = None, model: str | None = None):
+        self.base_url = settings.llm_base_url if base_url is None else base_url
+        self.api_key = settings.llm_api_key if api_key is None else api_key
+        self.model = settings.llm_model if model is None else model
+        self.label = self.model
+        self.schema_ok = True  # set to False once the server refuses response_format
+
+    def ready(self) -> bool:
+        return bool(self.base_url)
 
     async def chat(self, messages, max_tokens=256, schema=None):
-        if not settings.llm_base_url:
+        if not self.base_url:
             raise LLMUnavailable("TATHABBUT_LLM_BASE_URL is not set")
-        headers = {"Authorization": f"Bearer {settings.llm_api_key}"} if settings.llm_api_key else {}
-        body = {"model": settings.llm_model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+        body = {"model": self.model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
         async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
-            url = settings.llm_base_url.rstrip("/") + "/chat/completions"
+            url = self.base_url.rstrip("/") + "/chat/completions"
             if schema and self.schema_ok:
                 # vLLM and the OpenAI API accept json_schema; a server that does not is asked again without it.
                 r = await client.post(url, headers=headers, json={**body, "response_format": {
@@ -82,10 +94,14 @@ class LlamaCpp(_Backend):
     """Runs the ALLaM GGUF in-process with llama.cpp (free CPU hosting)."""
 
     name = "llamacpp"
+    label = "ALLaM-7B-Instruct-preview"
 
     def __init__(self):
         self._llm = None
         self._lock = asyncio.Lock()
+
+    def ready(self) -> bool:
+        return self._llm is not None
 
     def _load(self):
         if self._llm is None:
@@ -117,10 +133,36 @@ def _make_backend() -> _Backend:
 
 
 backend = _make_backend()
+# ALLaM first; the fallback answers only when ALLaM is off, still loading, or fails (owner's decision, 4 Oct).
+fallback: _Backend | None = (
+    OpenAICompatible(settings.llm_fallback_base_url, settings.llm_fallback_api_key, settings.llm_fallback_model)
+    if settings.llm_fallback_base_url and settings.llm_fallback_model else None
+)
 
 
 def available() -> bool:
-    return backend.name != "none"
+    return backend.name != "none" or fallback is not None
+
+
+def describe() -> dict:
+    """Which models can answer, for /api/health and every report."""
+    return {"primary": backend.label or backend.name, "primary_ready": backend.ready(),
+            "fallback": fallback.label if fallback else None}
+
+
+async def _chat(messages, max_tokens, schema) -> tuple[str, str]:
+    """Ask ALLaM; if it cannot answer and a fallback is set, ask the fallback. Returns (reply, model label)."""
+    use_primary = backend.name != "none" and (backend.ready() or fallback is None)
+    if use_primary:
+        try:
+            return await backend.chat(messages, max_tokens, schema=schema), backend.label or backend.name
+        except Exception as e:  # noqa: BLE001 - any failure of the primary goes to the fallback, if there is one
+            if fallback is None:
+                raise
+            log.warning("primary model failed (%s); asking the fallback", e)
+    if fallback is None:
+        raise LLMUnavailable("no language model configured")
+    return await fallback.chat(messages, max_tokens, schema=schema), fallback.label
 
 
 def _json(text: str):
@@ -142,14 +184,17 @@ USAGE: contextvars.ContextVar[dict | None] = contextvars.ContextVar("llm_usage",
 
 async def _ask(user: str, max_tokens: int, schema: str):
     t0 = time.monotonic()
+    model = None
     try:
-        reply = await backend.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], max_tokens,
-                                   schema=SCHEMAS[schema])
+        reply, model = await _chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], max_tokens,
+                                   SCHEMAS[schema])
     finally:
         u = USAGE.get()
         if u is not None:
             u["calls"] += 1
             u["seconds"] += time.monotonic() - t0
+            if model and model not in u.setdefault("models", []):
+                u["models"].append(model)
     return _json(reply)
 
 

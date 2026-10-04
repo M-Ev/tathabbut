@@ -22,6 +22,11 @@ class Settings:
     llm_api_key: str = _env("TATHABBUT_LLM_API_KEY")
     llm_model: str = _env("TATHABBUT_LLM_MODEL", "ALLaM-7B-Instruct-preview")
     llm_timeout: float = float(_env("TATHABBUT_LLM_TIMEOUT", "180"))
+    # Fallback (owner's decision, 4 Oct): ALLaM first; when it is not running, a stronger hosted model on any
+    # OpenAI-compatible endpoint (e.g. https://router.huggingface.co/v1). Every report names the model that answered.
+    llm_fallback_base_url: str = _env("TATHABBUT_LLM_FALLBACK_BASE_URL")
+    llm_fallback_api_key: str = _env("TATHABBUT_LLM_FALLBACK_API_KEY")
+    llm_fallback_model: str = _env("TATHABBUT_LLM_FALLBACK_MODEL")
     # Dorar
     dorar_enabled: bool = _env("TATHABBUT_DORAR", "1") != "0"
     dorar_timeout: float = float(_env("TATHABBUT_DORAR_TIMEOUT", "20"))
