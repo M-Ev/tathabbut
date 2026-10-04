@@ -11,12 +11,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import llm
-from . import mcp_server
 from .config import settings
 from .pipeline import check_text
 from .quran import get_quran
 
 logging.basicConfig(level=logging.INFO)
+try:  # the MCP endpoint is an extra; the site must start without it
+    from . import mcp_server
+except Exception as e:  # noqa: BLE001
+    logging.getLogger("tathabbut").warning("MCP endpoint disabled: %s", e)
+    mcp_server = None
 STATIC = Path(__file__).resolve().parent.parent / "static"
 
 @contextlib.asynccontextmanager
@@ -26,6 +30,9 @@ async def _lifespan(_app):
         import asyncio
 
         asyncio.create_task(llm.backend.warm())  # download/load ALLaM in the background
+    if mcp_server is None:
+        yield
+        return
     async with mcp_server.mcp.session_manager.run():  # the /mcp endpoint (agents call the check as a tool)
         yield
 
@@ -126,8 +133,9 @@ async def sources():
 
 
 # MCP over streamable HTTP at /mcp, sharing the web API's per-visitor limit.
-mcp_server.guard = lambda request: _rate_limit(_client_ip(request))
-app.router.routes.extend(mcp_server.mcp.streamable_http_app().routes)
+if mcp_server is not None:
+    mcp_server.guard = lambda request: _rate_limit(_client_ip(request))
+    app.router.routes.extend(mcp_server.mcp.streamable_http_app().routes)
 
 
 @app.get("/")
