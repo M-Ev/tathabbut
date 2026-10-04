@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+# Build tools for llama.cpp (ALLaM on CPU) and git to fetch the app from GitHub.
+RUN apt-get update && apt-get install -y --no-install-recommends git build-essential cmake libgomp1 \
+ && rm -rf /var/lib/apt/lists/*
+RUN useradd -m -u 1000 user
+USER user
+WORKDIR /home/user
+RUN git clone --depth 1 https://github.com/M-Ev/tathabbut app
+WORKDIR /home/user/app
+RUN pip install --no-cache-dir --user -r requirements.txt \
+ && pip install --no-cache-dir --user --prefer-binary \
+      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r requirements-llm.txt
+# ALLaM first (downloaded on start, ~4.4 GB); while it loads, or if it fails, the fallback answers.
+# The fallback's key is the Space secret TATHABBUT_LLM_FALLBACK_API_KEY (never written here).
+ENV PATH=/home/user/.local/bin:$PATH \
+    HF_HOME=/home/user/.cache/huggingface \
+    TATHABBUT_LLM=llamacpp \
+    TATHABBUT_N_THREADS=2 \
+    TATHABBUT_LLM_FALLBACK_BASE_URL=https://router.huggingface.co/v1 \
+    TATHABBUT_LLM_FALLBACK_MODEL=Qwen/Qwen3-235B-A22B-Instruct-2507 \
+    PORT=7860
+EXPOSE 7860
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

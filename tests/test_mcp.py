@@ -73,3 +73,26 @@ def test_allam_first_then_the_fallback_and_the_report_names_who_answered(monkeyp
     llm.USAGE.set(usage)
     asyncio.run(llm.arabic_search_wording("Cleanliness is half of faith", "hadith"))
     assert usage["models"] == ["ALLaM-7B-Instruct-preview"]  # ALLaM answers whenever it is up
+
+
+def test_a_model_that_does_not_answer_gives_a_referral_not_an_error(monkeypatch, fake_dorar):
+    from app import llm
+    from app.pipeline import run
+
+    fake_dorar({})
+
+    class Down(llm._Backend):
+        name, label = "openai", "some-model"
+
+        def ready(self):
+            return True
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            raise RuntimeError("503")
+
+    monkeypatch.setattr(llm, "backend", Down())
+    monkeypatch.setattr(llm, "fallback", None)
+    r = run('The Prophet (ﷺ) said: "Cleanliness is half of faith."', deep=True)
+    c = r["citations"][0]
+    assert c["status"] == "needs_model" and c["referral"] and r["model"]["used"] is False
+    assert r["coverage"]["complete"] is False

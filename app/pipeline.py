@@ -265,7 +265,16 @@ async def check_hadith(c: Candidate, out: dict) -> None:
                 "This quote is not in Arabic and needs the language model to find its source, which is off right now.",
             )
             return
-        arabic = await llm.arabic_search_wording(quote, "hadith")
+        try:
+            arabic = await llm.arabic_search_wording(quote, "hadith")
+        except Exception as e:  # noqa: BLE001 - the model not answering is a referral, not an error
+            log.warning("model did not answer: %s", e)
+            out["status"] = "needs_model"
+            out["referral"] = _referral(
+                "النص بغير العربية ويحتاج إلى النموذج اللغوي للبحث عن أصله، ولم يستجب النموذج الآن.",
+                "This quote is not in Arabic and needs the language model to find its source, which did not answer just now.",
+            )
+            return
         out["search_wording_ar"] = arabic
         out["notes"].append("search_wording_by_model")
         quote = arabic
@@ -297,7 +306,11 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             if find_scholar(h.mohdith, h.mohdith_id) and h.text not in texts:
                 texts.append(h.text)
         texts = texts[:4]
-        pick = await llm.pick_match(c.quote, texts) if texts else 0
+        try:
+            pick = await llm.pick_match(c.quote, texts) if texts else 0
+        except Exception as e:  # noqa: BLE001 - no pick means nothing is shown, and the quote is referred
+            log.warning("model did not answer: %s", e)
+            pick = 0
         if pick == 0:
             out["status"] = "not_found"
             out["hadith"] = _grade_groups(quote, res, min_sim=101)  # nothing shown
@@ -340,7 +353,11 @@ async def check_quran(c: Candidate, out: dict) -> None:
     else:
         m = Q.match_english(c.quote, prefer)
     if m.status == "not_found" and c.lang == "en" and llm.available():
-        arabic = await llm.arabic_search_wording(c.quote, "quran")
+        try:
+            arabic = await llm.arabic_search_wording(c.quote, "quran")
+        except Exception as e:  # noqa: BLE001 - without the model the quote stays "not found", as with the model off
+            log.warning("model did not answer: %s", e)
+            arabic = ""
         out["search_wording_ar"] = arabic
         if arabic:
             m2 = Q.match_arabic(arabic)
@@ -481,7 +498,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
         "summary": _summary(results),
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
         "model": {"backend": llm.backend.name, "available": llm.available(), "requested": deep,
-                  "used": usage["calls"] > 0, "calls": usage["calls"], "seconds": round(usage["seconds"], 1),
+                  "used": bool(usage.get("models")), "calls": usage["calls"], "seconds": round(usage["seconds"], 1),
                   "answered_by": usage.get("models", []), "configured": llm.describe(),
                   "dropped_unverifiable": dropped},
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
