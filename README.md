@@ -85,6 +85,8 @@ Docker / Hugging Face Space: `docker build -t tathabbut . && docker run -p 7860:
 
 `POST /api/check` with `{"text": "...", "deep": false}` returns every citation with its status, source, verbatim gradings and any referral. Use it to check an Islamic chatbot's answer before it is shown: each reply carries `decision` (`pass` / `annotate` / `block`, from `data/chatbot_policy.json`), `citations[].span`, `coverage`, `disclaimer` and `versions`; the answer is never rewritten. See [docs/api.md](docs/api.md) and the demo at `/static/chatbot.html`.
 
+AI agents can call the same check as an MCP tool at `/mcp` (`check_citations`, `get_ayah`, `list_sources`); see [docs/mcp.md](docs/mcp.md).
+
 Each citation carries `tier` (the track's evidence-status criterion): `documented` (a Quran quote matching the Mushaf), `supported` / `not_supported` (a hadith, by the rules in `data/display_rules.json`), `verify` or `refer`. Statuses: `verified` (matches the Mushaf), `differs` (wording differs, see `diff`), `not_in_mushaf`, `graded` (found with approved gradings), `found_similar` (similar wording), `not_found` (referred), `needs_model`, `source_error`.
 
 ## الاختبارات والتقييم · Tests and evaluation
@@ -119,6 +121,7 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/limitations.md](docs/limitations.md) | القيود المعروفة وكيف نتعامل معها |
 | [docs/design-system.md](docs/design-system.md) | نظام التصميم |
 | [docs/package-conformance.md](docs/package-conformance.md) | مطابقة الحزمة العلمية: المعايير الثمانية، والمستويات، وجدول المرجعية، وحالات الاختبار، ولكل صف اختباره |
+| [docs/mcp.md](docs/mcp.md) | ربط الأداة بوكلاء الذكاء الاصطناعي عبر MCP: الأدوات الثلاث وطريقة الاتصال |
 | [docs/api.md](docs/api.md) | فحص إجابة روبوت المحادثة قبل عرضها: القرار والسياسة وأمثلة Python وJavaScript |
 | [docs/api-and-keys.md](docs/api-and-keys.md) | الواجهات البرمجية التي تستدعيها الأداة، ومفاتيحها ومصدر كل مفتاح، وما يُرسل إلى كل خدمة |
 | [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |

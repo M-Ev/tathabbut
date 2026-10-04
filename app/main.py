@@ -1,4 +1,5 @@
 """تثبّت · Tathabbut: web app and API."""
+import contextlib
 import logging
 import time
 from collections import defaultdict, deque
@@ -10,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import llm
+from . import mcp_server
 from .config import settings
 from .pipeline import check_text
 from .quran import get_quran
@@ -17,7 +19,19 @@ from .quran import get_quran
 logging.basicConfig(level=logging.INFO)
 STATIC = Path(__file__).resolve().parent.parent / "static"
 
+@contextlib.asynccontextmanager
+async def _lifespan(_app):
+    get_quran()
+    if settings.llm_backend == "llamacpp":
+        import asyncio
+
+        asyncio.create_task(llm.backend.warm())  # download/load ALLaM in the background
+    async with mcp_server.mcp.session_manager.run():  # the /mcp endpoint (agents call the check as a tool)
+        yield
+
+
 app = FastAPI(
+    lifespan=_lifespan,
     title="تثبّت · Tathabbut",
     description=(
         "Traces every Quran verse and hadith in a text to its Arabic source and shows the approved hadith "
@@ -45,15 +59,6 @@ def _rate_limit(ip: str):
     if len(q) >= RATE:
         raise HTTPException(429, "Too many requests, please wait a few minutes.")
     q.append(now)
-
-
-@app.on_event("startup")
-async def _startup():
-    get_quran()
-    if settings.llm_backend == "llamacpp":
-        import asyncio
-
-        asyncio.create_task(llm.backend.warm())  # download/load ALLaM in the background
 
 
 def _client_ip(request: Request) -> str:
@@ -117,6 +122,11 @@ async def sources():
         "fatwa_references": FATWA_REFERENCES,
         "fatwa_referral_note": "Team's choice for level د: the package says «يحيل إلى جهة مؤهلة» and names no body. The tool shows the two scholars' published fatwas on close questions verbatim with source and link (Ibn Baz in full; Ibn al-Uthaymeen question and opening line, as the foundation reserves its rights). They are found by each site's own search and ordered by word overlap; the language model never writes or picks a fatwa.",
     }
+
+
+# MCP over streamable HTTP at /mcp, sharing the web API's per-visitor limit.
+mcp_server.guard = lambda request: _rate_limit(_client_ip(request))
+app.router.routes.extend(mcp_server.mcp.streamable_http_app().routes)
 
 
 @app.get("/")
