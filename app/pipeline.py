@@ -242,7 +242,7 @@ def _referral(reason_ar: str, reason_en: str, field: str = "hadith") -> dict:
     return {"ar": f"{reason_ar} يُحال إلى {ar} للتحقق.", "en": f"{reason_en} Please refer to {en}."}
 
 
-_LANG_NAME = {"ur": ("بالأردية", "in Urdu"), "id": ("بالإندونيسية", "in Indonesian")}
+_LANG_NAME = {"ur": ("بالأردية", "in Urdu"), "id": ("بالإندونيسية", "in Indonesian"), "fr": ("بالفرنسية", "in French")}
 
 
 async def check_hadith(c: Candidate, out: dict) -> None:
@@ -596,7 +596,7 @@ def _hadith_tier_from_gradings(r: dict) -> str:
     return "verify"
 
 
-# Plan item 8: v1 checks Arabic and English; plan item 36 adds Urdu and Indonesian Quran quotes. Text in another language is said to be unchecked,
+# Plan item 8: v1 checks Arabic and English; plan item 36 adds Urdu, Indonesian and French Quran quotes. Text in another language is said to be unchecked,
 # never reported as "no citation found".
 _URDU_PERSIAN = re.compile("[ٹڈڑںےۓھہپچژگ]")
 _EN = re.compile(r"\b(?:the|and|of|to|is|in|that|he|said|allah|prophet|you|we|they|this|for|with)\b", re.I)
@@ -616,7 +616,7 @@ def unsupported_language(text: str) -> str | None:
         en = len(_EN.findall(text))
         lang, n = max(((k, len(rx.findall(text))) for k, rx in _OTHER_LATIN.items()), key=lambda x: x[1])
         if n >= 3 and n > 2 * en:
-            return None if lang == "id" else lang
+            return None if lang in ("id", "fr") else lang
     return None
 
 

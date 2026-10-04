@@ -14,7 +14,7 @@ from pathlib import Path
 
 from rapidfuzz import fuzz, process
 
-from .normalize import ar_words, normalize_ar, normalize_en, normalize_id, normalize_ur, skeleton_ar, word_skeleton
+from .normalize import ar_words, normalize_ar, normalize_en, normalize_fr, normalize_id, normalize_ur, skeleton_ar, word_skeleton
 from .spelling import to_common_word
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "quran.json"
@@ -98,8 +98,8 @@ class QuranMatch:
     diff: list = field(default_factory=list)  # [{"op": "equal|replace|delete|insert", "quoted": str, "mushaf": str}]
     occurrences: int = 0
     via: str = ""  # arabic | english | english_llm
-    matched_translation: str = ""  # which translation the quote matched (hilali | saheeh | ur_junagarhi | id_kfc)
-    translation: dict | None = None  # Urdu or Indonesian quotes: the approved translation's text, name and link
+    matched_translation: str = ""  # which translation the quote matched (hilali | saheeh | ur_junagarhi | id_kfc | fr_hamidullah)
+    translation: dict | None = None  # Urdu, Indonesian or French quotes: the approved translation's text, name and link
     reference_given: str = ""
     reference_ok: bool | None = None
     # What actually sits at the reference the author wrote, to explain a wrong reference.
@@ -345,10 +345,11 @@ class Quran:
         return m
 
     def _load_translations(self, folder: Path) -> dict:
-        """Plan item 36: the King Fahd Complex Urdu and Indonesian translations, fetched from quranpedia.net
+        """Plan item 36: the Urdu, Indonesian and French translations, fetched from quranpedia.net
         by scripts/fetch_translations.py with a pinned sha256. A missing file only turns that language off."""
         out = {}
-        for lang, file, norm in (("ur", "ur_junagarhi.json", normalize_ur), ("id", "id_kfc.json", normalize_id)):
+        for lang, file, norm in (("ur", "ur_junagarhi.json", normalize_ur), ("id", "id_kfc.json", normalize_id),
+                                ("fr", "fr_hamidullah.json", normalize_fr)):
             p = folder / file
             if not p.exists():
                 continue

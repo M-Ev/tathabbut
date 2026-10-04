@@ -62,7 +62,7 @@ def is_arabic(text: str) -> bool:
     return arabic / len(letters) > 0.5
 
 
-# Plan item 36: Urdu and Indonesian quotes are matched against the King Fahd Complex translations.
+# Plan item 36: Urdu, Indonesian and French quotes are matched against one approved translation each.
 _UR_MAP = str.maketrans({
     "أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
     "ي": "ی", "ى": "ی", "ئ": "ی", "ې": "ی",
@@ -72,6 +72,7 @@ _UR_MAP = str.maketrans({
 })
 _URDU_ONLY = re.compile("[ٹڈڑںےۓہ]")
 _EN_WORDS = re.compile(r"\b(?:the|and|of|to|is|in|that|he|said|you|we|they|this|for|with|who|not|be)\b", re.I)
+_FR_WORDS = re.compile(r"\b(?:le|la|les|des|est|et|une|dans|que|qui|pour|sur|il|nous|vous|du|au|ne|pas|ceux|leur)\b", re.I)
 _ID_WORDS = re.compile(
     r"\b(?:dan|yang|ini|itu|dengan|untuk|dari|tidak|kita|kami|adalah|akan|bahwa|ia|kepada|mereka|orang|atas|kamu|sesungguhnya)\b",
     re.I,
@@ -90,9 +91,14 @@ def normalize_id(text: str) -> str:
     return normalize_en(text.replace("’", "'").replace("'", ""))
 
 
+def normalize_fr(text: str) -> str:
+    return normalize_en(text.replace("’", " ").replace("'", " "))
+
+
 def quote_lang(text: str) -> str:
-    """ar | ur | en | id: which index a quote is matched against."""
+    """ar | ur | en | id | fr: which index a quote is matched against."""
     if is_arabic(text):
         return "ur" if len(_URDU_ONLY.findall(text)) >= 2 else "ar"
-    n_id, n_en = len(_ID_WORDS.findall(text)), len(_EN_WORDS.findall(text))
-    return "id" if n_id >= 2 and n_id > n_en else "en"
+    n = {"en": len(_EN_WORDS.findall(text)), "id": len(_ID_WORDS.findall(text)), "fr": len(_FR_WORDS.findall(text))}
+    lang = max(("id", "fr"), key=lambda k: n[k])
+    return lang if n[lang] >= 2 and n[lang] > n["en"] else "en"

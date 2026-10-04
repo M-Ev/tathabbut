@@ -1,4 +1,4 @@
-"""Plan item 36: how well Urdu and Indonesian quotes are traced through the King Fahd Complex translations.
+"""Plan item 36: how well Urdu, Indonesian and French verse quotes are traced through one approved translation each.
 
 Positives: 300 ayat (seeded) per language; from each, a window of 6 to 14 words as written, the same window
 with one word dropped, and with one word swapped for a word of another ayah (900 quotes). A positive counts
@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from app.quran import get_quran  # noqa: E402
 
-NAMES = {"ur": "الأردية (جوناكري)", "id": "الإندونيسية (المجمع ووزارة الشؤون الدينية)"}
+NAMES = {"ur": "الأردية (جوناكري)", "id": "الإندونيسية (المجمع ووزارة الشؤون الدينية)", "fr": "الفرنسية (محمد حميد الله)"}
 
 
 def positives(idx, rnd):
@@ -61,7 +61,7 @@ def main():
              f"بعتبة {get_quran().TR_FLOOR} وتطابق تام من {get_quran().TR_EXACT}.", "",
              "الجمل السالبة كتبها Claude (أقوال شائعة ومعاني أحاديث وجمل دعوية ليست آيات)، وتنتظر مراجعة متحدث بكل لغة. "
              "والعتبة اختيرت على هذه الحالات نفسها، فالأرقام تقدير متفائل حتى تُجرَّب على اقتباسات حقيقية.", ""]
-    for lang in ("ur", "id"):
+    for lang in ("ur", "id", "fr"):
         rows, neg, tr = run(lang)
         src = tr["source"]
         lines += [f"## {NAMES[lang]}", "",

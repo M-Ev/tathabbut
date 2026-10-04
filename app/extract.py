@@ -68,7 +68,7 @@ ATTR_EN = re.compile(
     r"|(?P<both>agreed\s+upon|in\s+both\s+Sahihs?)",
     re.I,
 )
-# Plan item 36: the common Urdu and Indonesian ways of citing; to be reviewed by a speaker of each language.
+# Plan item 36: the common Urdu, Indonesian and French ways of citing; to be reviewed by a speaker of each language.
 _ALLAH_UR = r"الل[ّٰ]*ہ"
 QURAN_UR = re.compile(
     r"(?:" + _ALLAH_UR + r"\s*(?:تعالیٰ|تعالی|تعالى|پاک|عزوجل|عز وجل|سبحانہ\s*و\s*تعالیٰ)?\s*(?:نے\s*)?"
@@ -92,6 +92,18 @@ QURAN_ID = re.compile(
 HADITH_ID = re.compile(
     r"(?:(?:Rasulullah|Rasul|Nabi(?:\s+Muhammad)?)\s*(?:SAW|ﷺ|\(SAW\)|shallallahu\s+['’]?alaihi\s+wa\s*sallam)?\s*(?:telah\s+)?bersabda"
     r"|sabda\s+(?:Rasulullah|Nabi)(?:\s+(?:SAW|ﷺ|\(SAW\)))?)\s*[:,]?\s*",
+    re.I,
+)
+QURAN_FR = re.compile(
+    r"(?:(?:Allah|Dieu)(?:\s*\((?:swt|exalt[ée] soit-Il|qu['’]Il soit exalt[ée])\))?(?:\s+(?:le\s+Tr[èe]s[- ]Haut|l['’]Exalt[ée]|exalt[ée]\s+soit-Il|Ta['’]?ala))?"
+    r"\s+(?:dit|a\s+dit|nous\s+dit|d[ée]clare)(?:\s+dans\s+le\s+(?:saint\s+)?Coran)?"
+    r"|le\s+(?:saint\s+)?Coran\s+(?:dit|nous\s+dit|d[ée]clare))\s*[:,]?\s*",
+    re.I,
+)
+HADITH_FR = re.compile(
+    r"(?:le\s+Proph[èe]te(?:\s+Muhammad|\s+Mohammed)?|le\s+Messager\s+d['’](?:Allah|Dieu))"
+    r"(?:\s*\((?:ﷺ|saw|sws|paix\s+(?:et\s+b[ée]n[ée]dictions?\s+)?sur\s+lui|[^)]{0,40}salut[^)]{0,20})\)|\s*ﷺ)?"
+    r"\s+(?:a\s+dit|dit|disait)\s*[:,]?\s*",
     re.I,
 )
 _BOOK = {"البخاري": "bukhari", "مسلم": "muslim", "bukhari": "bukhari", "muslim": "muslim"}
@@ -195,7 +207,8 @@ def extract(text: str) -> list[Candidate]:
 
     # 2) Marker + quote.
     for rx, kind in ((QURAN_AR, "quran"), (HADITH_AR, "hadith"), (HADITH_RUWIYA_AR, "hadith"), (QURAN_EN, "quran"), (HADITH_EN, "hadith"),
-                     (QURAN_UR, "quran"), (HADITH_UR, "hadith"), (QURAN_ID, "quran"), (HADITH_ID, "hadith")):
+                     (QURAN_UR, "quran"), (HADITH_UR, "hadith"), (QURAN_ID, "quran"), (HADITH_ID, "hadith"),
+                     (QURAN_FR, "quran"), (HADITH_FR, "hadith")):
         for m in rx.finditer(text):
             span = _take_quote(text, m.end())
             if not span:
@@ -205,6 +218,8 @@ def extract(text: str) -> list[Candidate]:
             lang = quote_lang(quote)
             if lang == "en" and rx in (QURAN_ID, HADITH_ID):
                 lang = "id"  # a short Indonesian quote has too few common words to tell by itself
+            elif lang == "en" and rx in (QURAN_FR, HADITH_FR):
+                lang = "fr"
             cand = Candidate(kind, quote, m.start(), e, lang, m.group(0).strip())
             named = m.groupdict().get("surah")
             if named and get_quran().surah_number(named):

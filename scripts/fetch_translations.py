@@ -24,6 +24,8 @@ BOOKS = {
            "name_en": "Urdu translation by Muhammad Ibrahim Junagarhi (King Fahd Complex print)"},
     "id": {"book": 1961, "file": "id_kfc.json", "name_ar": "الترجمة الإندونيسية - المجمع، وزارة الشؤون الإسلامية الإندونيسية",
            "name_en": "Indonesian translation (King Fahd Complex), Indonesian Ministry of Religious Affairs"},
+    "fr": {"book": 27812, "file": "fr_hamidullah.json", "name_ar": "الترجمة الفرنسية، محمد حميد الله",
+           "name_en": "French translation by Muhammad Hamidullah"},
 }
 URL = "https://quranpedia.net/surah/1/{s}/book/{b}"
 _PROSE = re.compile(r'<article class="verse-block".*?<div class="prose[^>]*>(.*?)</div>\s*(?:<div class="(?:foot-notes|hamesh|margin)|\s*</div>)', re.S)

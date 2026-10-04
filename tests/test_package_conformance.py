@@ -84,5 +84,5 @@ def test_p5_transparency_and_privacy(monkeypatch):
 
 def test_p5_unsupported_language_is_said_not_guessed(fake_dorar):
     fake_dorar({})
-    r = run(check_text("Le Prophète a dit que les actes ne valent que par les intentions et que chacun sera rétribué"))
-    assert r["unsupported_language"] == "fr" and r["decision"]["action"] == "annotate"
+    r = run(check_text("Peygamber dedi ki ameller niyetlere göredir ve herkes için niyet ettiği şey vardır, bu çok önemli"))
+    assert r["unsupported_language"] == "tr" and r["decision"]["action"] == "annotate"
