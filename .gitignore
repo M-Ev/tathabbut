@@ -5,3 +5,4 @@ __pycache__/
 *.gguf
 .claude/settings.local.json
 eval/synth_results.jsonl
+eval/model_report_stub.md
