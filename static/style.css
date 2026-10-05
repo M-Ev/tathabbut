@@ -260,3 +260,8 @@ html[dir="ltr"] .ar-inline { text-align: left; }
 .cases-list li { padding: var(--s-2) 0; border-bottom: var(--hair) solid var(--line); }
 .cases-list .case { display: block; text-align: start; min-height: 44px; }
 .cases-list .fine { display: block; }
+
+/* Scholars' gradings of the quoted wording, side by side (no weighing between them) */
+.verdicts { border-inline-start: 3px solid var(--line, currentColor); padding-inline-start: var(--s-3); margin: var(--s-3) 0; }
+.verdicts .lbl { font-weight: 600; margin: 0 0 var(--s-1); }
+.verdicts .line b { font-weight: 600; }

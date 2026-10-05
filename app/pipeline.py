@@ -13,7 +13,7 @@ from .config import settings
 from .dorar import DorarResult, get_dorar
 from .extract import Candidate, extract
 from .glossary import gloss_book, gloss_grade
-from .normalize import normalize_ar, skeleton_ar
+from .normalize import normalize_ar, skeleton_ar, quote_lang
 from .quran import QuranMatch, get_quran
 from .version import VERSION
 from .scholars import EDITORS, GROUP_LABELS, IMAMS, find_scholar, grade_flags, is_hadith_level_grading
@@ -227,7 +227,7 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
         "same_wording": sum(1 for i in items if strong(i) and i["match"] == "same"),
         "longer_only": bool(items) and not any(strong(i) and i["match"] == "same" for i in items) and any(strong(i) for i in items),
         "fabricated_by": flagged, "fabricated_by_en": [en for _, _, en in flagged_scholars], "hidden_narrator_statements": hidden, "error": res.error or None,
-        "count": len(items), "sahihayn": sahihayn,
+        "count": len(items), "sahihayn": sahihayn, "verdicts": _verdicts(items),
     }
 
 
@@ -357,7 +357,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
 async def check_quran(c: Candidate, out: dict) -> None:
     Q = get_quran()
     prefer = (c.ref_surah, c.ref_ayah) if c.ref_surah else None
-    marked = c.marker not in ("unmarked", "model")  # the author presented it as Quran
+    marked = c.marker not in ("unmarked", "model", "bare")  # the author presented it as Quran
     if c.lang == "ar":
         m: QuranMatch = Q.match_arabic(c.quote, prefer, marked)
     elif c.lang in Q.translations:
@@ -442,6 +442,69 @@ async def _model_candidates(text: str, existing: list[Candidate]) -> tuple[list[
     return out, dropped
 
 
+# A text that is only a quote, or a question about one («هل حديث ... صحيح؟», "Is the hadith ... authentic?"):
+# people paste a saying alone to ask about it, with no «قال ﷺ» before it.
+_BARE_HEAD_AR = re.compile(
+    r"^\s*(?P<ask>هل|ما\s+(?:مدى\s+)?(?:صحة|درجة|حكم|حال|مصدر|أصل)|كم\s+درجة|أريد\s+(?:التحقق\s+من|معرفة\s+صحة))?\s*"
+    r"(?P<kw>(?:ال)?(?:حديث|أثر|مقولة|عبارة)(?:\s+(?:النبي|الرسول)\s*(?:ﷺ|صلى الله عليه وسلم)?)?)?\s*[:：]?\s*")
+_BARE_TAIL_AR = re.compile(
+    r"\s*(?:(?:هل\s+)?(?:هو|هذا)\s+)?(?:(?:حديث|الحديث)\s+)?(?:صحيح|ضعيف|موضوع|ثابت|صحيح\s+أم\s+(?:لا|ضعيف|موضوع))?\s*[؟?!.]*\s*$")
+_BARE_HEAD_EN = re.compile(
+    r"^\s*(?P<ask>is\s+(?:the|this)|is\s+it\s+(?:true|authentic)\s+that|check)?\s*(?P<kw>(?:the\s+)?(?:hadith|narration|saying))?\s*[:,]?\s*", re.I)
+_BARE_TAIL_EN = re.compile(r"\s*(?:(?:a\s+)?(?:authentic|sahih|true|real|weak|fabricated)(?:\s+hadith)?)?\s*[?!.]*\s*$", re.I)
+
+
+def _bare_candidate(text: str) -> Candidate | None:
+    t = text.strip()
+    if not t or len(t) > 400 or "\n\n" in t or PERSONAL_FATWA.search(t):
+        return None
+    ar = bool(re.search("[ء-ي]", t))
+    head, tail = (_BARE_HEAD_AR, _BARE_TAIL_AR) if ar else (_BARE_HEAD_EN, _BARE_TAIL_EN)
+    m = head.match(t)
+    core = t[m.end():] if m else t
+    core = tail.sub("", core).strip()
+    quoted = re.fullmatch(r"[«\"“'](.+?)[»\"”']", core)
+    core = (quoted.group(1) if quoted else core).strip(" :،,")
+    asked, kw = bool(m and m.group("ask")), bool(m and m.group("kw"))
+    words = core.split()
+    if not 2 <= len(words) <= 40 or re.search(r"[.!؟?]\s+\S", core):
+        return None
+    if asked and not kw and not quoted:
+        return None  # «هل يجوز ...؟» is a question, not a quote
+    lang = quote_lang(core)
+    if lang not in ("ar", "en"):
+        return None
+    Q = get_quran()
+    q = Q.match_arabic(core) if lang == "ar" else Q.match_english(core)
+    kind = "quran" if q.status == "exact" or (q.status == "differs" and q.score >= 85 and not kw) else "hadith"
+    start = text.find(core)
+    return Candidate(kind, core, max(start, 0), max(start, 0) + len(core), lang, "bare")
+
+
+_VERDICT_BUCKETS = (("accepted", ("authentic", "good")), ("weak", ("weak", "very_weak")), ("fabricated", ("fabricated",)))
+
+
+def _verdicts(items: list) -> list:
+    """Who graded this very wording how, grouped as the scholars' own words fall (accepted, weak, fabricated).
+    It reports the gradings side by side; it never weighs one scholar against another or adds a grading."""
+    out = []
+    for key, cats in _VERDICT_BUCKETS:
+        names = []
+        for i in sorted(items, key=lambda i: i["died_ah"]):
+            cat = (i.get("grade_gloss") or {}).get("category")
+            if key == "fabricated":
+                hit = "fabricated" in i["flags"] or cat in cats
+            else:
+                hit = cat in cats and "fabricated" not in i["flags"]
+            if hit and i["similarity"] >= STRONG_MATCH and i.get("match", "same") == "same":
+                pair = (i["scholar_ar"], i["scholar_en"])
+                if pair not in names:
+                    names.append(pair)
+        if names:
+            out.append({"verdict": key, "scholars_ar": [a for a, _ in names], "scholars_en": [e for _, e in names]})
+    return out
+
+
 async def check_text(text: str, deep: bool = False) -> dict:
     t0 = time.monotonic()
     usage = {"calls": 0, "seconds": 0.0}
@@ -454,6 +517,9 @@ async def check_text(text: str, deep: bool = False) -> dict:
     if deep and llm.available():
         extra, dropped = await _model_candidates(text, cands)
         cands = sorted(cands + extra, key=lambda c: c.start)
+    if not cands:
+        bare = _bare_candidate(text)
+        cands = [bare] if bare else []
     truncated.update(citations_found=len(cands), citations_checked=min(len(cands), settings.max_citations))
     cands = cands[: settings.max_citations]
 

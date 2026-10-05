@@ -3,6 +3,9 @@
 const T = {
   ar: {
     title: "تثبّت", tagline: "مدقق الاستشهادات الشرعية", mottoRef: "الحجرات ٦",
+    verdictsTitle: "خلاصة أحكام علماء الحديث المعتمدين على هذا اللفظ",
+    verdictLbl: { accepted: "صحيح أو حسن عند", weak: "ضعيف عند", fabricated: "موضوع أو لا أصل له عند" },
+    verdictNote: "نقلٌ لأحكامهم كما وردت، بلا ترجيح بينها؛ وتفصيلها بنصها أدناه.",
     inputLabel: "النص المراد فحصه", intro: "الصق منشورًا أو درسًا أو إجابة روبوت محادثة، وسنتتبع كل آية وحديث فيه إلى مصدره.",
     placeholder: "الصق النص هنا", tryLabel: "أمثلة:", sampleAr: "منشور عربي", sampleEn: "English post",
     deep: "استعن بالنموذج اللغوي علّام لاكتشاف ما فات الفحص الأساسي (أبطأ)", check: "تحقّق من الاستشهادات",
@@ -133,6 +136,9 @@ const T = {
     credit: "يعمل بنموذج علّام من سدايا، ومصادره من الحزمة العلمية للتحدي.",
   },
   en: {
+    verdictsTitle: "What the approved hadith scholars said of this wording",
+    verdictLbl: { accepted: "Authentic or good according to", weak: "Weak according to", fabricated: "Fabricated or baseless according to" },
+    verdictNote: "Their gradings as stated, not weighed against each other; each is quoted in full below.",
     title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6 · “verify it” (King Fahd Complex translation)",
     inputLabel: "Text to check", intro: "Paste a post, a lecture or a chatbot answer, and we will trace every Quran verse and hadith in it to its source.",
     placeholder: "Paste your text here", tryLabel: "Examples:", sampleAr: "Arabic post", sampleEn: "English post",
@@ -431,7 +437,12 @@ function renderGradings(hd) {
   if (!hd) return "";
   let h = "";
   const fab = lang === "en" && hd.fabricated_by_en ? hd.fabricated_by_en : hd.fabricated_by;
-  if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(lang === "ar" ? "، " : ", ")))}</p>`;
+  if (hd.verdicts && hd.verdicts.length) {
+    const cls = { accepted: "ok", weak: "warn", fabricated: "bad" };
+    h += `<div class="verdicts"><p class="lbl">${esc(t().verdictsTitle)}</p>` + hd.verdicts.map((v) =>
+      `<p class="line ${cls[v.verdict]}"><b>${esc(t().verdictLbl[v.verdict])}</b> ${esc((lang === "ar" ? v.scholars_ar : v.scholars_en).join(lang === "ar" ? "، " : ", "))}</p>`).join("")
+      + `<p class="fine">${esc(t().verdictNote)}</p></div>`;
+  } else if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(lang === "ar" ? "، " : ", ")))}</p>`;
   if (hd.sahihayn && hd.sahihayn.length) {
     const list = hd.sahihayn.map((x) => {
       const name = lang === "ar" ? `${esc(x.book)} (${esc(localDigits(x.number))})` : `${esc(x.book_en || x.book)} (no. ${esc(x.number)})`;
@@ -505,7 +516,7 @@ function reasonsFor(c) {
   }
   if (c.type === "quran" && c.status === "not_in_mushaf") {
     out.push(c.lang === "ar" ? r.notInMushaf(num(6236)) : r.notInTranslation(num(6236)));
-    if (c.marker && !["﴿﴾", "ref", "unmarked", "model"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
+    if (c.marker && !["﴿﴾", "ref", "unmarked", "model", "bare"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
   }
   if (c.type === "hadith") {
     if (c.search_wording_ar) out.push(r.modelWords((c.search_wordings_ar && c.search_wordings_ar.length ? c.search_wordings_ar : [c.search_wording_ar]).join("» · «")));

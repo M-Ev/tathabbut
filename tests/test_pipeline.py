@@ -428,3 +428,15 @@ def test_english_hadith_found_through_the_models_other_wording(fake_dorar, fake_
     assert c["search_wordings_ar"] == ["الأعمال بالنية", "إنما الأعمال بالنيات"]
     assert c["status"] == "graded" and "match_by_model" in c["notes"]
     assert len(b.calls) == 2
+
+
+def test_a_bare_hadith_or_a_question_about_it_is_checked(fake_dorar):
+    fake_dorar({"إنما": "dorar_site.html"})
+    for text in ("إنما الأعمال بالنيات", "هل حديث إنما الأعمال بالنيات صحيح؟", "ما صحة حديث «إنما الأعمال بالنيات»؟"):
+        r = run(check_text(text))
+        assert [c["type"] for c in r["citations"]] == ["hadith"], text
+        assert r["citations"][0]["quote"] == "إنما الأعمال بالنيات" and r["citations"][0]["status"] == "graded"
+        assert r["citations"][0]["hadith"]["verdicts"], text  # who graded this wording how, side by side
+    assert run(check_text("إن مع العسر يسرا"))["citations"][0]["type"] == "quran"
+    for text in ("هل يجوز صيام يوم الجمعة؟", "نعم، الصلاة واجبة. وهذا رأي الجمهور."):
+        assert run(check_text(text))["citations"] == [], text  # a question or an answer is not a quote
