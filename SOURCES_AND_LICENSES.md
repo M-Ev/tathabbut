@@ -26,6 +26,10 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 | موقع مؤسسة الشيخ محمد بن صالح العثيمين الخيرية (binothaimeen.net) | First: his published fatwas on close questions | Question and the opening line of the answer verbatim, source and a link to the full fatwa on the foundation's site. Terms (checked 3 Oct 2026): «جميع الحقوق محفوظة © لمؤسسة الشيخ محمد بن صالح العثيمين الخيرية», and the Shaykh's word on the homepage asks that his words not be published elsewhere without permission. The full text is not shown unless the foundation permits it; any permission request is sent by the team, and none has been sent or received yet |
 | جهة الإفتاء الرسمية في بلد المستخدم، وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء (alifta.gov.sa) | Then: where the question goes if the two scholars' fatwas do not cover the case | Link only |
 
+### Translations of the meanings shown to readers (5 Oct)
+
+From quranpedia.net (named in the package), fetched by `scripts/fetch_translations.py`, each with its source URL, fetch date and sha256 in `data/translations/`: Bengali (Abu Bakr Muhammad Zakaria, book 1967), Turkish (King Fahd Complex, 1959), French (Muhammad Hamidullah, 27812), Spanish (Muhammad Isa Garcia, 1950), Hindi (Aziz ul-Haq al-Umari, 1986), Chinese (Muhammad Makin / Ma Jian, 1974), Japanese (Ryoichi Mita, 1976). Shown beside the Mushaf text for readers of these languages; not used to match quotes.
+
 ### How each domain of the package's reference table is covered
 
 | Package domain | In Tathabbut |

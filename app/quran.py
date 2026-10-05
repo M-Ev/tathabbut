@@ -183,6 +183,7 @@ class Quran:
         self._windows: dict[int, tuple[list, list]] = {}
         self._en = {"hilali": [x.norm_en for x in self.ayat], "saheeh": [x.norm_en_saheeh for x in self.ayat]}
         self.translations = self._load_translations(path.parent / "translations")
+        self.display_translations = self._load_display(path.parent / "translations")
         names = {}
         for s in self.surahs.values():
             names[normalize_ar(s["ar"])] = s["n"]
@@ -383,6 +384,29 @@ class Quran:
             }
         return m
 
+    DISPLAY = (("es", "es_garcia.json"), ("zh", "zh_makin.json"), ("ja", "ja_mita.json"), ("bn", "bn_zakaria.json"),
+               ("tr", "tr_kfc.json"), ("hi", "hi_umari.json"))
+
+    def _load_display(self, folder: Path) -> dict:
+        """Translations shown to readers of these languages beside the Mushaf; never used to match quotes.
+        Same checks as the matching translations: the sha256 and the verse count must hold, or it is not loaded."""
+        out = {}
+        for lang, file in self.DISPLAY:
+            p = folder / file
+            if not p.exists():
+                continue
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            blob = json.dumps(doc["verses"], ensure_ascii=False, sort_keys=True).encode()
+            if hashlib.sha256(blob).hexdigest() != doc["sha256"] or len(doc["verses"]) != len(self.ayat):
+                continue
+            texts = [doc["verses"].get(f"{x.surah}:{x.ayah}", "") for x in self.ayat]
+            # Footnote marks as published ([1], [১], a trailing number) and a leading verse number («6.») are dropped.
+            texts = [re.sub(r"^\s*\d+\s*[.．]\s*", "", t) for t in texts]
+            texts = [re.sub(r"\s*\[[\d০-৯]+\]", "", t) for t in texts]
+            texts = [re.sub(r"\s+", " ", re.sub(r"(?<=\D)\d+(?=[\s,.;:!?،。、]|$)", "", t)).strip() for t in texts]
+            out[lang] = {"name": file.removesuffix(".json"), "source": doc["source"], "sha256": doc["sha256"], "texts": texts}
+        return out
+
     def translations_for(self, surah: int, ayah_from: int, ayah_to: int) -> dict:
         """The approved translations of an ayah range in every loaded language, for readers of that language.
         Copied from the King Fahd Complex files as they are; nothing is translated here."""
@@ -390,10 +414,11 @@ class Quran:
         if i is None or j is None:
             return {}
         out = {}
-        for lang, tr in self.translations.items():
+        for lang, tr in {**self.translations, **self.display_translations}.items():
             src = tr["source"]
             out[lang] = {"text": " ".join(tr["texts"][k] for k in range(i, j + 1)), "name_ar": src["name_ar"],
-                         "name_en": src["name_en"], "url": src["url"].replace("{s}", str(surah))}
+                         "name_en": src["name_en"], "name": src.get("name", src["name_en"]),
+                         "url": src["url"].replace("{s}", str(surah))}
         return out
 
     # Measured by eval/translation_census.py: token_set_ratio alone lets an invented sentence made of common

@@ -319,9 +319,10 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const merge = (base, over) => Object.fromEntries(Object.keys({ ...base, ...over }).map((k) =>
   [k, over && k in over ? (over[k] && typeof over[k] === "object" && !Array.isArray(over[k]) && base[k] ? merge(base[k], over[k]) : over[k]) : base[k]]));
 if (typeof T_EXTRA !== "undefined") for (const k of Object.keys(T_EXTRA)) T[k] = merge(T.en, T_EXTRA[k]);
-const LANGS = ["ar", "en", "ur", "id"];
+if (typeof T_MORE !== "undefined") for (const k of Object.keys(T_MORE)) T[k] = merge(T.en, T_MORE[k]);
+const LANGS = Object.keys(T);
 const arData = () => lang === "ar" || lang === "ur";  // Arabic names of scholars, books and surahs (Urdu readers read them)
-const latin = () => lang === "en" || lang === "id";
+const latin = () => !arData();  // English names and the English Jamhara gloss for every non-Arabic-script reader
 const t = () => T[lang];
 const num = (n) => (lang === "ar" ? Number(n).toLocaleString("ar-EG") : String(n));
 const localDigits = (s) => (lang === "ar" ? String(s ?? "").replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) : String(s ?? ""));
@@ -337,7 +338,7 @@ function applyLang() {
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t()[el.dataset.i18nPh]; });
   $("lang").value = lang;
   updateCounter();
-  document.title = { ar: "تثبّت · مدقق الاستشهادات الشرعية", en: "Tathabbut · Islamic citation checker", ur: "تثبّت · شرعی حوالوں کی جانچ", id: "Tathabbut · Pemeriksa kutipan dalil" }[lang];
+  document.title = `${t().title} · ${t().tagline}`;
   if (lastResult) render(lastResult);
   showBanner();
   renderCases();
@@ -391,10 +392,10 @@ function renderMushaf(q, c) {
   let h = `<div class="mushaf"><div class="mushaf-inner">
     <div class="mushaf-head">${esc(place(q))}</div>
     <p class="ayat">${ayat}</p>`;
-  const uiTr = (lang === "ur" || lang === "id") && q.translations && q.translations[lang];
+  const uiTr = lang !== "ar" && lang !== "en" && q.translations && q.translations[lang];
   if (uiTr) {
     // The reader's language: the King Fahd Complex translation of this verse, copied as published.
-    h += `<p class="translation" dir="${lang === "ur" ? "rtl" : "ltr"}" lang="${lang}"><span class="lbl">${esc(t().translationLbl)}</span>${esc(uiTr.text)}</p>`;
+    h += `<p class="translation" dir="${arData() ? "rtl" : "ltr"}" lang="${lang}"><span class="lbl">${esc(t().translationLbl)}</span>${esc(uiTr.text)}</p>`;
   } else if (q.translation) {
     // Plan item 36: the approved translation in the quote's own language, beside the Mushaf text.
     const tr = q.translation;
@@ -692,7 +693,7 @@ function render(r) {
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
   if (r.disclaimer) $("disclaimer").textContent = r.disclaimer[lang] || r.disclaimer.ar;
-  const day = new Date().toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { year: "numeric", month: "long", day: "numeric" });
+  const day = new Date().toLocaleDateString(({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", en: "en-GB" }[lang] || lang), { year: "numeric", month: "long", day: "numeric" });
   $("report-meta").textContent = t().meta(day, (r.versions || {}).app || "—");
   const md = r.model || {};
   $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds), (md.answered_by || []).join("، ")) : t().modelNotUsed)}</span>`;
@@ -823,7 +824,7 @@ function showHistory() {
   const h = readHistory(), box = $("history");
   if (!box) return;
   box.hidden = !h.length;
-  const day = (iso) => new Date(iso).toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { day: "numeric", month: "long" });
+  const day = (iso) => new Date(iso).toLocaleDateString(({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", en: "en-GB" }[lang] || lang), { day: "numeric", month: "long" });
   $("history-list").innerHTML = h.map((x, i) => {
     const s = (x.result && x.result.summary) || {};
     return `<li><button type="button" class="linkish case" data-h="${i}">${esc(x.text.slice(0, 90))}${x.text.length > 90 ? "…" : ""}</button>

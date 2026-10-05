@@ -3,7 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let lang = "ar";
-try { const s = localStorage.getItem("tathabbut-lang"); if (["ar", "en", "ur", "id"].includes(s)) lang = s; } catch (e) { /* ignore */ }
+try { const s = localStorage.getItem("tathabbut-lang"); if (["ar", "en", "ur", "id", "bn", "tr", "fr", "es", "hi", "zh", "ja"].includes(s)) lang = s; } catch (e) { /* ignore */ }
 const num = (n) => (lang === "ar" ? String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) : String(n));
 
 const T = {
@@ -74,7 +74,12 @@ T.id = { ...T.en,
   note: (d) => `Diperiksa otomatis pada ${d}. Penilaian dikutip apa adanya dari Dorar beserta tautannya. Belum ditinjau oleh peninjau syariah tim; alat ini tidak mengunggulkan satu penilaian atas yang lain.`,
   empty: "Tidak ada hasil. Coba kata lain, atau periksa teks sendiri di halaman Periksa.",
 };
-const LANGS = ["ar", "en", "ur", "id"];
+const LANGS = ["ar", "en", "ur", "id", "bn", "tr", "fr", "es", "hi", "zh", "ja"];
+// Languages with no archive text of their own read the main interface words (static/i18n-more.js) over English.
+for (const k of LANGS) if (!T[k]) T[k] = { ...T.en, ...(typeof T_MORE !== "undefined" && T_MORE[k] ? {
+  navCheck: T_MORE[k].navCheck, navArchive: T_MORE[k].navArchive, navBot: T_MORE[k].navBot, navDev: T_MORE[k].navDev,
+  tier: T_MORE[k].tier, tierLbl: T_MORE[k].tierLbl, hadith: T_MORE[k].hadith, quran: T_MORE[k].quran,
+  verdict: T_MORE[k].verdictLbl, footer: T_MORE[k].footer } : {}) };
 const arData = () => lang === "ar" || lang === "ur";
 const t = () => T[lang];
 let data = { entries: [] }, filter = "all";
@@ -138,7 +143,7 @@ function render() {
   const st = { total: es.length, supported: es.filter((e) => e.tier === "supported").length,
     not_supported: es.filter((e) => e.tier === "not_supported").length, quran: es.filter((e) => e.type === "quran").length };
   $("stats").innerHTML = Object.entries(st).map(([k, v]) => `<div><dt>${esc(num(v))}</dt><dd>${esc(t().stats[k])}</dd></div>`).join("");
-  const day = data.checked_at ? new Date(data.checked_at).toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { year: "numeric", month: "long", day: "numeric" }) : "—";
+  const day = data.checked_at ? new Date(data.checked_at).toLocaleDateString(({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", en: "en-GB" }[lang] || lang), { year: "numeric", month: "long", day: "numeric" }) : "—";
   $("note").textContent = t().note(day);
 }
 
@@ -148,7 +153,7 @@ function applyLang() {
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t()[el.dataset.i18n]; });
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t()[el.dataset.i18nPh]; });
   $("lang").value = lang;
-  document.title = { ar: "أرشيف تثبّت · استشهادات متداولة ومصادرها", ur: "تثبّت آرکائیو", id: "Arsip Tathabbut" }[lang] || "Tathabbut archive · circulated citations and their sources";
+  document.title = t().title;
   render();
 }
 

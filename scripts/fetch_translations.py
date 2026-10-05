@@ -26,6 +26,19 @@ BOOKS = {
            "name_en": "Indonesian translation (King Fahd Complex), Indonesian Ministry of Religious Affairs"},
     "fr": {"book": 27812, "file": "fr_hamidullah.json", "name_ar": "الترجمة الفرنسية، محمد حميد الله",
            "name_en": "French translation by Muhammad Hamidullah"},
+    # Shown to readers of these languages beside the Mushaf (owner's decision, 5 Oct); not used to match quotes.
+    "es": {"book": 1950, "file": "es_garcia.json", "name_ar": "الترجمة الإسبانية، محمد عيسى غارسيا",
+           "name_en": "Spanish translation by Muhammad Isa Garcia", "name": "Traducción de Muhammad Isa García"},
+    "zh": {"book": 1974, "file": "zh_makin.json", "name_ar": "الترجمة الصينية، محمد مكين",
+           "name_en": "Chinese translation by Muhammad Makin (Ma Jian)", "name": "马坚译本"},
+    "ja": {"book": 1976, "file": "ja_mita.json", "name_ar": "الترجمة اليابانية، رايتشي ميتا",
+           "name_en": "Japanese translation by Ryoichi Mita", "name": "三田了一訳"},
+    "bn": {"book": 1967, "file": "bn_zakaria.json", "name_ar": "الترجمة البنغالية، أبو بكر محمد زكريا",
+           "name_en": "Bengali translation by Abu Bakr Muhammad Zakaria", "name": "আবু বকর মুহাম্মাদ যাকারিয়া অনূদিত"},
+    "tr": {"book": 1959, "file": "tr_kfc.json", "name_ar": "الترجمة التركية، مجمع الملك فهد",
+           "name_en": "Turkish translation (King Fahd Complex)", "name": "Kral Fahd Kompleksi Türkçe meali"},
+    "hi": {"book": 1986, "file": "hi_umari.json", "name_ar": "الترجمة الهندية، عزيز الحق العمري",
+           "name_en": "Hindi translation by Aziz ul-Haq al-Umari", "name": "अज़ीज़ुल हक़ उमरी अनुवाद"},
 }
 URL = "https://quranpedia.net/surah/1/{s}/book/{b}"
 _PROSE = re.compile(r'<article class="verse-block".*?<div class="prose[^>]*>(.*?)</div>\s*(?:<div class="(?:foot-notes|hamesh|margin)|\s*</div>)', re.S)
