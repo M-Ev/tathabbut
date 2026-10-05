@@ -415,3 +415,16 @@ def test_fatwa_detector_reads_first_person_cases_and_rulings_in_answers(fake_dor
     assert ld and ld["form"] == "ruling_in_answer"
     assert "الصلاتين" in ld["fatwas"]["terms"]  # searched with the question the answer replied to
     assert run(check_text("Yes, you can combine the prayers while travelling."))["level_d"]["form"] == "ruling_in_answer"
+
+
+def test_english_hadith_found_through_the_models_other_wording(fake_dorar, fake_llm):
+    # The first wording finds nothing (e.g. «النظافة من الإيمان» for «Cleanliness is half of faith»); the
+    # alternative the model also proposed is searched, and the source is picked among its results.
+    fake_dorar({"إنما": "dorar_site.html"})
+    b = fake_llm([json.dumps({"arabic": "الأعمال بالنية", "alternatives": ["إنما الأعمال بالنيات"]}, ensure_ascii=False),
+                  json.dumps({"match": 1})])
+    r = run(check_text('The Prophet (pbuh) said: "Actions are judged by intentions."'))
+    c = r["citations"][0]
+    assert c["search_wordings_ar"] == ["الأعمال بالنية", "إنما الأعمال بالنيات"]
+    assert c["status"] == "graded" and "match_by_model" in c["notes"]
+    assert len(b.calls) == 2

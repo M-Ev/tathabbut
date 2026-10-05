@@ -29,8 +29,10 @@ SCHEMAS = {
     "citations": {"type": "array", "items": {"type": "object", "required": ["type", "quote"], "additionalProperties": False,
                   "properties": {"type": {"enum": ["quran", "hadith"]}, "quote": {"type": "string", "maxLength": 600}}},
                   "maxItems": 20},
-    "arabic": {"type": "object", "required": ["arabic"], "additionalProperties": False,
-               "properties": {"arabic": {"type": "string", "maxLength": 300}}},
+    "arabic": {"type": "object", "required": ["arabic", "alternatives"], "additionalProperties": False,
+               "properties": {"arabic": {"type": "string", "maxLength": 300},
+                              "alternatives": {"type": "array", "maxItems": 2,
+                                               "items": {"type": "string", "maxLength": 300}}}},
     "match": {"type": "object", "required": ["match"], "additionalProperties": False,
               "properties": {"match": {"type": "integer", "minimum": 0, "maximum": 4}}},
 }
@@ -201,7 +203,8 @@ async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
 def _json(text: str):
     """Parse the first JSON value in a model reply."""
     text = re.sub(r"^```(json)?|```$", "", text.strip(), flags=re.M).strip()
-    for opener, closer in (("[", "]"), ("{", "}")):
+    pairs = sorted((("[", "]"), ("{", "}")), key=lambda p: text.find(p[0]) if text.find(p[0]) >= 0 else len(text))
+    for opener, closer in pairs:  # the outer value is the one that opens first
         i, j = text.find(opener), text.rfind(closer)
         if i >= 0 and j > i:
             try:
@@ -246,15 +249,31 @@ async def extract_citations(text: str) -> list[dict]:
     return out
 
 
-async def arabic_search_wording(quote: str, kind: str) -> str:
+async def arabic_search_wordings(quote: str, kind: str) -> list[str]:
+    """Arabic search wordings for a translated quote: the best one first, then up to two others (a hadith is
+    often known in more than one wording). Used only as search queries, never shown as a source."""
     what = "الآية القرآنية" if kind == "quran" else "الحديث النبوي"
     prompt = (
-        f"النص التالي ترجمة لـ{what}. اكتب بالعربية الكلمات المتوقعة في نصه الأصلي كما يرد في المصادر، "
-        "لاستعمالها في البحث فقط. لا تشرح. أعد JSON بالشكل "
-        '{"arabic": "..."}\n\n' + _wrap(quote)
+        f"النص التالي ترجمة لـ{what}. اكتب لفظه العربي كما يرد في المصادر"
+        + (" وكتب الحديث، لا ترجمة حرفية للنص الإنجليزي" if kind == "hadith" else "")
+        + "، لاستعماله في البحث فقط. وإن كان له لفظ آخر مشهور فاذكر حتى لفظين آخرين في alternatives، وإلا فاتركها فارغة. "
+        "لا تشرح. أعد JSON بالشكل "
+        '{"arabic": "...", "alternatives": []}\n\n' + _wrap(quote)
     )
-    data = await _ask(prompt, 120, "arabic")
-    return str(data.get("arabic", "")).strip() if isinstance(data, dict) else ""
+    data = await _ask(prompt, 200, "arabic")
+    if not isinstance(data, dict):
+        return []
+    out = []
+    for w in [data.get("arabic", "")] + list(data.get("alternatives") or [])[:2]:
+        w = str(w).strip()
+        if w and w not in out:
+            out.append(w)
+    return out
+
+
+async def arabic_search_wording(quote: str, kind: str) -> str:
+    words = await arabic_search_wordings(quote, kind)
+    return words[0] if words else ""
 
 
 async def pick_match(quote: str, candidates: list[str]) -> int:

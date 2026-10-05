@@ -266,7 +266,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             )
             return
         try:
-            arabic = await llm.arabic_search_wording(quote, "hadith")
+            wordings = await llm.arabic_search_wordings(quote, "hadith")
         except Exception as e:  # noqa: BLE001 - the model not answering is a referral, not an error
             log.warning("model did not answer: %s", e)
             out["status"] = "needs_model"
@@ -275,7 +275,9 @@ async def check_hadith(c: Candidate, out: dict) -> None:
                 "This quote is not in Arabic and needs the language model to find its source, which did not answer just now.",
             )
             return
+        arabic = wordings[0] if wordings else ""
         out["search_wording_ar"] = arabic
+        out["search_wordings_ar"] = wordings
         out["notes"].append("search_wording_by_model")
         quote = arabic
         if not arabic:
@@ -289,6 +291,15 @@ async def check_hadith(c: Candidate, out: dict) -> None:
         out["quran"] = q.to_dict()
 
     res = await _search_dorar(quote)
+    per_wording = [res] if res is not None else []
+    if c.lang != "ar" and res is not None:
+        # Each other wording the model proposed is searched too; the source is then picked among all of them.
+        for w in out.get("search_wordings_ar", [])[1:]:
+            more = await _search_dorar(w)
+            if more is not None and more.hadiths:
+                per_wording.append(more)
+                seen = {(h.text, h.mohdith, h.book, h.number) for h in res.hadiths}
+                res.hadiths += [h for h in more.hadiths if (h.text, h.mohdith, h.book, h.number) not in seen]
     if res is None:
         out["status"] = "source_offline"
         return
@@ -302,10 +313,11 @@ async def check_hadith(c: Candidate, out: dict) -> None:
         # The model picks which Arabic text is the source of the translated quote; we then keep the
         # gradings of that text only. The user always sees the Arabic text to judge for themselves.
         texts = []
-        for h in res.hadiths:
-            if find_scholar(h.mohdith, h.mohdith_id) and h.text not in texts:
-                texts.append(h.text)
-        texts = texts[:4]
+        lists = [[h.text for h in r.hadiths if find_scholar(h.mohdith, h.mohdith_id)] for r in per_wording] or [[]]
+        for i in range(max(len(x) for x in lists)):  # take from each wording's results in turn
+            for x in lists:
+                if i < len(x) and x[i] not in texts and len(texts) < 4:
+                    texts.append(x[i])
         try:
             pick = await llm.pick_match(c.quote, texts) if texts else 0
         except Exception as e:  # noqa: BLE001 - no pick means nothing is shown, and the quote is referred
@@ -318,7 +330,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             return
         quote = texts[pick - 1]
         # Plan item 22: the model's pick must share the wording it proposed itself, or it is not accepted.
-        if _similarity(arabic, quote) < WEAK_MATCH:
+        if max(_similarity(w, quote) for w in out.get("search_wordings_ar") or [arabic]) < WEAK_MATCH:
             out["status"] = "not_found"
             out["notes"].append("model_pick_rejected")
             out["hadith"] = _grade_groups(quote, res, min_sim=101)

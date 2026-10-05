@@ -508,7 +508,7 @@ function reasonsFor(c) {
     if (c.marker && !["﴿﴾", "ref", "unmarked", "model"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
   }
   if (c.type === "hadith") {
-    if (c.search_wording_ar) out.push(r.modelWords(c.search_wording_ar));
+    if (c.search_wording_ar) out.push(r.modelWords((c.search_wordings_ar && c.search_wordings_ar.length ? c.search_wordings_ar : [c.search_wording_ar]).join("» · «")));
     if (hd.query) out.push(r.searched(hd.query));
     if (c.status === "graded" || c.status === "found_similar") {
       out.push(r.foundN(num(hd.count), pct(hd.best_similarity)));
