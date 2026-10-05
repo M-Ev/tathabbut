@@ -17,10 +17,7 @@ def words(t):
     return set(re.findall(r"[ء-ي]+", B._plain(t)))
 
 
-def missing(dhikr, narration):
-    """Words of the dhikr not in the narration, a joined «و» or «ف» aside (as Tathabbut's own coverage reads them)."""
-    have = words(narration)
-    return {w for w in words(dhikr) if not ({w, "و" + w, "ف" + w, w[1:] if w[:1] in "وف" else w} & have)}
+missing = B.missing_words
 
 
 def test_every_shown_dhikr_is_in_an_authentic_narration_that_names_its_occasion_and_count():

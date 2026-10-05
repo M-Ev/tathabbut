@@ -48,6 +48,14 @@ def _plain(t: str) -> str:
     return t.translate(str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ي", "ة": "ه", "ؤ": "و", "ئ": "ي"}))
 
 
+def missing_words(dhikr: str, narration: str) -> set:
+    """Words of the dhikr not in the narration, a joined «و» or «ف» aside. Stricter than the search's fuzzy
+    coverage: «ربي» is not «ربِّ», so a dhikr is shown only in the narration's own words."""
+    import re
+    have = set(re.findall(r"[ء-ي]+", _plain(narration)))
+    return {w for w in re.findall(r"[ء-ي]+", _plain(dhikr)) if not ({w, "و" + w, "ف" + w, w[1:] if w[:1] in "وف" else w} & have)}
+
+
 def verify(text: str) -> dict:
     r = httpx.post(BASE + "/api/check", json={"text": f"قال رسول الله ﷺ: «{text}»"}, timeout=180)
     r.raise_for_status()
@@ -75,7 +83,8 @@ def place(item: dict) -> list:
     check = item["check"]
     if check.get("fabricated_by"):
         return []
-    good = sorted((n for n in check.get("narrations", []) if n["authentic"]), key=lambda n: (not n["in_sahihayn"], n["died_ah"] or 0))
+    good = sorted((n for n in check.get("narrations", []) if n["authentic"] and not missing_words(item["text"], n["text"])),
+                  key=lambda n: (not n["in_sahihayn"], n["died_ah"] or 0))
     out = []
     for cat in item["categories"]:
         pat = CONTEXT.get(cat)
