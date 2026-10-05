@@ -33,6 +33,9 @@ SCHEMAS = {
                "properties": {"arabic": {"type": "string", "maxLength": 300},
                               "alternatives": {"type": "array", "maxItems": 2,
                                                "items": {"type": "string", "maxLength": 300}}}},
+    "fatwa": {"type": "object", "required": ["pick", "quote"], "additionalProperties": False,
+              "properties": {"pick": {"type": "integer", "minimum": 0, "maximum": 6},
+                             "quote": {"type": "string", "maxLength": 700}}},
     "match": {"type": "object", "required": ["match"], "additionalProperties": False,
               "properties": {"match": {"type": "integer", "minimum": 0, "maximum": 4}}},
 }
@@ -188,7 +191,7 @@ FALLBACK_FIRST = {j.strip() for j in settings.llm_fallback_first.split(",") if j
 async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
     """Ask ALLaM; if it cannot answer and a fallback is set, ask the fallback. Returns (reply, model label).
     A job listed in TATHABBUT_LLM_FALLBACK_FIRST goes to the fallback first, and to ALLaM if the fallback fails."""
-    if fallback is not None and job in FALLBACK_FIRST:
+    if fallback is not None and (job in FALLBACK_FIRST or (job == "fatwa" and "match" in FALLBACK_FIRST)):
         try:
             return await _fallback_chat(messages, max_tokens, schema), fallback.label
         except Exception as e:  # noqa: BLE001
@@ -331,3 +334,25 @@ async def pick_match(quote: str, candidates: list[str]) -> int:
     except (TypeError, ValueError):
         return 0
     return n if 0 <= n <= len(candidates) else 0
+
+
+async def fatwa_quote(question: str, fatwas: list[dict]) -> tuple[int, str]:
+    """Which published fatwa answers the question itself, and the sentence(s) in it that answer, copied verbatim.
+    Returns (1-based index, quote) or (0, ""). The caller checks the quote is really in that fatwa."""
+    listing = "\n\n".join(f"{i}. العنوان: {f['title']}\nالسؤال: {f.get('question', '')[:300]}\nالجواب: {f['_text'][:1500]}"
+                           for i, f in enumerate(fatwas, 1))
+    prompt = (
+        "هذا سؤال عن حكم شرعي، وبعده فتاوى منشورة لعالمين. اختر الفتوى التي تجيب عن السؤال نفسه، لا عن مسألة قريبة منه فقط، "
+        "وانسخ منها حرفيًا الجملة أو الجملتين اللتين فيهما الجواب، دون أي تغيير أو تلخيص أو إضافة من عندك. "
+        "إن لم تجب أي فتوى عن السؤال نفسه فأعد pick = 0. "
+        'أعد JSON بالشكل {"pick": رقم, "quote": "النص المنسوخ"}\n\n'
+        f"السؤال:\n{_wrap(question)}\n\nالفتاوى:\n{listing}"
+    )
+    data = await _ask(prompt, 400, "fatwa")
+    try:
+        n = int(data.get("pick", 0)) if isinstance(data, dict) else 0
+    except (TypeError, ValueError):
+        return 0, ""
+    if not 0 < n <= len(fatwas):
+        return 0, ""
+    return n, str(data.get("quote", "")).strip()

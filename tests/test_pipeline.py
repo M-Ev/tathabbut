@@ -450,3 +450,28 @@ def test_a_general_fatwa_question_gets_the_scholars_fatwas_and_plain_text_is_not
         assert r["level_d"] and r["level_d"]["form"] == "general" and r["citations"] == [], text
     assert run(check_text("القراءة عادة جميلة تنمي العقل"))["citations"] == []  # not found, not asked: not a citation
     assert run(check_text("هل حديث القراءة عادة جميلة صحيح؟"))["citations"][0]["status"] == "not_found"  # asked: said so
+
+
+def test_a_ruling_question_is_answered_with_a_sentence_copied_from_the_scholars_fatwa(fake_dorar, fake_llm, monkeypatch):
+    from app import fatwa as fatwa_mod, pipeline
+
+    fake_dorar({})
+    answer = "الخمر محرمة بالكتاب والسنة والإجماع. وما أسكر كثيره فقليله حرام، ولو كانت نسبته قليلة."
+    found = {"terms": "", "scholars": [{"key": "binbaz", "ar": "سماحة الشيخ عبدالعزيز بن باز", "en": "Ibn Baz", "fatwas": [
+        {"title": "حكم شرب البيرة التي بها نسبة من الكحول", "question": "", "url": "https://binbaz.org.sa/fatwas/1",
+         "source": "", "_text": answer, "answer": answer}]}]}
+
+    async def fake_find(sentence):
+        return found
+
+    monkeypatch.setattr(fatwa_mod, "find_fatwas", fake_find)
+    monkeypatch.setattr(pipeline.settings, "fatwa_search", True)
+    fake_llm([json.dumps({"pick": 1, "quote": "وما أسكر كثيره فقليله حرام، ولو كانت نسبته قليلة."}, ensure_ascii=False)])
+    r = run(check_text("هل شرب الكحول بنسبه 5% يجوز؟"))
+    a = r["level_d"]["answer"]
+    assert a and a["verified_verbatim"] and a["quote"].startswith("وما أسكر") and "binbaz" in a["url"]
+    assert "_text" not in r["level_d"]["fatwas"]["scholars"][0]["fatwas"][0]  # only the shown fields leave the server
+    # A sentence the fatwa does not contain is never shown, even if the model returns it.
+    found["scholars"][0]["fatwas"][0]["_text"] = answer
+    fake_llm([json.dumps({"pick": 1, "quote": "يجوز شرب ما نسبته خمسة في المائة."}, ensure_ascii=False)])
+    assert run(check_text("هل شرب الكحول بنسبه 5% يجوز؟"))["level_d"]["answer"] is None

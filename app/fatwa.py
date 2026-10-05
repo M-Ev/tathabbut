@@ -287,6 +287,8 @@ class FatwaClient:
              "url": url, "source": source, "score": score}
         if s["full_text"] and answer:
             e["answer"] = answer
+        if answer:
+            e["_text"] = answer  # kept only to check a quoted sentence against; removed before the reply is sent
         return e
 
 

@@ -521,6 +521,30 @@ def _verdicts(items: list) -> list:
     return out
 
 
+def _plain(t: str) -> str:
+    return re.sub(r"\s+", " ", _strip_harakat(t)).strip()
+
+
+async def _answer_from_fatwas(question: str, found: dict | None) -> dict | None:
+    """The answer to a ruling question, in the scholars' own words: the model picks the published fatwa that answers
+    the question itself and copies the answering sentence from it. The sentence is shown only if it is in that fatwa
+    word for word; the model never writes, summarises or completes it."""
+    if not found or not llm.available():
+        return None
+    pool = [(sc, f) for sc in found.get("scholars", []) for f in sc.get("fatwas", []) if f.get("_text")][:6]
+    if not pool:
+        return None
+    n, quote = await llm.fatwa_quote(question, [f for _, f in pool])
+    if not n or len(quote.split()) < 4 or len(quote.split()) > 90:
+        return None
+    sc, f = pool[n - 1]
+    if _plain(quote) not in _plain(f["_text"]):
+        log.info("fatwa quote rejected: not verbatim in the fatwa")
+        return None
+    return {"scholar_ar": sc["ar"], "scholar_en": sc["en"], "title": f["title"], "url": f["url"], "source": f.get("source", ""),
+            "quote": quote, "verified_verbatim": True}
+
+
 async def check_text(text: str, deep: bool = False) -> dict:
     t0 = time.monotonic()
     usage = {"calls": 0, "seconds": 0.0}
@@ -589,6 +613,13 @@ async def check_text(text: str, deep: bool = False) -> dict:
                 level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, where)), 25)
             except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
                 log.warning("fatwa search failed: %s", e)
+            try:
+                level_d["answer"] = await _answer_from_fatwas(_sentence_at(text, m.start()), level_d.get("fatwas"))
+            except Exception as e:  # noqa: BLE001 - without it the fatwas are still shown
+                log.warning("fatwa answer failed: %s", e)
+            for sc in (level_d.get("fatwas") or {}).get("scholars", []):
+                for f in sc.get("fatwas", []):
+                    f.pop("_text", None)
     # Positions in the text as received (plan item 24), so an API user can place each note.
     for out, c in zip(results, cands):
         out["span"] = [c.start, c.end]  # marker and quote («قال رسول الله ﷺ: «...»»)

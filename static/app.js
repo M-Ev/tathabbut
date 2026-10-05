@@ -4,6 +4,8 @@ const T = {
   ar: {
     title: "تثبّت", tagline: "مدقق الاستشهادات الشرعية", mottoRef: "الحجرات ٦",
     verdictsTitle: "خلاصة أحكام علماء الحديث المعتمدين على هذا اللفظ",
+    fAnswerTitle: "الجواب من فتاواهم",
+    fAnswerNote: "الجملة منقولة بنصها من الفتوى: اختارها النموذج اللغوي، وتحقّق النظام أنها فيها حرفًا بحرف، ولم يكتب منها شيئًا. اقرأ الفتوى كاملة قبل العمل بها.",
     navCheck: "الفحص", navArchive: "الأرشيف", navBot: "إجابة روبوت", navDev: "للمطورين",
     historyTitle: "فحوصاتي على هذا الجهاز", historyNote: "تُحفظ في متصفحك وحده، ولا تصل إلينا. امسحها متى شئت.",
     historyClear: "امسح السجل", historyCount: (n) => `${n} استشهاد`,
@@ -142,6 +144,8 @@ const T = {
   },
   en: {
     verdictsTitle: "What the approved hadith scholars said of this wording",
+    fAnswerTitle: "The answer, from their fatwas",
+    fAnswerNote: "This sentence is quoted verbatim from the fatwa: the language model chose it and the system checked it is there word for word; nothing in it was written by the model. Read the whole fatwa before acting on it.",
     navCheck: "Check", navArchive: "Archive", navBot: "Chatbot answer", navDev: "Developers",
     historyTitle: "My checks on this device", historyNote: "Kept in your browser only; they never reach us. Clear them any time.",
     historyClear: "Clear history", historyCount: (n) => `${n} citation${n === 1 ? "" : "s"}`,
@@ -714,6 +718,11 @@ function render(r) {
       h = `<p>${esc(r.level_d.form === "general" ? t().leveldGeneral : t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "");
     }
     if (r.level_d.form === "ruling_in_answer") h = `<p class="line warn">${esc(t().leveldRuling)}</p>` + h;
+    const fa = r.level_d.answer;
+    if (fa) h = `<section class="fatwa-answer"><h3 class="fatwas-h">${esc(t().fAnswerTitle)}</h3>
+      <blockquote lang="ar" dir="rtl">«${esc(fa.quote)}»</blockquote>
+      <p class="fine">${esc(arData() ? fa.scholar_ar : fa.scholar_en)} · <a href="${esc(fa.url)}" target="_blank" rel="noopener"><bdi dir="rtl">${esc(fa.title)}</bdi></a>${fa.source ? " · " + esc(fa.source) : ""}</p>
+      <p class="fine">${esc(t().fAnswerNote)}</p></section>` + h;
     ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(arData() ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
   $("annotated").innerHTML = renderAnnotated(lastText, r.citations);
