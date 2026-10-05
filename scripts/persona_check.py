@@ -48,8 +48,9 @@ def problems(r, e):
 
 
 def main():
-    print("version:", httpx.get(BASE + "/api/health", timeout=60).json().get("version"))
-    bad = 0
+    version = httpx.get(BASE + "/api/health", timeout=60).json().get("version", {}).get("commit", "?")
+    print("version:", version)
+    bad, rows = 0, []
     for case in CASES:
         t0 = time.time()
         try:
@@ -58,9 +59,17 @@ def main():
         except Exception as e:  # noqa: BLE001
             p = [f"request failed: {e}"]
         bad += bool(p)
-        print(("FAIL " if p else "ok   ") + f"{case['who']:<20} {time.time() - t0:5.1f}s  " + "; ".join(p), flush=True)
+        secs = time.time() - t0
+        rows.append(f"| {case['who']} | {case['text'][:70]} | {'✗ ' + '; '.join(p) if p else '✓'} | {secs:.1f} |")
+        print(("FAIL " if p else "ok   ") + f"{case['who']:<20} {secs:5.1f}s  " + "; ".join(p), flush=True)
         time.sleep(max(0, 32 - (time.time() - t0)))
     print(f"\n{len(CASES) - bad}/{len(CASES)} as expected")
+    report = Path(__file__).resolve().parent.parent / "eval" / "personas_report.md"
+    report.write_text(
+        "# Visitors' questions on the live site\n\n"
+        f"Run {time.strftime('%Y-%m-%d %H:%M', time.gmtime())} UTC on {BASE} (commit `{version}`) by `scripts/persona_check.py`; "
+        f"cases and what each must get: `eval/personas.json`.\n\n**{len(CASES) - bad}/{len(CASES)} as expected.**\n\n"
+        "| Visitor | Question | Result | Seconds |\n|---|---|---|---|\n" + "\n".join(rows) + "\n", encoding="utf-8")
     sys.exit(1 if bad else 0)
 
 

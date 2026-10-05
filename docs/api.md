@@ -4,6 +4,8 @@
 
 An Islamic chatbot sends its answer to `POST /api/check` before the user sees it. Each citation comes back with its status and position, and the whole answer gets a decision from a written, editable policy (`data/chatbot_policy.json`). The tool never rewrites the answer, and an answer it could not check in full never passes.
 
+يجيب الموقع نفسه بهذه الواجهة في صفحة «اسأل الثقات»، وتجيب بها أدوات MCP ([mcp.md](mcp.md)). وفي الموقع أيضًا `GET /api/archive` (الأرشيف العام) و`GET /api/pillars` (آيات صفحة أركان الإسلام من المصحف بترجماتها) و`GET /api/health`.
+
 ## الطلب والرد · Request and reply
 
 ```json
@@ -19,12 +21,18 @@ POST /api/check
 | `citations[].span` | `[start, end]` character offsets of the citation (marker and quote) in the text sent |
 | `citations[].quote_span` | offsets of the quoted words alone |
 | `citations[].tier` | `documented`, `supported`, `not_supported`, `verify`, `refer` |
-| `citations[].lang` | `ar`, `en`, `ur` or `id`. An Urdu or Indonesian hadith comes back as status `language_referral` (not searched, counted as unchecked) |
+| `citations[].lang` | `ar`, `en`, `ur`, `id` or `fr`. A hadith in a language with no approved translation to match comes back as `language_referral`, unless it was asked about in the visitor's own words and searched by its known Arabic wording |
 | `citations[].quran.translation` | for an Urdu or Indonesian verse quote: the King Fahd Complex translation's `text`, `name_ar`, `name_en`, `url` and file `sha256` |
 | `coverage` | `complete`, `gaps` (`text_truncated`, `citations_truncated`, `citations_unchecked`, `unsupported_language`; `rules_only` is informative), counts |
-| `level_d` | a personal fatwa question: the two scholars' published fatwas and the official body |
+| `level_d` | a ruling question (`form`: `general`, `question` for a personal case, `ruling_in_answer` when the chatbot itself rules): the two scholars' published fatwas (`fatwas.scholars[]`), the official body (`body`) and `references` |
+| `level_d.answer` | the answer in the scholars' own words: `quote` (a sentence copied from the fatwa, `verified_verbatim: true` only if found there letter by letter), `same_question` (false: the fatwa is on a close question, shown as such), `scholar_ar`, `title`, `url`; `null` when no sentence passed the check |
+| `level_d.search_by_model` | when the sites did not find the question as written (dialect, another language): the Arabic title the model wrote for the search, shown to the reader |
+| `asked_about` | when no rule recognised the text, what the model read it as: `hadith`, `quran`, `ruling` or `other` (out of scope: say what the tool covers) |
+| `citations[].hadith.loose_only` | only texts sharing some words were found; their gradings are of other texts, not of the quote |
+| `citations[].quran.translations` | the verse's meaning in every interface language from the approved translations (quranpedia.net) |
 | `disclaimer` | `ar` / `en` line to show with any result |
-| `versions` | `app` commit, `display_rules` status, `chatbot_policy` version, `model` backend |
+| `versions` | `app` commit, `display_rules` status, `chatbot_policy` version, `model` that answered |
+| `model` | `answered_by` (models that answered this request), `calls`, `seconds` |
 
 Limits: 8000 characters and 12 citations per request (beyond that `coverage.complete` is false), 20 requests per 10 minutes per visitor.
 

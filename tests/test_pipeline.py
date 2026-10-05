@@ -548,3 +548,28 @@ def test_a_surah_reference_written_without_brackets_is_checked(fake_dorar):
     fake_dorar({})
     c = run(check_text("قال الله تعالى: ﴿إن الله مع الصابرين﴾ سورة آل عمران آية 10"))["citations"][0]
     assert "wrong_reference" in c["notes"] and c["quran"]["surah"] == 2
+
+
+def test_when_the_models_first_title_finds_nothing_its_broader_titles_are_tried(fake_dorar, fake_llm, monkeypatch):
+    from app import fatwa as fatwa_mod, pipeline
+
+    fake_dorar({})
+    text_ = "لا حرج في الجمع بين الصلاتين من أجل العمل إذا كان فيه مشقة شديدة."
+    found = {"terms": "", "scholars": [{"key": "binbaz", "ar": "ابن باز", "en": "Ibn Baz", "fatwas": [
+        {"title": "حكم الجمع بين الصلاتين من أجل العمل", "question": "", "url": "https://binbaz.org.sa/fatwas/3", "source": "",
+         "_text": text_, "answer": text_}]}]}
+    asked = []
+
+    async def fake_find(sentence):
+        asked.append(sentence)
+        return found if "من أجل العمل" in sentence else {"terms": "", "scholars": []}
+
+    monkeypatch.setattr(fatwa_mod, "find_fatwas", fake_find)
+    monkeypatch.setattr(pipeline.settings, "fatwa_search", True)
+    fake_llm([json.dumps({"kind": "ruling", "arabic": "حكم الجمع بين الظهر والعصر للموظف",
+                          "alternatives": ["حكم الجمع بين الصلاتين من أجل العمل"]}, ensure_ascii=False),
+              json.dumps({"pick": 1, "same_question": True, "quote": "لا حرج في الجمع بين الصلاتين من أجل العمل"}, ensure_ascii=False)])
+    r = run(check_text("هل يجوز الجمع بين الظهر والعصر للموظف بسبب الدوام"))
+    ld = r["level_d"]
+    assert ld["search_by_model"] == "حكم الجمع بين الصلاتين من أجل العمل" and len(asked) == 3
+    assert ld["answer"]["quote"].startswith("لا حرج")

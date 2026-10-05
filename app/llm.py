@@ -334,10 +334,10 @@ async def understand(text: str) -> tuple[str, list[str]]:
     search wording only (the hadith's known wording, the verse, or a fatwa title's terms). It never answers."""
     prompt = (
         "النص التالي كتبه زائر لأداة تتحقق من الأحاديث والآيات وتعرض فتاوى العلماء، وقد يكون بالعامية أو بغير العربية. "
-        "حدّد ما يسأل عنه: hadith إن كان يسأل عن حديث أو قول منسوب إلى النبي ﷺ (صحته أو معناه)، و quran إن كان يسأل عن آية، "
+        "حدّد ما يسأل عنه: hadith إن كان يسأل عن حديث أو قول منسوب إلى النبي ﷺ (صحته أو معناه)، ومنه السؤال عن فضل آية أو سورة أو ثوابها، و quran إن كان يسأل عن نص آية أو موضعها، "
         "و ruling إن كان يسأل عن حكم شرعي أو مسألة فقهية أو عقدية، و other إن لم يكن سؤالًا من ذلك. "
         "ثم اكتب في arabic للبحث فقط: للحديث لفظه العربي المشهور كما في كتب الحديث، وفي alternatives حتى لفظين آخرين إن كان له؛ "
-        "وللآية نصها كما في المصحف؛ وللحكم عنوان المسألة بالفصحى في كلمتين إلى ست كما تُعنون في كتب الفتاوى (مثل: حكم سماع الأغاني)؛ "
+        "وللآية نصها كما في المصحف؛ وللحكم عنوان المسألة بالفصحى في كلمتين إلى ست كما تُعنون في كتب الفتاوى (مثل: حكم سماع الأغاني)، وفي alternatives عنوانان آخران بألفاظ أعم (مثل: حكم الجمع بين الصلاتين من أجل العمل، الجمع بين الصلاتين للعذر)؛ "
         "ولغير ذلك اتركه فارغًا. لا تجب عن السؤال، ولا تحكم على حديث، ولا تشرح. "
         'أعد JSON بالشكل {"kind": "hadith" أو "quran" أو "ruling" أو "other", "arabic": "...", "alternatives": []}\n\n' + _wrap(text)
     )
@@ -345,7 +345,8 @@ async def understand(text: str) -> tuple[str, list[str]]:
         "A visitor wrote the text below to a tool that checks hadith and Quran citations and shows scholars' fatwas. "
         "Say whether it asks about a hadith, a Quran verse, an Islamic ruling, or other. Then give Arabic search wording only: "
         "the hadith's known Arabic wording (up to two other wordings in alternatives), the verse's Arabic text, or the ruling's "
-        "topic as a short Arabic fatwa title (e.g. حكم سماع الأغاني); empty for other. Do not answer the question. "
+        "topic as a short Arabic fatwa title (e.g. حكم سماع الأغاني) with two broader titles in alternatives; empty for other. "
+        "A question about the merit of a verse or surah is about a hadith. Do not answer the question. "
         'Reply only with JSON: {"kind": "hadith"|"quran"|"ruling"|"other", "arabic": "...", "alternatives": []}\n\n' + _wrap(text)
     )
     data = await _ask(prompt, 200, "intent", retry_user=retry)

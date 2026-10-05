@@ -12,7 +12,7 @@ evidence is missing the citation is referred, never filled in.
 
 | Tool | What it returns | Never does |
 |---|---|---|
-| `check_citations(text)` | per citation: status, evidence tier, the Mushaf text or the approved scholars' gradings verbatim with book, number and link, or a referral; `decision` (pass / annotate / block), `coverage`, `disclaimer`, `versions` | rewrite the answer, grade a hadith, write a fatwa |
+| `check_citations(text)` | per citation: status, evidence tier, the Mushaf text or the approved scholars' gradings verbatim with book, number and link, or a referral; `decision` (pass / annotate / block), `coverage`, `disclaimer`, `versions`; for a ruling question `fatwa_referral` with the two scholars' fatwas and `answer` (a sentence quoted from a fatwa, checked letter by letter); `asked_about` when the model read a free question | rewrite the answer, grade a hadith, write a fatwa |
 | `get_ayah(surah, ayah, to_ayah?)` | the King Fahd Complex Mushaf text (Hafs) with its link and the Complex's English translation | return an ayah that does not exist (it says the surah's count) |
 | `list_sources()` | the sources, the 13 approved hadith scholars and the level د references | add a source that is not listed |
 

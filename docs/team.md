@@ -4,9 +4,9 @@
 
 ## كيف بُني تثبّت · How Tathabbut was built
 
-قاد الفريق المشروع: الفكرة، والمنهج العلمي، والمرجعية، والقرارات، والاختبار، والنشر والتشغيل. وكُتب الكود والاختبارات والتوثيق بمساعدة **Claude Code** (Anthropic) تحت توجيه الفريق ومراجعته. ويظهر ذلك في سجل GitHub: تحمل الـcommits التي كتبها Claude اسمه. وهذا إفصاح تطلبه شروط التحدي، وهو مذكور أيضًا في [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
+طوّرنا تثبّت وبرمجناه في فريق «قيد الأوابد»: الفكرة، والمنهج العلمي، والمرجعية، والقرارات، والاختبار، والنشر والتشغيل منّا، واستعنّا بـ **Claude Code** (Anthropic) في كتابة الكود والاختبارات والتوثيق تحت توجيهنا ومراجعتنا. ويظهر ذلك في سجل GitHub: تحمل الـcommits التي كتبها Claude اسمه، وهذا إفصاح تطلبه شروط التحدي، وهو مذكور أيضًا في [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md).
 
-The team led the project: idea, scientific method, references, decisions, testing, deployment and operation. Code, tests and documentation were written with **Claude Code** under the team's direction and review; commits written by Claude carry its name, as the challenge's disclosure terms require.
+We developed and programmed Tathabbut as team Qayd al-Awabid: the idea, method, references, decisions, testing, deployment and operation are ours, and we used **Claude Code** to write the code, tests and documentation under our direction and review. Commits written by Claude carry its name, as the challenge's disclosure terms require.
 
 ## الأدوار · Roles
 

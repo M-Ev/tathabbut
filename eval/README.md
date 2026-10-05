@@ -1,5 +1,28 @@
 # Evaluation set
 
+| Set | Cases | Run | Report |
+|---|---|---|---|
+| Visitors' questions, live site | 25 (`personas.json`) | `python3 scripts/persona_check.py` | `personas_report.md` |
+| Quran, generated from the Mushaf | 660 | `python3 eval/synth_quran.py --n 600 --seed 2026` | `synth_report.md` |
+| General cases | 13 (`cases.jsonl`) | `python3 eval/run_eval.py [--via-space URL]` | `report.md` |
+| Circulated hadith, checked on Dorar | 36 (`hadith_cases.jsonl`) | `eval/verify_hadith_cases.py` | `hadith_cases.md` |
+| Sayings that share a hadith's words | 20 (`trap_cases.jsonl`) | `eval/run_trap_eval.py` | `trap_report.md` |
+| Fatwa questions | 12 (`fatwa_cases.jsonl`) | `eval/run_fatwa_eval.py` | `fatwa_report.md` |
+| Urdu and Indonesian verse quotes | 900 per language | `eval/translation_census.py` | `translation_report.md` |
+| The two models on the live site | English hadith and timings, per model | live runs through `POST /api/check` (`eval/run_model_eval.py` measures each job alone) | `model_live_report.md` |
+| Pillars page quotes | every quote and phrase | `pytest tests/test_pillars.py` | test output |
+
+All sets are synthetic or public texts; no user data. Review by the team's Sharia reviewer is pending.
+
+## Visitors' questions (5 Oct)
+
+`personas.json` holds 25 questions written the way real visitors of every age ask: a child in Saudi dialect, a teen without
+punctuation, an older visitor without hamzas, a WhatsApp forward, a chatbot answer with a wrong surah, questions in English,
+Urdu, Indonesian and Arabizi, a single word, an off-topic question. Each carries what it must get (a fatwa found, the hadith
+searched without the dialect words, the fabrication shown, the wrong surah caught...). `scripts/persona_check.py` asks the
+live site, paced under its limit, and writes `personas_report.md`. Every failure is fixed and becomes a unit test.
+
+
 `cases.jsonl`: one case per line, all synthetic (drafted with Claude, review by the team's Sharia reviewer pending, no user data).
 
 ```json

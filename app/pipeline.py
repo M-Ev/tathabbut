@@ -596,7 +596,7 @@ def _fatwa_count(found: dict | None) -> int:
     return sum(len(sc.get("fatwas") or []) for sc in (found or {}).get("scholars", []))
 
 
-async def _fatwa_level(text: str, m, form: str, search: str | None = None) -> dict:
+async def _fatwa_level(text: str, m, form: str, titles: list[str] | None = None) -> dict:
     """The fatwa referral, with the two scholars' fatwas on the question. A question the sites' search does not
     find as written (dialect, other languages: «يجوز اسمع اغاني؟», "Is it permissible to pray with shoes on?")
     is searched again with the model's Arabic title for the question; the fatwas themselves are always quoted."""
@@ -610,18 +610,23 @@ async def _fatwa_level(text: str, m, form: str, search: str | None = None) -> di
         q_end = q_end if q_end >= 0 else text.rfind("?", 0, where)
         where = q_end if q_end >= 0 else where
     sentence = _sentence_at(text, where) if m else text.strip()
-    found = None
-    try:
-        found = await asyncio.wait_for(fatwa.find_fatwas(search or sentence), 25)
-    except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
-        log.warning("fatwa search failed: %s", e)
-    if search is None and llm.available() and (quote_lang(sentence) != "ar" or not _fatwa_count(found)):
+    found, search = None, None
+    for q in (titles or [sentence]):  # the visitor's words, or the model's titles in turn
+        try:
+            found = await asyncio.wait_for(fatwa.find_fatwas(q), 25)
+        except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
+            log.warning("fatwa search failed: %s", e)
+        if _fatwa_count(found):
+            search = q if titles else None
+            break
+    if not titles and llm.available() and (quote_lang(sentence) != "ar" or not _fatwa_count(found)):
         try:
             kind, wordings = await llm.understand(sentence)
-            if kind == "ruling" and wordings:
-                more = await asyncio.wait_for(fatwa.find_fatwas(wordings[0]), 25)
+            for w in (wordings if kind == "ruling" else []):  # the model's title, then its broader ones
+                more = await asyncio.wait_for(fatwa.find_fatwas(w), 25)
                 if _fatwa_count(more):
-                    found, search = more, wordings[0]
+                    found, search = more, w
+                    break
         except Exception as e:  # noqa: BLE001 - the first search's result stands
             log.warning("fatwa search by the model's wording failed: %s", e)
     level_d["fatwas"] = found
@@ -694,7 +699,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
             if out["status"] == "verified":  # only a verse found in the Mushaf; the model's own text is never shown
                 results, cands = [out], [c]
         elif kind == "ruling":
-            level_d = await _fatwa_level(text, None, "general", search=wordings[0] if wordings else None)
+            level_d = await _fatwa_level(text, None, "general", titles=wordings)
     else:
         asked_about = None
     # Positions in the text as received (plan item 24), so an API user can place each note.

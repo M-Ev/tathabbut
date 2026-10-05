@@ -32,7 +32,13 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 
 بإحدى عشرة لغة: العربية، والإنجليزية، والأردية، والإندونيسية، والبنغالية، والتركية، والفرنسية، والإسبانية، والهندية، والصينية، واليابانية. المصدر يبقى عربيًا: الآية بترجمة معتمدة لمعانيها، وكلام العلماء والحديث لا يُترجمان آليًا.
 
-![واجهة تثبّت: آية منقولة بخطأ في كلمتين مع عزو خطأ، وحديث بأحكام العلماء](docs/screenshots/ui-ar.png)
+![تقرير الفحص: آية منقولة بخطأ مع عزو خطأ، وحديث في الصحيحين، وحديث موضوع](docs/screenshots/ui-ar.png)
+
+| اسأل الثقات | أركان الإسلام | الأرشيف |
+|---|---|---|
+| ![جواب من فتوى ابن باز بنصه](docs/screenshots/ask-trusted.png) | ![الصلاة خطوة خطوة برسوم متحركة](docs/screenshots/pillars-prayer.png) | ![الأرشيف العام](docs/screenshots/archive.png) |
+
+لقطات من 5 أكتوبر 2026، والنتائج فيها من الموقع المباشر.
 
 ### حالة الدليل لكل استشهاد
 
@@ -156,13 +162,13 @@ See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, 
 
 ## الفريق · Team
 
-فريق «قيد الأوابد». قاد الفريق المشروع: الفكرة، والمنهج العلمي، والمرجعية، والقرارات، والاختبار، والنشر والتشغيل. وكُتب الكود بمساعدة Claude Code تحت توجيه الفريق ومراجعته.
+طوّرنا تثبّت وبرمجناه في فريق «قيد الأوابد»: الفكرة، والمنهج العلمي، والمرجعية، والقرارات، والاختبار، والنشر والتشغيل منّا، واستعنّا بـ Claude Code في كتابة الكود تحت توجيهنا ومراجعتنا.
 
 - **قائد الفريق:** المنتج والتطوير، وكل قرار في [سجل القرارات](docs/team.md): تحويل النماذج بعد القياس الحي، واختيار مزود مجاني، والتصميم بهوية التحدي، والخصوصية بلا تسجيل دخول، ومرجعية الفتوى، واللغات مع إبقاء المصدر عربيًا، و«اسأل الثقات»، وأركان الإسلام، واختبار الزوار. وإدارة الـSpace والمفاتيح والنشر.
 - **المختصة الشرعية:** مراجعة قواعد العرض ومجموعة التقييم (لم تتم بعد).
 - **عضو تجربة المستخدم والعرض:** العرض التقديمي والتوثيق.
 
-Team Qayd al-Awabid led the project (idea, method, references, decisions, testing, deployment); the code was written with Claude Code under the team's direction. See [docs/team.md](docs/team.md).
+We, team Qayd al-Awabid, developed and programmed Tathabbut (idea, method, references, decisions, testing, deployment), using Claude Code to write the code under our direction. See [docs/team.md](docs/team.md).
 
 **كل تطوير يُوثّق:** يُرفع مع اختباراته، ويُسجَّل في [CHANGELOG.md](CHANGELOG.md) بما كان وما صار، ويُضاف إلى سجل القرارات إن كان قرارًا من الفريق، ثم يُختبر على الموقع المباشر.
 

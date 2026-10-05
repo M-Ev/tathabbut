@@ -67,7 +67,9 @@ async def check_citations(text: str, ctx: Context | None = None) -> dict:
 
     Returns, per citation, its status, the source text with identifier and link (the Mushaf for ayat; the
     approved scholars' gradings copied verbatim from Dorar for hadith) or a referral to a specialist, plus a
-    `decision` for chatbots (pass / annotate / block) and `coverage` saying what could not be checked.
+    `decision` for chatbots (pass / annotate / block) and `coverage` saying what could not be checked. For a
+    ruling question, `fatwa_referral` holds Ibn Baz's and Ibn al-Uthaymeen's fatwas and `answer`, a sentence
+    quoted from one of them and checked letter by letter against it.
     """
     _guard(ctx)
     r = await check_text(text[:8000], deep=False)
@@ -81,6 +83,7 @@ async def check_citations(text: str, ctx: Context | None = None) -> dict:
         })
     return {"citations": cites, "decision": r["decision"], "coverage": r["coverage"],
             "personal_fatwa_question": bool(r.get("level_d")), "fatwa_referral": r.get("level_d"),
+            "asked_about": r.get("asked_about"),
             "disclaimer": DISCLAIMER, "versions": r["versions"]}
 
 
