@@ -168,11 +168,16 @@ def describe() -> dict:
 
 
 async def _fallback_chat(messages, max_tokens, schema) -> str:
-    try:
-        reply = await fallback.chat(messages, max_tokens, schema=schema)
-    except Exception as e:
-        STATUS["fallback_last_error"] = _err(e)
-        raise
+    for attempt in (1, 2):  # a hosted model's 429 or 5xx is often momentary: one more try before ALLaM on CPU
+        try:
+            reply = await fallback.chat(messages, max_tokens, schema=schema)
+            break
+        except Exception as e:
+            STATUS["fallback_last_error"] = _err(e)
+            code = getattr(getattr(e, "response", None), "status_code", None)
+            if attempt == 2 or not (code is None or code == 429 or code >= 500):
+                raise
+            await asyncio.sleep(1.5)
     STATUS["fallback_last_ok"] = time.strftime("%H:%M:%S", time.gmtime()) + " UTC"
     return reply
 
@@ -230,7 +235,7 @@ def _answered(schema: str, data) -> bool:
     return data is not None
 
 
-async def _ask(user: str, max_tokens: int, schema: str):
+async def _ask(user: str, max_tokens: int, schema: str, retry_user: str | None = None):
     t0 = time.monotonic()
     model = None
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]
@@ -243,8 +248,9 @@ async def _ask(user: str, max_tokens: int, schema: str):
         if not _answered(schema, data) and fallback is not None and model == fallback.label and backend.name != "none":
             # The fallback answered first but gave nothing usable: ALLaM is asked too.
             STATUS["fallback_last_empty"] = f"{schema} at {time.strftime('%H:%M:%S', time.gmtime())} UTC"
-            try:  # once more without the enforced shape (the shape is still checked here), then ALLaM
-                data = _json(await fallback.chat(messages, max_tokens, schema=None))
+            try:  # once more, plainly worded and without the enforced shape (still checked here), then ALLaM
+                plain = [{"role": "system", "content": "Reply with JSON only."}, {"role": "user", "content": retry_user or user}]
+                data = _json(await fallback.chat(plain, max_tokens, schema=None))
             except Exception:  # noqa: BLE001
                 data = None
             if not _answered(schema, data):
@@ -289,7 +295,13 @@ async def arabic_search_wordings(quote: str, kind: str) -> list[str]:
         "لا تشرح. أعد JSON بالشكل "
         '{"arabic": "...", "alternatives": []}\n\n' + _wrap(quote)
     )
-    data = await _ask(prompt, 200, "arabic")
+    retry = (
+        f"The text below is an English translation of a {'Quran verse' if kind == 'quran' else 'hadith of the Prophet'}. "
+        "Write its original Arabic wording as it appears in the "
+        + ("Mushaf" if kind == "quran" else "hadith collections (not a literal translation)")
+        + ', for searching only. Reply only with JSON: {"arabic": "...", "alternatives": []}\n\n' + _wrap(quote)
+    )
+    data = await _ask(prompt, 200, "arabic", retry_user=retry)
     if not isinstance(data, dict):
         return []
     out = []
