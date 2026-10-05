@@ -57,9 +57,10 @@ async function go() {
       const sc = ((ld.fatwas || {}).scholars || []);
       const items = sc.flatMap((x) => (x.fatwas || []).map((f) => ({ who: x.ar, ...f })));
       const fa = ld.answer;
-      let h = `<div class="bot-fatwas">` + (fa ? `<section class="fatwa-answer"><h3 class="fatwas-h">الجواب من فتاواهم</h3>
+      let h = `<div class="bot-fatwas">` + (fa ? `<section class="fatwa-answer${fa.same_question ? "" : " near"}"><h3 class="fatwas-h">${fa.same_question ? "الجواب من فتاواهم" : "أقرب ما في فتاواهم (في مسألة قريبة من السؤال)"}</h3>
         <blockquote>«${esc(fa.quote)}»</blockquote>
         <p class="fine">${esc(fa.scholar_ar)} · <a href="${esc(fa.url)}" target="_blank" rel="noopener">${esc(fa.title)}</a>${fa.source ? " · " + esc(fa.source) : ""}</p>
+        ${fa.same_question ? "" : `<p class="line warn">لم نجد في فتاواهما المنشورة جوابًا عن السؤال نفسه؛ هذه أقرب فتوى إليه، ومسألتها قد تختلف عنه في قيد أو تفصيل. اقرأها كاملة، واسأل أهل العلم أو جهة الإفتاء.</p>`}
         <p class="fine">الجملة منقولة بنصها من الفتوى: اختارها النموذج اللغوي، وتحقّق النظام أنها فيها حرفًا بحرف، ولم يكتب منها شيئًا. اقرأ الفتوى كاملة قبل العمل بها.</p></section>` : "") + `<p class="line warn">${esc(ld.form === "general" ? "في النص سؤال عن حكم شرعي، وتثبّت لا يفتي. هذه فتاوى العالمين الجليلين في مسائل قريبة، بنصها من موقعيهما الرسميين. اختيرت بتقارب الألفاظ لا بالمعنى، فاقرأ الفتوى كاملة وتأكد أنها في مسألتك نفسها:" : "في النص سؤال فتوى شخصية، وتثبّت لا يفتي. هذه فتاوى العالمين الجليلين في مسائل قريبة، بنصها من موقعيهما الرسميين. اختيرت بتقارب الألفاظ لا بالمعنى، فاقرأ الفتوى كاملة وتأكد أنها في مسألتك نفسها:")}</p>`;
       h += items.length ? `<ul class="bot-fatwa-list">` + items.map((f) => `<li><p class="fatwa-title"><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}</a></p>
           <p class="fine">${esc(f.who)}${f.source ? " · " + esc(f.source) : ""}</p>

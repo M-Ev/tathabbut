@@ -466,10 +466,10 @@ def test_a_ruling_question_is_answered_with_a_sentence_copied_from_the_scholars_
 
     monkeypatch.setattr(fatwa_mod, "find_fatwas", fake_find)
     monkeypatch.setattr(pipeline.settings, "fatwa_search", True)
-    fake_llm([json.dumps({"pick": 1, "quote": "وما أسكر كثيره فقليله حرام، ولو كانت نسبته قليلة."}, ensure_ascii=False)])
+    fake_llm([json.dumps({"pick": 1, "same_question": True, "quote": "وما أسكر كثيره فقليله حرام، ولو كانت نسبته قليلة."}, ensure_ascii=False)])
     r = run(check_text("هل شرب الكحول بنسبه 5% يجوز؟"))
     a = r["level_d"]["answer"]
-    assert a and a["verified_verbatim"] and a["quote"].startswith("وما أسكر") and "binbaz" in a["url"]
+    assert a and a["verified_verbatim"] and a["same_question"] and a["quote"].startswith("وما أسكر") and "binbaz" in a["url"]
     assert "_text" not in r["level_d"]["fatwas"]["scholars"][0]["fatwas"][0]  # only the shown fields leave the server
     # A sentence the fatwa does not contain is never shown, even if the model returns it.
     found["scholars"][0]["fatwas"][0]["_text"] = answer

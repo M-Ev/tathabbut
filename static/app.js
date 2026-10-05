@@ -5,6 +5,8 @@ const T = {
     title: "تثبّت", tagline: "مدقق الاستشهادات الشرعية", mottoRef: "الحجرات ٦",
     verdictsTitle: "خلاصة أحكام علماء الحديث المعتمدين على هذا اللفظ",
     fAnswerTitle: "الجواب من فتاواهم",
+    fNearTitle: "أقرب ما في فتاواهم (في مسألة قريبة من سؤالك)",
+    fNearNote: "لم نجد في فتاواهما المنشورة جوابًا عن سؤالك نفسه؛ هذه أقرب فتوى إليه، ومسألتها قد تختلف عن مسألتك في قيد أو تفصيل. اقرأها كاملة، واسأل أهل العلم أو جهة الإفتاء عن حالتك.",
     fAnswerNote: "الجملة منقولة بنصها من الفتوى: اختارها النموذج اللغوي، وتحقّق النظام أنها فيها حرفًا بحرف، ولم يكتب منها شيئًا. اقرأ الفتوى كاملة قبل العمل بها.",
     navCheck: "الفحص", navArchive: "الأرشيف", navBot: "إجابة روبوت", navDev: "للمطورين",
     historyTitle: "فحوصاتي على هذا الجهاز", historyNote: "تُحفظ في متصفحك وحده، ولا تصل إلينا. امسحها متى شئت.",
@@ -145,6 +147,8 @@ const T = {
   en: {
     verdictsTitle: "What the approved hadith scholars said of this wording",
     fAnswerTitle: "The answer, from their fatwas",
+    fNearTitle: "The closest in their fatwas (on a question close to yours)",
+    fNearNote: "Their published fatwas do not answer your exact question; this is the closest one, and its question may differ from yours in a condition or detail. Read it in full, and ask a scholar or the fatwa authority about your case.",
     fAnswerNote: "This sentence is quoted verbatim from the fatwa: the language model chose it and the system checked it is there word for word; nothing in it was written by the model. Read the whole fatwa before acting on it.",
     navCheck: "Check", navArchive: "Archive", navBot: "Chatbot answer", navDev: "Developers",
     historyTitle: "My checks on this device", historyNote: "Kept in your browser only; they never reach us. Clear them any time.",
@@ -719,10 +723,10 @@ function render(r) {
     }
     if (r.level_d.form === "ruling_in_answer") h = `<p class="line warn">${esc(t().leveldRuling)}</p>` + h;
     const fa = r.level_d.answer;
-    if (fa) h = `<section class="fatwa-answer"><h3 class="fatwas-h">${esc(t().fAnswerTitle)}</h3>
+    if (fa) h = `<section class="fatwa-answer${fa.same_question ? "" : " near"}"><h3 class="fatwas-h">${esc(fa.same_question ? t().fAnswerTitle : t().fNearTitle)}</h3>
       <blockquote lang="ar" dir="rtl">«${esc(fa.quote)}»</blockquote>
       <p class="fine">${esc(arData() ? fa.scholar_ar : fa.scholar_en)} · <a href="${esc(fa.url)}" target="_blank" rel="noopener"><bdi dir="rtl">${esc(fa.title)}</bdi></a>${fa.source ? " · " + esc(fa.source) : ""}</p>
-      <p class="fine">${esc(t().fAnswerNote)}</p></section>` + h;
+      ${fa.same_question ? "" : `<p class="line warn">${esc(t().fNearNote)}</p>`}<p class="fine">${esc(t().fAnswerNote)}</p></section>` + h;
     ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(arData() ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
   $("annotated").innerHTML = renderAnnotated(lastText, r.citations);

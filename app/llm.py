@@ -33,8 +33,9 @@ SCHEMAS = {
                "properties": {"arabic": {"type": "string", "maxLength": 300},
                               "alternatives": {"type": "array", "maxItems": 2,
                                                "items": {"type": "string", "maxLength": 300}}}},
-    "fatwa": {"type": "object", "required": ["pick", "quote"], "additionalProperties": False,
+    "fatwa": {"type": "object", "required": ["pick", "same_question", "quote"], "additionalProperties": False,
               "properties": {"pick": {"type": "integer", "minimum": 0, "maximum": 6},
+                             "same_question": {"type": "boolean"},
                              "quote": {"type": "string", "maxLength": 700}}},
     "match": {"type": "object", "required": ["match"], "additionalProperties": False,
               "properties": {"match": {"type": "integer", "minimum": 0, "maximum": 4}}},
@@ -336,23 +337,24 @@ async def pick_match(quote: str, candidates: list[str]) -> int:
     return n if 0 <= n <= len(candidates) else 0
 
 
-async def fatwa_quote(question: str, fatwas: list[dict]) -> tuple[int, str]:
+async def fatwa_quote(question: str, fatwas: list[dict]) -> tuple[int, str, bool]:
     """Which published fatwa answers the question itself, and the sentence(s) in it that answer, copied verbatim.
     Returns (1-based index, quote) or (0, ""). The caller checks the quote is really in that fatwa."""
     listing = "\n\n".join(f"{i}. العنوان: {f['title']}\nالسؤال: {f.get('question', '')[:300]}\nالجواب: {f['_text'][:1500]}"
                            for i, f in enumerate(fatwas, 1))
     prompt = (
-        "هذا سؤال عن حكم شرعي، وبعده فتاوى منشورة لعالمين. اختر الفتوى التي تجيب عن السؤال نفسه، لا عن مسألة قريبة منه فقط، "
-        "وانسخ منها حرفيًا الجملة أو الجملتين اللتين فيهما الجواب، دون أي تغيير أو تلخيص أو إضافة من عندك. "
-        "إن لم تجب أي فتوى عن السؤال نفسه فأعد pick = 0. "
-        'أعد JSON بالشكل {"pick": رقم, "quote": "النص المنسوخ"}\n\n'
+        "هذا سؤال عن حكم شرعي، وبعده فتاوى منشورة لعالمين. اختر الفتوى الأقرب إلى السؤال: التي تجيب عنه نفسه إن وجدت، "
+        "وإلا فالتي في أقرب مسألة إليه. وانسخ منها حرفيًا الجملة أو الجملتين الأقرب إلى السؤال، دون أي تغيير أو تلخيص أو إضافة من عندك. "
+        "اجعل same_question = true فقط إن كانت الفتوى تجيب عن السؤال نفسه، و false إن كانت في مسألة قريبة. "
+        "إن لم تكن أي فتوى ذات صلة بالسؤال أصلًا فأعد pick = 0. "
+        'أعد JSON بالشكل {"pick": رقم, "same_question": true أو false, "quote": "النص المنسوخ"}\n\n'
         f"السؤال:\n{_wrap(question)}\n\nالفتاوى:\n{listing}"
     )
     data = await _ask(prompt, 400, "fatwa")
     try:
         n = int(data.get("pick", 0)) if isinstance(data, dict) else 0
     except (TypeError, ValueError):
-        return 0, ""
+        return 0, "", False
     if not 0 < n <= len(fatwas):
-        return 0, ""
-    return n, str(data.get("quote", "")).strip()
+        return 0, "", False
+    return n, str(data.get("quote", "")).strip(), data.get("same_question") is True

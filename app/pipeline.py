@@ -537,7 +537,7 @@ async def _answer_from_fatwas(question: str, found: dict | None) -> dict | None:
     pool = [(sc, f) for sc in found.get("scholars", []) for f in sc.get("fatwas", []) if f.get("_text")][:6]
     if not pool:
         return None
-    n, quote = await llm.fatwa_quote(question, [f for _, f in pool])
+    n, quote, same = await llm.fatwa_quote(question, [f for _, f in pool])
     if not n or len(quote.split()) < 4 or len(quote.split()) > 90:
         return None
     sc, f = pool[n - 1]
@@ -545,7 +545,9 @@ async def _answer_from_fatwas(question: str, found: dict | None) -> dict | None:
         log.info("fatwa quote rejected: not verbatim in the fatwa")
         return None
     return {"scholar_ar": sc["ar"], "scholar_en": sc["en"], "title": f["title"], "url": f["url"], "source": f.get("source", ""),
-            "quote": quote, "verified_verbatim": True}
+            "quote": quote, "verified_verbatim": True,
+            # The model's own reading: the fatwa answers this very question, or a close one. Shown as such.
+            "same_question": bool(same)}
 
 
 async def check_text(text: str, deep: bool = False) -> dict:
