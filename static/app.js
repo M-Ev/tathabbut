@@ -4,6 +4,9 @@ const T = {
   ar: {
     title: "تثبّت", tagline: "مدقق الاستشهادات الشرعية", mottoRef: "الحجرات ٦",
     verdictsTitle: "خلاصة أحكام علماء الحديث المعتمدين على هذا اللفظ",
+    navCheck: "الفحص", navArchive: "الأرشيف", navBot: "إجابة روبوت", navDev: "للمطورين",
+    historyTitle: "فحوصاتي على هذا الجهاز", historyNote: "تُحفظ في متصفحك وحده، ولا تصل إلينا. امسحها متى شئت.",
+    historyClear: "امسح السجل", historyCount: (n) => `${n} استشهاد`,
     verdictLbl: { accepted: "صحيح أو حسن عند", weak: "ضعيف عند", fabricated: "موضوع أو لا أصل له عند" },
     verdictNote: "نقلٌ لأحكامهم كما وردت، بلا ترجيح بينها؛ وتفصيلها بنصها أدناه.",
     inputLabel: "النص المراد فحصه", intro: "الصق منشورًا أو درسًا أو إجابة روبوت محادثة، وسنتتبع كل آية وحديث فيه إلى مصدره.",
@@ -137,6 +140,9 @@ const T = {
   },
   en: {
     verdictsTitle: "What the approved hadith scholars said of this wording",
+    navCheck: "Check", navArchive: "Archive", navBot: "Chatbot answer", navDev: "Developers",
+    historyTitle: "My checks on this device", historyNote: "Kept in your browser only; they never reach us. Clear them any time.",
+    historyClear: "Clear history", historyCount: (n) => `${n} citation${n === 1 ? "" : "s"}`,
     verdictLbl: { accepted: "Authentic or good according to", weak: "Weak according to", fabricated: "Fabricated or baseless according to" },
     verdictNote: "Their gradings as stated, not weighed against each other; each is quoted in full below.",
     title: "Tathabbut", tagline: "Islamic citation checker", mottoRef: "al-Hujurat 49:6 · “verify it” (King Fahd Complex translation)",
@@ -324,6 +330,7 @@ function applyLang() {
   if (lastResult) render(lastResult);
   showBanner();
   renderCases();
+  if (typeof HKEY !== "undefined") showHistory();
 }
 
 function place(q) {
@@ -711,6 +718,7 @@ async function check() {
     lastText = text;
     $("status").textContent = "";
     render(lastResult);
+    saveHistory(text, deep, lastResult);
     health();
     $("report").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (e) {
@@ -782,5 +790,50 @@ $("lang").addEventListener("click", () => {
   applyLang();
 });
 try { const saved = localStorage.getItem("tathabbut-lang"); if (saved === "en" || saved === "ar") lang = saved; } catch (e) { /* ignore */ }
+// My checks: kept in this browser only (localStorage), never sent anywhere; the page works without it.
+const HKEY = "tathabbut-history", HMAX = 12;
+function readHistory() {
+  try { const h = JSON.parse(localStorage.getItem(HKEY) || "[]"); return Array.isArray(h) ? h : []; } catch (e) { return []; }
+}
+function saveHistory(text, deep, result) {
+  const h = readHistory().filter((x) => x.text !== text);
+  h.unshift({ at: new Date().toISOString(), text, deep, result });
+  for (let n = Math.min(h.length, HMAX); n > 0; n--) {  // drop the oldest if the browser's quota is reached
+    try { localStorage.setItem(HKEY, JSON.stringify(h.slice(0, n))); break; } catch (e) { if (n === 1) return; }
+  }
+  showHistory();
+}
+function showHistory() {
+  const h = readHistory(), box = $("history");
+  if (!box) return;
+  box.hidden = !h.length;
+  const day = (iso) => new Date(iso).toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { day: "numeric", month: "long" });
+  $("history-list").innerHTML = h.map((x, i) => {
+    const s = (x.result && x.result.summary) || {};
+    return `<li><button type="button" class="linkish case" data-h="${i}">${esc(x.text.slice(0, 90))}${x.text.length > 90 ? "…" : ""}</button>
+      <span class="fine">${esc(day(x.at))} · ${esc(t().historyCount(num(s.total || 0)))}</span></li>`;
+  }).join("");
+}
+$("history-list").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-h]");
+  if (!b) return;
+  const x = readHistory()[+b.dataset.h];
+  if (!x) return;
+  $("text").value = x.text; $("text").dispatchEvent(new Event("input"));
+  lastText = x.text; lastResult = x.result;
+  render(lastResult);
+  $("report").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+$("history-clear").addEventListener("click", () => {
+  try { localStorage.removeItem(HKEY); } catch (e) { /* storage may be blocked */ }
+  showHistory();
+});
+
 applyLang();
 health();
+showHistory();
+// A link from the archive (/?q=...) opens with its text and checks it.
+try {
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { $("text").value = q.slice(0, 8000); $("text").dispatchEvent(new Event("input")); check(); }
+} catch (e) { /* ignore */ }

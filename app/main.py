@@ -138,6 +138,15 @@ if mcp_server is not None:
     app.router.routes.extend(mcp_server.mcp.streamable_http_app().routes)
 
 
+@app.get("/api/archive")
+async def archive():
+    """The public archive: commonly circulated citations as the tool checked them (scripts/build_archive.py)."""
+    f = Path(__file__).resolve().parent.parent / "data" / "archive.json"
+    if not f.exists():
+        return {"entries": [], "checked_at": None, "reviewed": False}
+    return FileResponse(f, media_type="application/json")
+
+
 @app.get("/")
 async def index():
     return FileResponse(STATIC / "index.html")
