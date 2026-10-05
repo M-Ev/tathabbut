@@ -76,6 +76,10 @@ class OpenAICompatible(_Backend):
             raise LLMUnavailable("TATHABBUT_LLM_BASE_URL is not set")
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         body = {"model": self.model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
+        if "gpt-oss" in self.model:
+            # A reasoning model spends tokens thinking before it answers: keep the thinking short and leave it room.
+            body["reasoning_effort"] = "low"
+            body["max_tokens"] = max_tokens + 1024
         async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
             url = self.base_url.rstrip("/") + "/chat/completions"
             if schema and self.schema_ok:

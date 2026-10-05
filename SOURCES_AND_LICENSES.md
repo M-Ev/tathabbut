@@ -43,7 +43,7 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 |---|---|---|
 | ALLaM-7B-Instruct-preview (SDAIA / HUMAIN), `humain-ai/ALLaM-7B-Instruct-preview` | Spotting citations the rules missed; Arabic search wording for non-Arabic quotes; picking which Arabic source text matches a translation. Never grades or rules. | Apache-2.0 (per the model's Hugging Face listing) |
 | GGUF 4-bit build: `bartowski/ALLaM-AI_ALLaM-7B-Instruct-preview-GGUF` (Q4_K_M) | Running ALLaM on a free CPU | Apache-2.0 |
-| Fallback (owner's decision, 4 Oct), called only when ALLaM is not available, e.g. `Qwen/Qwen3-235B-A22B-Instruct-2507` through Hugging Face Inference Providers | The same three jobs under the same guards; each report names the model that answered (`model.answered_by`) | The chosen model's own license (Qwen3: Apache-2.0) |
+| Fallback (owner's decision, 4 Oct), called only when ALLaM is not available, `openai/gpt-oss-120b` on Groq's free tier (earlier `Qwen/Qwen3-235B-A22B-Instruct-2507` through Hugging Face Inference Providers) | The same three jobs under the same guards; each report names the model that answered (`model.answered_by`) | Apache-2.0 (gpt-oss-120b; Qwen3 likewise) |
 
 ## AI tools used to build the project
 
