@@ -563,7 +563,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
     # Plain text pasted alone (no «حديث», no quotation marks) is reported only if the sources know it: a sentence
     # of one's own is not "a hadith not found".
     keep = [i for i, (o, c) in enumerate(zip(results, cands))
-            if not (c.marker == "bare" and not c.asked and o["status"] in ("not_found", "not_in_mushaf", "too_short", "source_offline", "source_error"))]
+            if not (c.marker == "bare" and not c.asked and c.lang == "ar" and o["status"] in ("not_found", "not_in_mushaf", "too_short", "source_offline", "source_error"))]
     if len(keep) != len(results):
         results = [results[i] for i in keep]
         cands = [cands[i] for i in keep]
