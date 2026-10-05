@@ -101,7 +101,7 @@ def test_personal_fatwa_question_is_referred(fake_dorar):
     r = run(check_text("أنا في دولة أوروبية، هل يجوز لي أن أفعل كذا في زواجي؟"))
     assert r["level_d"]["detected"] and "alifta" in r["level_d"]["body"]["url"]
     assert "بلدك" in r["level_d"]["body"]["ar"]  # the package's own case is a user in another country
-    assert [x["url"] for x in r["level_d"]["references"]] == ["https://binbaz.org.sa", "https://binothaimeen.net"]
+    assert [x["url"] for x in r["level_d"]["references"]] == ["https://binbaz.org.sa", "https://binothaimeen.net", "https://www.alifta.gov.sa"]
 
 
 def test_every_citation_gets_one_evidence_tier(fake_dorar):
@@ -440,3 +440,13 @@ def test_a_bare_hadith_or_a_question_about_it_is_checked(fake_dorar):
     assert run(check_text("إن مع العسر يسرا"))["citations"][0]["type"] == "quran"
     for text in ("هل يجوز صيام يوم الجمعة؟", "نعم، الصلاة واجبة. وهذا رأي الجمهور."):
         assert run(check_text(text))["citations"] == [], text  # a question or an answer is not a quote
+
+
+def test_a_general_fatwa_question_gets_the_scholars_fatwas_and_plain_text_is_not_a_hadith(fake_dorar):
+    fake_dorar({})
+    for text in ("هل يجوز الجمع بين صلاتي الظهر والعصر للمسافر؟", "ما حكم صيام يوم الجمعة منفردًا؟",
+                 "What is the ruling on combining prayers while travelling?"):
+        r = run(check_text(text))
+        assert r["level_d"] and r["level_d"]["form"] == "general" and r["citations"] == [], text
+    assert run(check_text("القراءة عادة جميلة تنمي العقل"))["citations"] == []  # not found, not asked: not a citation
+    assert run(check_text("هل حديث القراءة عادة جميلة صحيح؟"))["citations"][0]["status"] == "not_found"  # asked: said so

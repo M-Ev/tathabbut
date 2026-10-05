@@ -52,6 +52,8 @@ FATWA_REFERENCES = [
      "en": "Fatwas of Shaykh Abd al-Aziz ibn Baz (official site)", "url": "https://binbaz.org.sa"},
     {"ar": "فتاوى فضيلة الشيخ محمد بن صالح العثيمين رحمه الله (الموقع الرسمي)",
      "en": "Fatwas of Shaykh Muhammad ibn Salih al-Uthaymeen (official site)", "url": "https://binothaimeen.net"},
+    {"ar": "فتاوى اللجنة الدائمة للبحوث العلمية والإفتاء (البوابة الرسمية للإفتاء)",
+     "en": "Fatwas of the Permanent Committee for Scholarly Research and Ifta (official portal)", "url": "https://www.alifta.gov.sa"},
 ]
 # Level د (plan item 32): a personal fatwa question, or a chatbot answer issuing one. «هل علي بن أبي طالب...» is a
 # question about a person, not a fatwa, so «هل علي» counts only before a word of obligation.
@@ -67,6 +69,15 @@ PERSONAL_FATWA = re.compile(
     r"|can\s+i\s+(?:marry|divorce|pray|fast|break\s+my\s+fast|eat|drink|combine|skip)|\bi\s+(?:divorced|swore|vowed)\b"
     r"|my\s+(?:husband|wife)\s+(?:said|did|divorced)|yes,?\s+you\s+(?:can|may|are\s+allowed)|it\s+is\s+(?:permissible|haram|halal|forbidden)\s+for\s+you"
     r"|your\s+(?:divorce|fast|prayer|marriage|oath|vow)\s+is\s+(?:valid|invalid|not\s+valid|void)",
+    re.I,
+)
+# A question about a ruling in general («هل يجوز الجمع للمسافر؟», «ما حكم ...»): answered with the two scholars'
+# published fatwas, verbatim, like a personal question; the tool itself never rules.
+GENERAL_FATWA = re.compile(
+    r"(?:^|[.؟?!\n]\s*)(?:هل\s+(?:يجوز|تجوز|يصح|تصح|يحل|تحل|يحرم|تحرم|يلزم|تلزم|يجب|تجب|يشرع|يُشرع|يستحب|يسن|يباح|يكفي|يقع|يبطل|تبطل|يفسد|يفطر|يُفطر|ينقض|تنقض|يأثم|يؤجر)"
+    r"|ما\s+(?:حكم|الحكم\s+في|هو\s+حكم|كفارة|فدية|الواجب\s+على|شروط|أركان|مبطلات|نواقض)|حكم\s+[ء-ي]+[^.؟?]*[؟?]"
+    r"|كيف\s+(?:أصلي|اصلي|يصلي|تصلي|أتوضأ|اتوضأ|يتوضأ|أقضي|اقضي|يقضي|أغتسل|اغتسل)"
+    r"|is\s+it\s+(?:halal|haram|permissible|allowed|sunnah|obligatory)|what\s+is\s+the\s+(?:islamic\s+)?ruling)",
     re.I,
 )
 _ANSWER_FORM = re.compile(r"لك|عليك|طلاقك|صيامك|صلاتك|زواجك|حجك|نذرك|يمينك|you|your", re.I)
@@ -456,7 +467,7 @@ _BARE_TAIL_EN = re.compile(r"\s*(?:(?:a\s+)?(?:authentic|sahih|true|real|weak|fa
 
 def _bare_candidate(text: str) -> Candidate | None:
     t = text.strip()
-    if not t or len(t) > 400 or "\n\n" in t or PERSONAL_FATWA.search(t):
+    if not t or len(t) > 400 or "\n\n" in t or PERSONAL_FATWA.search(t) or GENERAL_FATWA.search(t):
         return None
     ar = bool(re.search("[ء-ي]", t))
     head, tail = (_BARE_HEAD_AR, _BARE_TAIL_AR) if ar else (_BARE_HEAD_EN, _BARE_TAIL_EN)
@@ -478,7 +489,7 @@ def _bare_candidate(text: str) -> Candidate | None:
     q = Q.match_arabic(core) if lang == "ar" else Q.match_english(core)
     kind = "quran" if q.status == "exact" or (q.status == "differs" and q.score >= 85 and not kw) else "hadith"
     start = text.find(core)
-    return Candidate(kind, core, max(start, 0), max(start, 0) + len(core), lang, "bare")
+    return Candidate(kind, core, max(start, 0), max(start, 0) + len(core), lang, "bare", asked=kw or bool(quoted))
 
 
 _VERDICT_BUCKETS = (("accepted", ("authentic", "good")), ("weak", ("weak", "very_weak")), ("fabricated", ("fabricated",)))
@@ -547,11 +558,22 @@ async def check_text(text: str, deep: bool = False) -> dict:
             out["notes"].append("firm_form")  # «قال رسول الله ﷺ» for what the sources do not support
         results.append(out)
 
+    # Plain text pasted alone (no «حديث», no quotation marks) is reported only if the sources know it: a sentence
+    # of one's own is not "a hadith not found".
+    keep = [i for i, (o, c) in enumerate(zip(results, cands))
+            if not (c.marker == "bare" and not c.asked and o["status"] in ("not_found", "not_in_mushaf", "too_short", "source_offline", "source_error"))]
+    if len(keep) != len(results):
+        results = [results[i] for i in keep]
+        cands = [cands[i] for i in keep]
     level_d = None
     m = PERSONAL_FATWA.search(text)
+    form = ("ruling_in_answer" if _ANSWER_FORM.search(m.group(0)) else "question") if m else None
+    if not m and not [c for c in cands if c.marker != "bare"]:
+        m = GENERAL_FATWA.search(text)  # a question about a ruling, not a text with citations in it
+        form = "general" if m else None
     if m:
         level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None,
-                   "form": "ruling_in_answer" if _ANSWER_FORM.search(m.group(0)) else "question", "matched": m.group(0)}
+                   "form": form, "matched": m.group(0).strip()}
         if settings.fatwa_search:
             try:
                 where = m.start()

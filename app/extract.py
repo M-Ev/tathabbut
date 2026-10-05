@@ -145,6 +145,7 @@ class Candidate:
     found_by: str = "rules"
     attribution: dict | None = None  # a written «رواه البخاري» / «متفق عليه» near a hadith (plan item 19)
     cautious: bool = False  # attributed with «رُوي» / «يُروى», not with «قال رسول الله ﷺ»
+    asked: bool = True  # a bare text: True when the visitor named it a hadith or quoted it, False for plain text
 
     def overlaps(self, other: "Candidate") -> bool:
         return self.start < other.end and other.start < self.end
