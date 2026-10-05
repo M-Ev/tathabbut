@@ -6,7 +6,7 @@
 const T_EXTRA = {
   ur: {
     verdictsTitle: "اس الفاظ پر معتمد علمائے حدیث کے احکام کا خلاصہ",
-    navCheck: "جانچ", navArchive: "آرکائیو", navBot: "ثقات سے پوچھیں", navPillars: "ارکانِ اسلام", navDev: "ڈویلپرز",
+    navCheck: "جانچ", navArchive: "آرکائیو", navBot: "ثقات سے پوچھیں", navPillars: "ارکانِ اسلام", navAdhkar: "مستند اذکار", navDev: "ڈویلپرز",
     historyTitle: "اس آلے پر میری جانچیں", historyNote: "یہ صرف آپ کے براؤزر میں محفوظ ہیں، ہم تک نہیں پہنچتیں۔ جب چاہیں مٹا دیں۔",
     historyClear: "تاریخچہ مٹائیں", historyCount: (n) => `${n} حوالے`,
     verdictLbl: { accepted: "صحیح یا حسن، بقول", weak: "ضعیف، بقول", fabricated: "موضوع یا بے اصل، بقول" },
@@ -132,7 +132,7 @@ const T_EXTRA = {
   },
   id: {
     verdictsTitle: "Ringkasan penilaian para ulama hadis yang diakui atas lafaz ini",
-    navCheck: "Periksa", navArchive: "Arsip", navBot: "Tanya yang tepercaya", navPillars: "Rukun Islam", navDev: "Pengembang",
+    navCheck: "Periksa", navArchive: "Arsip", navBot: "Tanya yang tepercaya", navPillars: "Rukun Islam", navAdhkar: "Zikir terverifikasi", navDev: "Pengembang",
     historyTitle: "Pemeriksaan saya di perangkat ini", historyNote: "Hanya tersimpan di peramban Anda dan tidak pernah sampai kepada kami. Hapus kapan saja.",
     historyClear: "Hapus riwayat", historyCount: (n) => `${n} kutipan`,
     verdictLbl: { accepted: "Shahih atau hasan menurut", weak: "Dha'if menurut", fabricated: "Maudhu' atau tidak berdasar menurut" },

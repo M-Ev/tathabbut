@@ -10,6 +10,7 @@
 | اسأل الثقات (الأسئلة وإجابات المساعدات الذكية) | `/static/chatbot.html` | `POST /api/check`، والقرار `decision` |
 | الأرشيف | `/static/archive.html` | `GET /api/archive` (`data/archive.json`) |
 | أركان الإسلام | `/static/pillars.html` | `GET /api/pillars` (آيات المصحف وترجماتها)، وكلام ابن باز من `data/pillars_sources.json` |
+| الأذكار الموثّقة | `/static/adhkar.html` | `GET /api/adhkar` (`data/adhkar.json`، بناه `scripts/build_adhkar.py` بفحص كل ذكر على الموقع نفسه)، و`GET /api/mushaf`، و`GET /api/asma` (`data/asma.json`) |
 | للمطورين | `/docs`، `/mcp` | الواجهة البرمجية، وخادم MCP (`app/mcp_server.py`) |
 | الحالة | `/api/health` | الإصدار، والدرر، والنموذجان وآخر خطأ لكل منهما |
 

@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أرشيف تثبّت · استشهادات متداولة ومصادرها</title>
-<meta name="description" content="أرشيف تثبّت: أحاديث وآيات متداولة فحصتها الأداة، مع أحكام علماء الحديث المعتمدين بنصها ومصادرها.">
+<title>الأذكار الموثّقة · تثبّت</title>
+<meta name="description" content="أذكار وأدعية وآيات، كل ذكر منها فحصه تثبّت في الموسوعة الحديثية: مصدره وحكم العلماء المعتمدين عليه بنصه. ومعها المصحف ومتابعة العبادات وأسماء الله الحسنى والتسبيح.">
 <link rel="stylesheet" href="/static/fonts/fonts.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="adhkar-page">
 <header class="masthead">
   <div class="wrap mast-top">
     <a class="challenge" href="https://islamicaich.org" target="_blank" rel="noopener">
@@ -16,10 +16,10 @@
     </a>
     <nav class="mast-nav" aria-label="الأقسام">
       <a href="/" data-i18n="navCheck">الفحص</a>
-      <a href="/static/archive.html" aria-current="page" data-i18n="navArchive">الأرشيف</a>
+      <a href="/static/archive.html" data-i18n="navArchive">الأرشيف</a>
       <a href="/static/chatbot.html" data-i18n="navBot">اسأل الثقات</a>
       <a href="/static/pillars.html" data-i18n="navPillars">أركان الإسلام</a>
-      <a href="/static/adhkar.html" data-i18n="navAdhkar">الأذكار الموثّقة</a>
+      <a href="/static/adhkar.html" aria-current="page" data-i18n="navAdhkar">الأذكار الموثّقة</a>
       <a href="/docs" data-i18n="navDev">للمطورين</a>
     </nav>
     <select id="lang" class="lang" aria-label="اللغة · Language">
@@ -27,31 +27,27 @@
     </select>
   </div>
   <div class="wrap mast-hero">
-    <h1 class="wordmark" data-i18n="title">أرشيف تثبّت</h1>
-    <p class="tagline" data-i18n="tagline">أحاديث وآيات متداولة، ومعها ما قاله علماء الحديث المعتمدون بنصه ومصدره</p>
-    <dl id="stats" class="stats"></dl>
+    <h1 class="wordmark" data-i18n="title">الأذكار الموثّقة</h1>
+    <p class="tagline" data-i18n="tagline">كل ذكر هنا فحصه تثبّت: مصدره، وحكم العلماء المعتمدين عليه بنصه</p>
   </div>
 </header>
 
 <main class="wrap sheet">
-  <section class="compose archive-tools" aria-label="بحث">
-    <label class="section-h" for="q" data-i18n="searchLabel">ابحث في الأرشيف</label>
-    <input id="q" type="search" autocomplete="off" data-i18n-ph="searchPh" placeholder="اكتب كلمة من الحديث أو الآية">
-    <div id="filters" class="filters" role="group" aria-label="تصفية"></div>
-    <p id="note" class="fine"></p>
-  </section>
-  <p id="count" class="status" aria-live="polite"></p>
-  <ol id="list" class="entries archive-list"></ol>
+  <nav class="dk-crumbs" id="crumbs" aria-label="المسار"></nav>
+  <section id="view" class="pl-section" aria-live="polite"></section>
+  <p class="fine" id="dk-note"></p>
 </main>
 
 <footer class="foot"><div class="wrap foot-row">
   <img src="/static/brand/challenge-logo.png" width="92" height="48" alt="" aria-hidden="true">
   <div>
     <div data-i18n="footer">فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي</div>
-    <div data-i18n="credit">المصادر من الحزمة العلمية للتحدي: مصحف مجمع الملك فهد، والموسوعة الحديثية في الدرر السنية.</div>
+    <div data-i18n="credit">المصادر: مصحف مجمع الملك فهد، والموسوعة الحديثية في الدرر السنية بأحكام العلماء المعتمدين.</div>
   </div>
 </div></footer>
+<script src="/static/i18n.js"></script>
 <script src="/static/i18n-more.js"></script>
-<script src="/static/archive.js"></script>
+<script src="/static/adhkar-i18n.js"></script>
+<script src="/static/adhkar.js"></script>
 </body>
 </html>

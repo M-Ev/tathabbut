@@ -9,7 +9,7 @@ const num = (n) => (lang === "ar" ? String(n).replace(/\d/g, (d) => "٠١٢٣٤�
 const T = {
   ar: {
     title: "أرشيف تثبّت", tagline: "أحاديث وآيات متداولة، ومعها ما قاله علماء الحديث المعتمدون بنصه ومصدره",
-    navCheck: "الفحص", navArchive: "الأرشيف", navBot: "اسأل الثقات", navPillars: "أركان الإسلام", navDev: "للمطورين",
+    navCheck: "الفحص", navArchive: "الأرشيف", navBot: "اسأل الثقات", navPillars: "أركان الإسلام", navAdhkar: "الأذكار الموثّقة", navDev: "للمطورين",
     searchLabel: "ابحث في الأرشيف", searchPh: "اكتب كلمة من الحديث أو الآية",
     footer: "فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
     credit: "المصادر من الحزمة العلمية للتحدي: مصحف مجمع الملك فهد، والموسوعة الحديثية في الدرر السنية.",
@@ -27,7 +27,7 @@ const T = {
   },
   en: {
     title: "Tathabbut archive", tagline: "Commonly circulated hadith and verses, with what the approved hadith scholars said, verbatim and sourced",
-    navCheck: "Check", navArchive: "Archive", navBot: "Ask the trusted", navPillars: "Pillars of Islam", navDev: "Developers",
+    navCheck: "Check", navArchive: "Archive", navBot: "Ask the trusted", navPillars: "Pillars of Islam", navAdhkar: "Verified adhkar", navDev: "Developers",
     searchLabel: "Search the archive", searchPh: "Type a word from the hadith or verse",
     footer: "Team Qayd al-Awabid · AI Challenge: Serving Islamic Content",
     credit: "Sources from the challenge's scientific package: the King Fahd Complex Mushaf and Dorar's hadith encyclopedia.",
@@ -46,7 +46,7 @@ const T = {
 };
 T.ur = { ...T.en,
   title: "تثبّت آرکائیو", tagline: "رائج احادیث و آیات، معتمد علمائے حدیث کے اقوال کے ساتھ، اصل متن اور ماخذ سمیت",
-  navCheck: "جانچ", navArchive: "آرکائیو", navBot: "ثقات سے پوچھیں", navPillars: "ارکانِ اسلام", navDev: "ڈویلپرز",
+  navCheck: "جانچ", navArchive: "آرکائیو", navBot: "ثقات سے پوچھیں", navPillars: "ارکانِ اسلام", navAdhkar: "مستند اذکار", navDev: "ڈویلپرز",
   searchLabel: "آرکائیو میں تلاش کریں", searchPh: "حدیث یا آیت کا کوئی لفظ لکھیں",
   filters: { all: "سب", supported: "مآخذ سے تائید", not_supported: "تائید نہیں", verify: "مزید تحقیق درکار", quran: "آیات" },
   stats: { total: "حوالے", supported: "تائید", not_supported: "تائید نہیں", quran: "آیات" },
@@ -61,7 +61,7 @@ T.ur = { ...T.en,
 };
 T.id = { ...T.en,
   title: "Arsip Tathabbut", tagline: "Hadis dan ayat yang beredar, beserta penilaian ulama hadis yang diakui, teks asli dan sumbernya",
-  navCheck: "Periksa", navArchive: "Arsip", navBot: "Tanya yang tepercaya", navPillars: "Rukun Islam", navDev: "Pengembang",
+  navCheck: "Periksa", navArchive: "Arsip", navBot: "Tanya yang tepercaya", navPillars: "Rukun Islam", navAdhkar: "Zikir terverifikasi", navDev: "Pengembang",
   searchLabel: "Cari di arsip", searchPh: "Ketik kata dari hadis atau ayat",
   filters: { all: "Semua", supported: "Didukung", not_supported: "Tidak didukung", verify: "Perlu verifikasi", quran: "Ayat" },
   stats: { total: "kutipan", supported: "didukung", not_supported: "tidak didukung", quran: "ayat" },
@@ -77,7 +77,7 @@ T.id = { ...T.en,
 const LANGS = ["ar", "en", "ur", "id", "bn", "tr", "fr", "es", "hi", "zh", "ja"];
 // Languages with no archive text of their own read the main interface words (static/i18n-more.js) over English.
 for (const k of LANGS) if (!T[k]) T[k] = { ...T.en, ...(typeof T_MORE !== "undefined" && T_MORE[k] ? {
-  navCheck: T_MORE[k].navCheck, navArchive: T_MORE[k].navArchive, navBot: T_MORE[k].navBot, navPillars: T_MORE[k].navPillars, navDev: T_MORE[k].navDev,
+  navCheck: T_MORE[k].navCheck, navArchive: T_MORE[k].navArchive, navBot: T_MORE[k].navBot, navPillars: T_MORE[k].navPillars, navAdhkar: T_MORE[k].navAdhkar, navDev: T_MORE[k].navDev,
   tier: T_MORE[k].tier, tierLbl: T_MORE[k].tierLbl, hadith: T_MORE[k].hadith, quran: T_MORE[k].quran,
   verdict: T_MORE[k].verdictLbl, footer: T_MORE[k].footer } : {}) };
 const arData = () => lang === "ar" || lang === "ur";

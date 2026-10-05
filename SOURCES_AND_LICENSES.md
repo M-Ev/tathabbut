@@ -37,6 +37,14 @@ From quranpedia.net (named in the package), fetched by `scripts/fetch_translatio
 - The hadith «بني الإسلام على خمس» is shown as Dorar gives it (al-Bukhari 8, Muslim 16), found by Tathabbut's own check. The verses come from the Mushaf file and their meanings from the approved translations above (`/api/pillars`).
 - The drawn figures and the Latin-letter pronunciations were made by the team (with Claude Code) as learning aids; faceless figures, no photographs.
 
+### The verified adhkar section «الأذكار الموثّقة» (owner's request, 5 Oct)
+
+- Each hadith dhikr was sent to the live site's own check (`scripts/build_adhkar.py`); Dorar's results, filtered to the 13 approved scholars, are kept in `data/adhkar.json` with every grading verbatim and its link. A dhikr is shown only on an authentic or good grading (or the two Sahihs) of a narration containing all its words; under an occasion only if that narration names it; with a count only if it states it. The list of adhkar to check was drafted by the team with Claude; nothing in it is shown unchecked, and those that failed are listed as «لم تُعرض هنا» with a link to search Dorar.
+- Verses come from the Mushaf file; a verse is placed under an occasion only on a hadith verified the same way. Meanings from the approved translations.
+- The Names of Allah: names that occur in the Quran, each with a verse from the Mushaf containing it (`data/asma.json`, checked by `tests/test_adhkar.py`). The note says that the Sunnah adds others and that scholars differ in enumerating them.
+- «آية وتفسير» links to quranpedia.net, whose tafsirs are in the package; the tool writes no tafsir.
+- Progress in the Mushaf, favourites, the worship log and tasbih counts stay in the visitor's browser.
+
 ### How each domain of the package's reference table is covered
 
 | Package domain | In Tathabbut |

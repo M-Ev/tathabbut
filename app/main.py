@@ -1,5 +1,6 @@
 """تثبّت · Tathabbut: web app and API."""
 import contextlib
+import json
 import logging
 import re
 import time
@@ -174,6 +175,73 @@ async def pillars():
                     "translations": {"en": {"text": " ".join(en), "name": "Al-Hilali & Muhsin Khan (King Fahd Complex)"},
                                      **{k: {"text": v["text"], "name": v["name"]} for k, v in q.translations_for(s, a, b).items()}}}
     return out
+
+
+_DATA = Path(__file__).resolve().parent.parent / "data"
+
+
+def _verse(q, s: int, a: int, b: int, lang: str | None = None) -> dict:
+    ayat = [q.ayat[q.index[(s, n)]] for n in range(a, b + 1)]
+    out = {"surah": s, "ayah_from": a, "ayah_to": b, "surah_ar": q.surahs[s]["ar"], "surah_en": q.surahs[s]["tr"],
+           "ayat": [{"ayah": x.ayah, "text": x.text} for x in ayat]}
+    if lang == "en":
+        out["meaning"] = {"text": " ".join(re.sub(r"\s*\[\d+\]", "", re.sub(r"^\s*\d+\.\s*", "", x.translation_en)).strip() for x in ayat),
+                          "name": "Al-Hilali & Muhsin Khan (King Fahd Complex)"}
+    elif lang and lang != "ar":
+        tr = q.translations_for(s, a, b).get(lang)
+        if tr:
+            out["meaning"] = {"text": tr["text"], "name": tr["name"]}
+    return out
+
+
+@app.get("/api/adhkar")
+async def adhkar(lang: str = "ar"):
+    """The verified adhkar (scripts/build_adhkar.py): hadith items with the grading that supports each where it is
+    shown, and Quran items copied from the Mushaf with the reader's approved translation."""
+    f = _DATA / "adhkar.json"
+    if not f.exists():
+        return {"categories": [], "hadith": [], "quran": []}
+    d = json.loads(f.read_text(encoding="utf-8"))
+    q = get_quran()
+    for x in d.get("quran", []):
+        x.update(_verse(q, x["surah"], x["ayah_from"], x["ayah_to"], lang))
+    return d
+
+
+@app.get("/api/mushaf/{surah}")
+async def mushaf(surah: int, lang: str = "ar", ayah: int | None = None):
+    """A surah from the Mushaf file (or one ayah of it), each ayah with its approved translation in `lang`."""
+    q = get_quran()
+    if surah not in q.surahs:
+        raise HTTPException(404, "no such surah")
+    n = max(a.ayah for a in q.ayat if a.surah == surah)
+    a, b = (ayah, ayah) if ayah and 1 <= ayah <= n else (1, n)
+    out = _verse(q, surah, a, b, None)
+    if lang != "ar":
+        for x in out["ayat"]:
+            m = _verse(q, surah, x["ayah"], x["ayah"], lang).get("meaning")
+            if m:
+                x["meaning"] = m["text"]
+                out["meaning_name"] = m["name"]
+    return {**out, "url": f"https://quranpedia.net/surah/1/{surah}"}
+
+
+@app.get("/api/mushaf")
+async def mushaf_index():
+    q = get_quran()
+    counts: dict = {}
+    for a in q.ayat:
+        counts[a.surah] = counts.get(a.surah, 0) + 1
+    return {"total": len(q.ayat), "surahs": [{"n": n, "ar": s["ar"], "tr": s["tr"], "ayat": counts[n]} for n, s in sorted(q.surahs.items())]}
+
+
+@app.get("/api/asma")
+async def asma(lang: str = "ar"):
+    d = json.loads((_DATA / "asma.json").read_text(encoding="utf-8"))
+    q = get_quran()
+    for x in d["names"]:
+        x["verse"] = _verse(q, x["surah"], x["ayah"], x["ayah"], lang)
+    return d
 
 
 @app.get("/")

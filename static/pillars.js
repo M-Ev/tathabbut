@@ -184,6 +184,7 @@ if (typeof PL_I18N !== "undefined") {
 const t = () => T[lang] || T.en;
 const navWord = (k) => {
   if (k === "navPillars") return NAV.navPillars[lang];
+  if (k === "navAdhkar") return { ar: "الأذكار الموثّقة", en: "Verified adhkar", ur: "مستند اذکار", id: "Zikir terverifikasi", bn: "যাচাইকৃত যিকির", tr: "Doğrulanmış zikirler", fr: "Invocations vérifiées", es: "Adhkar verificados", hi: "प्रमाणित अज़कार", zh: "经核实的记念词", ja: "検証済みのズィクル" }[lang];
   const pack = lang === "ar" ? null : (typeof T_EXTRA !== "undefined" && T_EXTRA[lang]) || (typeof T_MORE !== "undefined" && T_MORE[lang]);
   return (pack && pack[k]) || { navCheck: { ar: "الفحص", en: "Check" }, navArchive: { ar: "الأرشيف", en: "Archive" }, navBot: { ar: "اسأل الثقات", en: "Ask the trusted" }, navDev: { ar: "للمطورين", en: "Developers" } }[k][lang === "ar" ? "ar" : "en"];
 };
