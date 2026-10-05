@@ -6,7 +6,7 @@
 const T_EXTRA = {
   ur: {
     verdictsTitle: "اس الفاظ پر معتمد علمائے حدیث کے احکام کا خلاصہ",
-    navCheck: "جانچ", navArchive: "آرکائیو", navBot: "چیٹ بوٹ کا جواب", navDev: "ڈویلپرز",
+    navCheck: "جانچ", navArchive: "آرکائیو", navBot: "ذہین معاون", navDev: "ڈویلپرز",
     historyTitle: "اس آلے پر میری جانچیں", historyNote: "یہ صرف آپ کے براؤزر میں محفوظ ہیں، ہم تک نہیں پہنچتیں۔ جب چاہیں مٹا دیں۔",
     historyClear: "تاریخچہ مٹائیں", historyCount: (n) => `${n} حوالے`,
     verdictLbl: { accepted: "صحیح یا حسن، بقول", weak: "ضعیف، بقول", fabricated: "موضوع یا بے اصل، بقول" },
@@ -129,13 +129,13 @@ const T_EXTRA = {
   },
   id: {
     verdictsTitle: "Ringkasan penilaian para ulama hadis yang diakui atas lafaz ini",
-    navCheck: "Periksa", navArchive: "Arsip", navBot: "Jawaban chatbot", navDev: "Pengembang",
+    navCheck: "Periksa", navArchive: "Arsip", navBot: "Asisten AI", navDev: "Pengembang",
     historyTitle: "Pemeriksaan saya di perangkat ini", historyNote: "Hanya tersimpan di peramban Anda dan tidak pernah sampai kepada kami. Hapus kapan saja.",
     historyClear: "Hapus riwayat", historyCount: (n) => `${n} kutipan`,
     verdictLbl: { accepted: "Shahih atau hasan menurut", weak: "Dha'if menurut", fabricated: "Maudhu' atau tidak berdasar menurut" },
     verdictNote: "Penilaian mereka sebagaimana adanya, tanpa mengunggulkan satu atas yang lain; setiap penilaian dikutip lengkap dalam bahasa Arab di bawah.",
     title: "Tathabbut", tagline: "Pemeriksa kutipan dalil syar'i", mottoRef: "al-Hujurat 49:6 · «periksalah dengan teliti» (terjemahan Kompleks Raja Fahd)",
-    inputLabel: "Teks yang diperiksa", intro: "Tempelkan postingan, kajian, atau jawaban chatbot; kami akan menelusuri setiap ayat dan hadis di dalamnya hingga ke sumber Arabnya.",
+    inputLabel: "Teks yang diperiksa", intro: "Tempelkan postingan, kajian, atau jawaban asisten AI; kami akan menelusuri setiap ayat dan hadis di dalamnya hingga ke sumber Arabnya.",
     placeholder: "Tempelkan teks di sini", tryLabel: "Contoh:", sampleAr: "Postingan Arab", sampleEn: "Postingan Inggris",
     deep: "Pemeriksaan mendalam: gunakan model bahasa untuk kutipan yang terlewat dan untuk teks non-Arab", check: "Periksa kutipan",
     checking: "Mengambil kutipan, mencocokkan ayat dengan Mushaf, dan mencari hadis di Dorar…", checkingDeep: "Memeriksa sumber dengan bantuan model bahasa…",
@@ -158,8 +158,8 @@ const T_EXTRA = {
     m4t: "Model bahasa", m4: "Hanya mengambil dan mencocokkan; tidak menilai hadis dan tidak berfatwa. Setiap usulannya harus ada kata demi kata dalam teks yang diperiksa, atau dibuang.",
     privacy: "Kami tidak menyimpan teks Anda; hanya lafaz hadis yang diambil yang dikirim ke Dorar. Dalam pemeriksaan mendalam teks dikirim ke model bahasa, dan laporan menyebutkan nama modelnya.",
     disclosure: "Tathabbut adalah alat otomatis berbantuan AI, bukan ulama dan bukan mufti.",
-    apiLink: "API untuk memeriksa jawaban chatbot",
-    botDemo: "Coba periksa jawaban chatbot sebelum ditampilkan (halaman Arab)",
+    apiLink: "API untuk memeriksa jawaban asisten AI",
+    botDemo: "Coba periksa jawaban asisten AI sebelum ditampilkan (halaman Arab)",
     footer: "Tim Qayd al-Awabid · Tantangan AI dalam Melayani Konten Islam",
     quran: "Al-Qur'an", hadith: "Hadis", asQuoted: "Sebagaimana dikutip", byModel: "ditemukan oleh model bahasa",
     v: {

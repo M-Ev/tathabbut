@@ -9,7 +9,7 @@ const num = (n) => (lang === "ar" ? String(n).replace(/\d/g, (d) => "٠١٢٣٤�
 const T = {
   ar: {
     title: "أرشيف تثبّت", tagline: "أحاديث وآيات متداولة، ومعها ما قاله علماء الحديث المعتمدون بنصه ومصدره",
-    navCheck: "الفحص", navArchive: "الأرشيف", navBot: "إجابة روبوت", navDev: "للمطورين",
+    navCheck: "الفحص", navArchive: "الأرشيف", navBot: "المساعدات الذكية", navDev: "للمطورين",
     searchLabel: "ابحث في الأرشيف", searchPh: "اكتب كلمة من الحديث أو الآية",
     footer: "فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
     credit: "المصادر من الحزمة العلمية للتحدي: مصحف مجمع الملك فهد، والموسوعة الحديثية في الدرر السنية.",
@@ -27,7 +27,7 @@ const T = {
   },
   en: {
     title: "Tathabbut archive", tagline: "Commonly circulated hadith and verses, with what the approved hadith scholars said, verbatim and sourced",
-    navCheck: "Check", navArchive: "Archive", navBot: "Chatbot answer", navDev: "Developers",
+    navCheck: "Check", navArchive: "Archive", navBot: "AI assistants", navDev: "Developers",
     searchLabel: "Search the archive", searchPh: "Type a word from the hadith or verse",
     footer: "Team Qayd al-Awabid · AI Challenge: Serving Islamic Content",
     credit: "Sources from the challenge's scientific package: the King Fahd Complex Mushaf and Dorar's hadith encyclopedia.",

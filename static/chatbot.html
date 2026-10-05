@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تثبّت · فحص إجابة روبوت المحادثة</title>
-<meta name="description" content="عرض الاستخدام الثاني لتثبّت: إجابة روبوت المحادثة كما كتبها، وما يراه مستخدمه بعد فحصها.">
+<title>تثبّت · التحقق من إجابات المساعدات الذكية</title>
+<meta name="description" content="عرض الاستخدام الثاني لتثبّت: إجابة المساعد الذكي كما كتبها، وما يراه مستخدمه بعد فحصها.">
 <link rel="stylesheet" href="/static/fonts/fonts.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -17,23 +17,23 @@
     <nav class="mast-nav" aria-label="الأقسام">
       <a href="/">الفحص</a>
       <a href="/static/archive.html">الأرشيف</a>
-      <a href="/static/chatbot.html" aria-current="page">إجابة روبوت</a>
+      <a href="/static/chatbot.html" aria-current="page">المساعدات الذكية</a>
       <a href="/docs">للمطورين</a>
     </nav>
   </div>
   <div class="wrap mast-hero">
     <div>
       <p class="wordmark"><a href="/" class="home-link">تثبّت</a></p>
-      <p class="tagline">فحص إجابة روبوت المحادثة قبل عرضها</p>
+      <p class="tagline">التحقق من استشهادات المساعدات الذكية قبل نشرها</p>
     </div>
   </div>
 </header>
 
 <main class="wrap sheet">
   <section class="compose" aria-labelledby="bot-h">
-    <h1 id="bot-h" class="section-h">إجابة الروبوت</h1>
-    <p class="lede">يرسل روبوت المحادثة إجابته إلى تثبّت قبل عرضها، فيقرر وفق سياسة مكتوبة: تُعرض، أو تُعرض مع ملاحظة، أو تُوقف. ولا يعيد تثبّت كتابة الإجابة.</p>
-    <textarea id="answer" rows="7" maxlength="8000" placeholder="الصق إجابة الروبوت هنا"></textarea>
+    <h1 id="bot-h" class="section-h">إجابة المساعد الذكي</h1>
+    <p class="lede">يرسل المساعد الذكي إجابته إلى تثبّت قبل عرضها، فيقرر وفق سياسة مكتوبة: تُعرض، أو تُعرض مع ملاحظة، أو تُوقف. ولا يعيد تثبّت كتابة الإجابة.</p>
+    <textarea id="answer" rows="7" maxlength="8000" placeholder="الصق إجابة المساعد الذكي هنا"></textarea>
     <div class="compose-foot">
       <p class="samples"><span>أمثلة:</span>
         <button type="button" class="linkish" data-sample="bad">إجابة فيها خطأ</button>
@@ -53,7 +53,7 @@
 
   <section id="out" class="bot-compare" hidden aria-label="المقارنة">
     <div class="bot-col">
-      <h2 class="section-h">كما كتبها الروبوت</h2>
+      <h2 class="section-h">كما كتبها المساعد</h2>
       <div id="orig" class="bot-text"></div>
     </div>
     <div class="bot-col">
