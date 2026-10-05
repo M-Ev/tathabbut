@@ -144,10 +144,30 @@ def available() -> bool:
     return backend.name != "none" or fallback is not None
 
 
+# Last outcome of each model, for /api/health (no keys, no texts: an error type and HTTP status only).
+STATUS: dict = {"primary_last_error": None, "fallback_last_ok": None, "fallback_last_error": None}
+
+
+def _err(e: Exception) -> str:
+    code = getattr(getattr(e, "response", None), "status_code", None)
+    return f"{type(e).__name__}" + (f" HTTP {code}" if code else "") + f" at {time.strftime('%H:%M:%S', time.gmtime())} UTC"
+
+
 def describe() -> dict:
     """Which models can answer, for /api/health and every report."""
     return {"primary": backend.label or backend.name, "primary_ready": backend.ready(),
-            "fallback": fallback.label if fallback else None}
+            "fallback": fallback.label if fallback else None,
+            "fallback_first": sorted(FALLBACK_FIRST) if fallback else [], **STATUS}
+
+
+async def _fallback_chat(messages, max_tokens, schema) -> str:
+    try:
+        reply = await fallback.chat(messages, max_tokens, schema=schema)
+    except Exception as e:
+        STATUS["fallback_last_error"] = _err(e)
+        raise
+    STATUS["fallback_last_ok"] = time.strftime("%H:%M:%S", time.gmtime()) + " UTC"
+    return reply
 
 
 FALLBACK_FIRST = {j.strip() for j in settings.llm_fallback_first.split(",") if j.strip()}
@@ -158,7 +178,7 @@ async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
     A job listed in TATHABBUT_LLM_FALLBACK_FIRST goes to the fallback first, and to ALLaM if the fallback fails."""
     if fallback is not None and job in FALLBACK_FIRST:
         try:
-            return await fallback.chat(messages, max_tokens, schema=schema), fallback.label
+            return await _fallback_chat(messages, max_tokens, schema), fallback.label
         except Exception as e:  # noqa: BLE001
             if backend.name == "none":
                 raise
@@ -169,12 +189,13 @@ async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
         try:
             return await backend.chat(messages, max_tokens, schema=schema), backend.label or backend.name
         except Exception as e:  # noqa: BLE001 - any failure of the primary goes to the fallback, if there is one
+            STATUS["primary_last_error"] = _err(e)
             if fallback is None:
                 raise
             log.warning("primary model failed (%s); asking the fallback", e)
     if fallback is None:
         raise LLMUnavailable("no language model configured")
-    return await fallback.chat(messages, max_tokens, schema=schema), fallback.label
+    return await _fallback_chat(messages, max_tokens, schema), fallback.label
 
 
 def _json(text: str):
