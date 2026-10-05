@@ -151,7 +151,8 @@ def available() -> bool:
 
 
 # Last outcome of each model, for /api/health (no keys, no texts: an error type and HTTP status only).
-STATUS: dict = {"primary_last_error": None, "fallback_last_ok": None, "fallback_last_error": None}
+STATUS: dict = {"primary_last_error": None, "fallback_last_ok": None, "fallback_last_error": None,
+                "fallback_last_empty": None}
 
 
 def _err(e: Exception) -> str:
@@ -222,12 +223,36 @@ def _json(text: str):
 USAGE: contextvars.ContextVar[dict | None] = contextvars.ContextVar("llm_usage", default=None)
 
 
+def _answered(schema: str, data) -> bool:
+    """Whether a reply gives something to work with (an empty wording is no answer; "none" and [] are answers)."""
+    if schema == "arabic":
+        return isinstance(data, dict) and bool(str(data.get("arabic", "")).strip())
+    return data is not None
+
+
 async def _ask(user: str, max_tokens: int, schema: str):
     t0 = time.monotonic()
     model = None
+    messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]
     try:
-        reply, model = await _chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], max_tokens,
-                                   SCHEMAS[schema], job=schema)
+        reply, model = await _chat(messages, max_tokens, SCHEMAS[schema], job=schema)
+        try:
+            data = _json(reply)
+        except ValueError:
+            data = None
+        if not _answered(schema, data) and fallback is not None and model == fallback.label and backend.name != "none":
+            # The fallback answered first but gave nothing usable: ALLaM is asked too.
+            STATUS["fallback_last_empty"] = f"{schema} at {time.strftime('%H:%M:%S', time.gmtime())} UTC"
+            try:  # once more without the enforced shape (the shape is still checked here), then ALLaM
+                data = _json(await fallback.chat(messages, max_tokens, schema=None))
+            except Exception:  # noqa: BLE001
+                data = None
+            if not _answered(schema, data):
+                reply = await backend.chat(messages, max_tokens, schema=SCHEMAS[schema])
+                model = backend.label or backend.name
+                data = _json(reply)
+        elif data is None:
+            raise ValueError("no JSON in model reply")
     finally:
         u = USAGE.get()
         if u is not None:
@@ -235,7 +260,7 @@ async def _ask(user: str, max_tokens: int, schema: str):
             u["seconds"] += time.monotonic() - t0
             if model and model not in u.setdefault("models", []):
                 u["models"].append(model)
-    return _json(reply)
+    return data
 
 
 async def extract_citations(text: str) -> list[dict]:

@@ -124,3 +124,30 @@ def test_jobs_listed_as_fallback_first_go_to_the_stronger_model(monkeypatch):
     assert asyncio.run(llm.arabic_search_wording("Cleanliness is half of faith", "hadith")) == "الطهور شطر الإيمان"
     asyncio.run(llm.extract_citations("نص"))
     assert usage["models"] == ["strong", "ALLaM-7B-Instruct-preview"]  # extraction stays with ALLaM
+
+
+def test_an_empty_answer_from_the_fallback_is_asked_of_allam(monkeypatch):
+    from app import llm
+
+    class Allam(llm._Backend):
+        name, label = "llamacpp", "ALLaM-7B-Instruct-preview"
+
+        def ready(self):
+            return True
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '{"arabic": "ليس الشديد بالصرعة", "alternatives": []}'
+
+    class Fast(Allam):
+        label = "fast"
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '{"arabic": "", "alternatives": []}'
+
+    monkeypatch.setattr(llm, "backend", Allam())
+    monkeypatch.setattr(llm, "fallback", Fast())
+    monkeypatch.setattr(llm, "FALLBACK_FIRST", {"arabic"})
+    usage = {"calls": 0, "seconds": 0.0}
+    llm.USAGE.set(usage)
+    assert asyncio.run(llm.arabic_search_wording("The strong man is not...", "hadith")) == "ليس الشديد بالصرعة"
+    assert usage["models"] == ["ALLaM-7B-Instruct-preview"]
