@@ -2,7 +2,7 @@
 
 Run 2026-10-05 18:30 UTC on https://3rb-tathabbut.hf.space (commit `fd8b813`) by `scripts/persona_check.py`; cases and what each must get: `eval/personas.json`. The two misses are fixed in the next commit (see CHANGELOG, 5 Oct).
 
-**23/25 as expected** (first run on `fe54573`, before the fixes for dialect and free questions: 12 of the same 25 got what they should).
+**23/25 as expected.** The first run of these questions (on `fe54573`, before the fixes for dialect and free questions) was read by hand, not scored by this script; its notes are in CHANGELOG, 5 Oct.
 
 | Visitor | Question | Result | Seconds |
 |---|---|---|---|
