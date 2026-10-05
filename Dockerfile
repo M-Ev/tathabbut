@@ -1,6 +1,7 @@
 # Hugging Face Space (Docker SDK) or any container host.
-# ALLaM runs on a separate GPU endpoint by default (TATHABBUT_LLM=openai, set in the Space settings).
-# To run ALLaM inside this container on CPU instead: build with --build-arg WITH_LLAMACPP=1 and set TATHABBUT_LLM=llamacpp.
+# Without the model by default (the rule-based check works in full). The live Space runs ALLaM in the container and
+# the fast model on Groq: see docs/space-Dockerfile and docs/api-and-keys.md. To run ALLaM here on CPU: build with
+# --build-arg WITH_LLAMACPP=1 and set TATHABBUT_LLM=llamacpp.
 FROM python:3.11-slim
 
 ARG WITH_LLAMACPP=0

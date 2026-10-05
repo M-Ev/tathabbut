@@ -10,15 +10,16 @@ WORKDIR /home/user/app
 RUN pip install --no-cache-dir --user -r requirements.txt \
  && pip install --no-cache-dir --user --prefer-binary \
       --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r requirements-llm.txt
-# ALLaM first (downloaded on start, ~4.4 GB); while it loads, or if it fails, the fallback answers.
-# The fallback's key is the Space secret TATHABBUT_LLM_FALLBACK_API_KEY (never written here).
+# ALLaM runs in this container (downloaded on start, ~4.4 GB). The fast model on Groq answers first for the jobs in
+# TATHABBUT_LLM_FALLBACK_FIRST, and ALLaM when it fails. Its key is the Space secret TATHABBUT_LLM_FALLBACK_API_KEY,
+# created in console.groq.com (free tier) and never written here. The Space's variables override these defaults.
 ENV PATH=/home/user/.local/bin:$PATH \
     HF_HOME=/home/user/.cache/huggingface \
     TATHABBUT_LLM=llamacpp \
     TATHABBUT_N_THREADS=2 \
-    TATHABBUT_LLM_FALLBACK_BASE_URL=https://router.huggingface.co/v1 \
-    TATHABBUT_LLM_FALLBACK_MODEL=Qwen/Qwen3-235B-A22B-Instruct-2507 \
-    TATHABBUT_LLM_FALLBACK_FIRST=arabic,match \
+    TATHABBUT_LLM_FALLBACK_BASE_URL=https://api.groq.com/openai/v1 \
+    TATHABBUT_LLM_FALLBACK_MODEL=openai/gpt-oss-120b \
+    TATHABBUT_LLM_FALLBACK_FIRST=arabic,citations,match \
     PORT=7860
 EXPOSE 7860
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

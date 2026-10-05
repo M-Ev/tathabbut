@@ -158,6 +158,8 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/team.md](docs/team.md) | الفريق وأدواره، وسجل قرارات قائد الفريق بالتاريخ والـcommit |
 | [docs/challenge-compliance.md](docs/challenge-compliance.md) | مطابقة شروط التحدي ومخرجاته ومعاييره، وما بقي قبل التسليم |
 
+**المفاتيح ومصادرها:** [docs/api-and-keys.md](docs/api-and-keys.md) يبيّن كل خدمة خارجية ومفتاحها ومن أين جاء وأين يُحفظ. الموقع المباشر يحتاج مفتاحًا واحدًا (Groq، الطبقة المجانية)، محفوظًا سرًّا في إعدادات الـSpace، ولا يوجد أي مفتاح في المستودع ولا في سجله. · **Keys:** one key on the live site (Groq, free tier), kept as a Space secret; none in this repository or its history.
+
 See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, tool and license, and [STARTING_VERSION.md](STARTING_VERSION.md) for what existed before the challenge's build days.
 
 ## الفريق · Team
