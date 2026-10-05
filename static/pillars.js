@@ -170,13 +170,24 @@ const T = {
   },
 };
 const NAV = { navPillars: { ar: "أركان الإسلام", en: "Pillars of Islam", ur: "ارکانِ اسلام", id: "Rukun Islam", bn: "ইসলামের স্তম্ভ", tr: "İslam'ın şartları", fr: "Piliers de l'islam", es: "Pilares del islam", hi: "इस्लाम के स्तंभ", zh: "伊斯兰五功", ja: "イスラームの五行" } };
+// Nine more languages (static/pillars-i18n.js): the page's own words and the step names; anything missing reads English.
+if (typeof PL_I18N !== "undefined") {
+  for (const [k, pack] of Object.entries(PL_I18N)) {
+    const main = (typeof T_EXTRA !== "undefined" && T_EXTRA[k]) || (typeof T_MORE !== "undefined" && T_MORE[k]) || {};
+    T[k] = { ...T.en, ...pack.ui, footer: main.footer || T.en.footer, credit: T.en.credit };
+    PILLARS.forEach((x, i) => { if (pack.pillars[i]) x[k] = pack.pillars[i]; });
+    WUDU.forEach((x, i) => { if (pack.wudu[i]) x[k] = pack.wudu[i]; });
+    SALAH.forEach((x, i) => { if (pack.salah[i]) x[k] = pack.salah[i]; });
+    RAKAT.forEach((x, i) => { if (pack.rakat[i]) (x.names = x.names || {})[k] = pack.rakat[i]; });
+  }
+}
 const t = () => T[lang] || T.en;
 const navWord = (k) => {
   if (k === "navPillars") return NAV.navPillars[lang];
   const pack = lang === "ar" ? null : (typeof T_EXTRA !== "undefined" && T_EXTRA[lang]) || (typeof T_MORE !== "undefined" && T_MORE[lang]);
   return (pack && pack[k]) || { navCheck: { ar: "الفحص", en: "Check" }, navArchive: { ar: "الأرشيف", en: "Archive" }, navBot: { ar: "اسأل الثقات", en: "Ask the trusted" }, navDev: { ar: "للمطورين", en: "Developers" } }[k][lang === "ar" ? "ar" : "en"];
 };
-const name = (x) => (lang === "ar" ? x.ar : x.en);
+const name = (x) => x[lang] || x.en;
 
 function quote(x) {
   const s = SRC[x.src];
@@ -247,7 +258,7 @@ function render() {
   $("wudu-lead").textContent = t().wuduLead;
   renderSteps(WUDU, $("wudu-steps"), "wudu", $("wudu-player"), `<li class="step-note">${quote(WUDU_ONCE)}</li>`);
   $("salah-lead").textContent = t().salahLead;
-  $("rakat").innerHTML = `<p class="lbl">${esc(t().rakatT)}</p><ul>${RAKAT.map(([ar, en, n]) => `<li><b>${esc(lang === "ar" ? ar : en)}</b><span>${num(n)}</span></li>`).join("")}</ul>${quote(RAKAT_Q)}`;
+  $("rakat").innerHTML = `<p class="lbl">${esc(t().rakatT)}</p><ul>${RAKAT.map((r) => [r[0], (r.names && r.names[lang]) || r[1], r[2]]).map(([ar, en, n]) => `<li><b>${esc(lang === "ar" ? ar : en)}</b><span>${num(n)}</span></li>`).join("")}</ul>${quote(RAKAT_Q)}`;
   renderSteps(SALAH, $("salah-steps"), "salah", $("salah-player"));
   renderAjam();
   $("sources").innerHTML = Object.values(SRC).map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener" lang="ar">${esc(s.title)}</a> · ${lang === "ar" ? "موقع سماحة الشيخ ابن باز" : "binbaz.org.sa"}</li>`).join("")
