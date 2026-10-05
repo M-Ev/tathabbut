@@ -76,6 +76,8 @@ PERSONAL_FATWA = re.compile(
 GENERAL_FATWA = re.compile(
     r"(?:^|[.؟?!\n]\s*)(?:هل\s+(?:يجوز|تجوز|يصح|تصح|يحل|تحل|يحرم|تحرم|يلزم|تلزم|يجب|تجب|يشرع|يُشرع|يستحب|يسن|يباح|يكفي|يقع|يبطل|تبطل|يفسد|يفطر|يُفطر|ينقض|تنقض|يأثم|يؤجر)"
     r"|ما\s+(?:حكم|الحكم\s+في|هو\s+حكم|كفارة|فدية|الواجب\s+على|شروط|أركان|مبطلات|نواقض)|حكم\s+[ء-ي]+[^.؟?]*[؟?]"
+    # Saudi and Gulf speech: «وش حكم ...»، «ابي اعرف حكم ...»
+    r"|(?:وش|ايش|إيش|شنو|شو)\s+(?:حكم|الحكم)|(?:ابي|أبي|ابغى|أبغى|ودي|أريد|اريد)\s+(?:اعرف|أعرف|معرفة)\s+(?:حكم|هل\s+يجوز)"
     r"|كيف\s+(?:أصلي|اصلي|يصلي|تصلي|أتوضأ|اتوضأ|يتوضأ|أقضي|اقضي|يقضي|أغتسل|اغتسل)"
     r"|is\s+it\s+(?:halal|haram|permissible|allowed|sunnah|obligatory)|what\s+is\s+the\s+(?:islamic\s+)?ruling"
     # A question with the ruling word anywhere in it: «هل شرب الكحول بنسبة 5% يجوز؟», «الربا حرام؟»
@@ -259,9 +261,17 @@ def _referral(reason_ar: str, reason_en: str, field: str = "hadith") -> dict:
 _LANG_NAME = {"ur": ("بالأردية", "in Urdu"), "id": ("بالإندونيسية", "in Indonesian"), "fr": ("بالفرنسية", "in French")}
 
 
+def _not_matched(c: Candidate) -> dict:
+    if c.lang == "ar":
+        return _referral("لم نجد في الموسوعة الحديثية حديثًا يطابق ما سألت عنه.", "No hadith matching what you asked about was found in the hadith encyclopedia.")
+    return _referral("لم نجد أصلًا عربيًا مطابقًا لهذا النص المترجم.", "No matching Arabic source was found for this translated text.")
+
+
 async def check_hadith(c: Candidate, out: dict) -> None:
     quote = c.quote
-    if c.lang in _LANG_NAME:
+    # A translated quote, or a question about a hadith in the visitor's own words: searched by the model's wording.
+    by_meaning = c.lang != "ar" or bool(c.wordings)
+    if c.lang in _LANG_NAME and not c.wordings:
         # Plan item 36: no approved Urdu or Indonesian hadith translation to match against, and the model
         # does not cover these languages, so the hadith is referred rather than guessed.
         ar, en = _LANG_NAME[c.lang]
@@ -271,7 +281,9 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             f"The text is {en}; there is no approved {en.split()[-1]} hadith translation to match it against, so its source was not searched automatically.",
         )
         return
-    if c.lang != "ar":
+    if c.wordings:
+        wordings = c.wordings
+    elif c.lang != "ar":
         if not llm.available():
             out["status"] = "needs_model"
             out["referral"] = _referral(
@@ -289,6 +301,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
                 "This quote is not in Arabic and needs the language model to find its source, which did not answer just now.",
             )
             return
+    if by_meaning:
         arabic = wordings[0] if wordings else ""
         out["search_wording_ar"] = arabic
         out["search_wordings_ar"] = wordings
@@ -306,7 +319,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
 
     res = await _search_dorar(quote)
     per_wording = [res] if res is not None else []
-    if c.lang != "ar" and res is not None:
+    if by_meaning and res is not None:
         # Each other wording the model proposed is searched too; the source is then picked among all of them.
         for w in out.get("search_wordings_ar", [])[1:]:
             more = await _search_dorar(w)
@@ -323,7 +336,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
         out["referral"] = _referral("تعذّر الوصول إلى الموسوعة الحديثية الآن.", "The hadith encyclopedia could not be reached.")
         return
 
-    if c.lang != "ar":
+    if by_meaning:
         # The model picks which Arabic text is the source of the translated quote; we then keep the
         # gradings of that text only. The user always sees the Arabic text to judge for themselves.
         texts = []
@@ -340,7 +353,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
         if pick == 0:
             out["status"] = "not_found"
             out["hadith"] = _grade_groups(quote, res, min_sim=101)  # nothing shown
-            out["referral"] = _referral("لم نجد أصلًا عربيًا مطابقًا لهذا النص المترجم.", "No matching Arabic source was found for this translated text.")
+            out["referral"] = _not_matched(c)
             return
         quote = texts[pick - 1]
         # Plan item 22: the model's pick must share the wording it proposed itself, or it is not accepted.
@@ -348,7 +361,7 @@ async def check_hadith(c: Candidate, out: dict) -> None:
             out["status"] = "not_found"
             out["notes"].append("model_pick_rejected")
             out["hadith"] = _grade_groups(quote, res, min_sim=101)
-            out["referral"] = _referral("لم نجد أصلًا عربيًا مطابقًا لهذا النص المترجم.", "No matching Arabic source was found for this translated text.")
+            out["referral"] = _not_matched(c)
             return
         out["matched_arabic"] = quote
         out["notes"].append("match_by_model")
@@ -461,10 +474,13 @@ async def _model_candidates(text: str, existing: list[Candidate]) -> tuple[list[
 # A text that is only a quote, or a question about one («هل حديث ... صحيح؟», "Is the hadith ... authentic?"):
 # people paste a saying alone to ask about it, with no «قال ﷺ» before it.
 _BARE_HEAD_AR = re.compile(
-    r"^\s*(?P<ask>هل|ما\s+(?:مدى\s+)?(?:صحة|درجة|حكم|حال|مصدر|أصل)|كم\s+درجة|أريد\s+(?:التحقق\s+من|معرفة\s+صحة))?\s*"
+    r"^\s*(?P<ask>هل(?:\s+(?:صحيح|صح))?|ما\s+(?:مدى\s+)?(?:صحة|درجة|حكم|حال|مصدر|أصل|معنى)|كم\s+درجة|(?:أريد|اريد|ابي|أبي|ابغى|أبغى)\s+(?:التحقق\s+من|معرفة\s+صحة|اعرف|أعرف)"
+    # Saudi and Gulf speech: «وش يعني حديث ...»، «ايش درجة حديث ...»، «معنى حديث ...»
+    r"|(?:وش|ايش|إيش|شنو|شو)\s+(?:يعني|معنى|درجة|صحة|حكم)|معنى)?\s*"
     r"(?P<kw>(?:ال)?(?:حديث|أثر|مقولة|عبارة)(?:\s+(?:النبي|الرسول)\s*(?:ﷺ|صلى الله عليه وسلم)?)?)?\s*[:：]?\s*")
 _BARE_TAIL_AR = re.compile(
-    r"\s*(?:(?:هل\s+)?(?:هو|هذا)\s+)?(?:(?:حديث|الحديث)\s+)?(?:صحيح|ضعيف|موضوع|ثابت|صحيح\s+أم\s+(?:لا|ضعيف|موضوع))?\s*[؟?!.]*\s*$")
+    r"\s*(?:(?:هل\s+)?(?:هو|هذا)\s+)?(?:(?:حديث|الحديث)\s+)?(?:(?:صحيح|صح)\s+(?:أم|ام|ولا|او|أو)\s+(?:لا|لأ|ضعيف|موضوع|مكذوب)|صحيح|ضعيف|موضوع|ثابت"
+    r"|(?:وش|ايش|إيش|ما|كم)\s+(?:درجته|درجتة|درجتها|صحته|صحتها|حكمه|معناه|معناها)|(?:وش|ايش|إيش)\s+(?:يعني|معناه))?\s*[؟?!.]*\s*$")
 _BARE_HEAD_EN = re.compile(
     r"^\s*(?P<ask>is\s+(?:the|this)|is\s+it\s+(?:true|authentic)\s+that|check)?\s*(?P<kw>(?:the\s+)?(?:hadith|narration|saying))?\s*[:,]?\s*", re.I)
 _BARE_TAIL_EN = re.compile(r"\s*(?:(?:a\s+)?(?:authentic|sahih|true|real|weak|fabricated)(?:\s+hadith)?)?\s*[?!.]*\s*$", re.I)
@@ -550,6 +566,76 @@ async def _answer_from_fatwas(question: str, found: dict | None) -> dict | None:
             "same_question": bool(same)}
 
 
+async def _check_one(i: int, c: Candidate) -> dict:
+    out = {
+        "id": i, "type": c.type, "quote": c.quote, "lang": c.lang, "found_by": c.found_by,
+        "marker": c.marker, "status": "", "quran": None, "hadith": None, "referral": None, "notes": [],
+    }
+    try:
+        if c.type == "quran":
+            await check_quran(c, out)
+        else:
+            await check_hadith(c, out)
+    except Exception as e:  # noqa: BLE001
+        log.exception("check failed")
+        out["status"] = "error"
+        out["error"] = type(e).__name__
+        out["referral"] = _referral("حدث خطأ أثناء التحقق.", "An error occurred while checking.")
+    if c.type == "hadith":
+        out["cautious"] = c.cautious
+        out["attribution"] = _compare_attribution(c.attribution, out)
+    out["tier"] = evidence_tier(out)
+    if out["tier"] == "not_supported" and c.type == "hadith" and not c.cautious and c.found_by == "rules":
+        out["notes"].append("firm_form")  # «قال رسول الله ﷺ» for what the sources do not support
+    return out
+
+
+def _fatwa_count(found: dict | None) -> int:
+    return sum(len(sc.get("fatwas") or []) for sc in (found or {}).get("scholars", []))
+
+
+async def _fatwa_level(text: str, m, form: str, search: str | None = None) -> dict:
+    """The fatwa referral, with the two scholars' fatwas on the question. A question the sites' search does not
+    find as written (dialect, other languages: «يجوز اسمع اغاني؟», "Is it permissible to pray with shoes on?")
+    is searched again with the model's Arabic title for the question; the fatwas themselves are always quoted."""
+    level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None,
+               "form": form, "matched": m.group(0).strip() if m else ""}
+    if not settings.fatwa_search:
+        return level_d
+    where = m.start() if m else 0
+    if form == "ruling_in_answer":  # search with the question the answer replies to, if quoted
+        q_end = text.rfind("؟", 0, where)
+        q_end = q_end if q_end >= 0 else text.rfind("?", 0, where)
+        where = q_end if q_end >= 0 else where
+    sentence = _sentence_at(text, where) if m else text.strip()
+    found = None
+    try:
+        found = await asyncio.wait_for(fatwa.find_fatwas(search or sentence), 25)
+    except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
+        log.warning("fatwa search failed: %s", e)
+    if search is None and llm.available() and (quote_lang(sentence) != "ar" or not _fatwa_count(found)):
+        try:
+            kind, wordings = await llm.understand(sentence)
+            if kind == "ruling" and wordings:
+                more = await asyncio.wait_for(fatwa.find_fatwas(wordings[0]), 25)
+                if _fatwa_count(more):
+                    found, search = more, wordings[0]
+        except Exception as e:  # noqa: BLE001 - the first search's result stands
+            log.warning("fatwa search by the model's wording failed: %s", e)
+    level_d["fatwas"] = found
+    if search:
+        level_d["search_by_model"] = search
+    try:
+        question = _sentence_at(text, m.start()) if m else text.strip()
+        level_d["answer"] = await _answer_from_fatwas(question, found)
+    except Exception as e:  # noqa: BLE001 - without it the fatwas are still shown
+        log.warning("fatwa answer failed: %s", e)
+    for sc in (found or {}).get("scholars", []):
+        for f in sc.get("fatwas", []):
+            f.pop("_text", None)
+    return level_d
+
+
 async def check_text(text: str, deep: bool = False) -> dict:
     t0 = time.monotonic()
     usage = {"calls": 0, "seconds": 0.0}
@@ -568,29 +654,7 @@ async def check_text(text: str, deep: bool = False) -> dict:
     truncated.update(citations_found=len(cands), citations_checked=min(len(cands), settings.max_citations))
     cands = cands[: settings.max_citations]
 
-    results = []
-    for i, c in enumerate(cands, 1):
-        out = {
-            "id": i, "type": c.type, "quote": c.quote, "lang": c.lang, "found_by": c.found_by,
-            "marker": c.marker, "status": "", "quran": None, "hadith": None, "referral": None, "notes": [],
-        }
-        try:
-            if c.type == "quran":
-                await check_quran(c, out)
-            else:
-                await check_hadith(c, out)
-        except Exception as e:  # noqa: BLE001
-            log.exception("check failed")
-            out["status"] = "error"
-            out["error"] = type(e).__name__
-            out["referral"] = _referral("حدث خطأ أثناء التحقق.", "An error occurred while checking.")
-        if c.type == "hadith":
-            out["cautious"] = c.cautious
-            out["attribution"] = _compare_attribution(c.attribution, out)
-        out["tier"] = evidence_tier(out)
-        if out["tier"] == "not_supported" and c.type == "hadith" and not c.cautious and c.found_by == "rules":
-            out["notes"].append("firm_form")  # «قال رسول الله ﷺ» for what the sources do not support
-        results.append(out)
+    results = [await _check_one(i, c) for i, c in enumerate(cands, 1)]
 
     # Plain text pasted alone (no «حديث», no quotation marks) is reported only if the sources know it: a sentence
     # of one's own is not "a hadith not found".
@@ -606,25 +670,31 @@ async def check_text(text: str, deep: bool = False) -> dict:
         m = GENERAL_FATWA.search(text)  # a question about a ruling, not a text with citations in it
         form = "general" if m else None
     if m:
-        level_d = {"detected": True, "body": FATWA_BODY, "references": FATWA_REFERENCES, "fatwas": None,
-                   "form": form, "matched": m.group(0).strip()}
-        if settings.fatwa_search:
-            try:
-                where = m.start()
-                if level_d["form"] == "ruling_in_answer":  # search with the question the answer replies to, if quoted
-                    q_end = text.rfind("؟", 0, where)
-                    q_end = q_end if q_end >= 0 else text.rfind("?", 0, where)
-                    where = q_end if q_end >= 0 else where
-                level_d["fatwas"] = await asyncio.wait_for(fatwa.find_fatwas(_sentence_at(text, where)), 25)
-            except Exception as e:  # noqa: BLE001 - the referral itself must always be shown
-                log.warning("fatwa search failed: %s", e)
-            try:
-                level_d["answer"] = await _answer_from_fatwas(_sentence_at(text, m.start()), level_d.get("fatwas"))
-            except Exception as e:  # noqa: BLE001 - without it the fatwas are still shown
-                log.warning("fatwa answer failed: %s", e)
-            for sc in (level_d.get("fatwas") or {}).get("scholars", []):
-                for f in sc.get("fatwas", []):
-                    f.pop("_text", None)
+        level_d = await _fatwa_level(text, m, form)
+    if not results and level_d is None and llm.available() and 3 <= len(text.strip()) <= 400:
+        # Nothing the rules recognise: a question in the visitor's own words («هل صحيح ان اللي يقرا اية الكرسي ...»,
+        # «وش حكم ...», "Is it permissible to ...", a single word). The model says what it asks about and gives
+        # Arabic search wording; the sources answer, as for any other check.
+        try:
+            kind, wordings = await llm.understand(text.strip())
+        except Exception as e:  # noqa: BLE001 - without it the report says nothing was found, as before
+            log.warning("model did not answer: %s", e)
+            kind, wordings = "", []
+        asked_about = kind or None
+        t = text.strip()
+        start = max(text.find(t), 0)
+        if kind == "hadith" and wordings:
+            c = Candidate("hadith", t, start, start + len(t), quote_lang(t) or "ar", "asked", found_by="model", wordings=wordings)
+            results, cands = [await _check_one(1, c)], [c]
+        elif kind == "quran" and wordings and quote_lang(wordings[0]) == "ar":
+            c = Candidate("quran", wordings[0], start, start + len(t), "ar", "asked", found_by="model")
+            out = await _check_one(1, c)
+            if out["status"] == "verified":  # only a verse found in the Mushaf; the model's own text is never shown
+                results, cands = [out], [c]
+        elif kind == "ruling":
+            level_d = await _fatwa_level(text, None, "general", search=wordings[0] if wordings else None)
+    else:
+        asked_about = None
     # Positions in the text as received (plan item 24), so an API user can place each note.
     for out, c in zip(results, cands):
         out["span"] = [c.start, c.end]  # marker and quote («قال رسول الله ﷺ: «...»»)
@@ -636,6 +706,8 @@ async def check_text(text: str, deep: bool = False) -> dict:
                                    or truncated["citations_found"] > truncated["citations_checked"]) else None,
         "unsupported_language": unsupported_language(text),
         "level_d": level_d,
+        # What the model read the question as, when no rule recognised it ("other": not about a hadith, verse or ruling).
+        "asked_about": asked_about,
         "summary": _summary(results),
         "display_rules": {k: DISPLAY_RULES[k] for k in ("status", "reviewed_by", "reviewed_on")},
         "model": {"backend": llm.backend.name, "available": llm.available(), "requested": deep,

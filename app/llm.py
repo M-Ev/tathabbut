@@ -39,6 +39,11 @@ SCHEMAS = {
                              "quote": {"type": "string", "maxLength": 700}}},
     "match": {"type": "object", "required": ["match"], "additionalProperties": False,
               "properties": {"match": {"type": "integer", "minimum": 0, "maximum": 4}}},
+    "intent": {"type": "object", "required": ["kind", "arabic", "alternatives"], "additionalProperties": False,
+               "properties": {"kind": {"enum": ["hadith", "quran", "ruling", "other"]},
+                              "arabic": {"type": "string", "maxLength": 300},
+                              "alternatives": {"type": "array", "maxItems": 2,
+                                               "items": {"type": "string", "maxLength": 300}}}},
 }
 
 
@@ -192,7 +197,7 @@ FALLBACK_FIRST = {j.strip() for j in settings.llm_fallback_first.split(",") if j
 async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
     """Ask ALLaM; if it cannot answer and a fallback is set, ask the fallback. Returns (reply, model label).
     A job listed in TATHABBUT_LLM_FALLBACK_FIRST goes to the fallback first, and to ALLaM if the fallback fails."""
-    if fallback is not None and (job in FALLBACK_FIRST or (job == "fatwa" and "match" in FALLBACK_FIRST)):
+    if fallback is not None and (job in FALLBACK_FIRST or (job in ("fatwa", "intent") and "match" in FALLBACK_FIRST)):
         try:
             return await _fallback_chat(messages, max_tokens, schema), fallback.label
         except Exception as e:  # noqa: BLE001
@@ -234,6 +239,8 @@ USAGE: contextvars.ContextVar[dict | None] = contextvars.ContextVar("llm_usage",
 
 def _answered(schema: str, data) -> bool:
     """Whether a reply gives something to work with (an empty wording is no answer; "none" and [] are answers)."""
+    if schema == "intent":
+        return isinstance(data, dict) and (data.get("kind") == "other" or bool(str(data.get("arabic", "")).strip()))
     if schema == "arabic":
         return isinstance(data, dict) and bool(str(data.get("arabic", "")).strip())
     return data is not None
@@ -321,11 +328,42 @@ async def arabic_search_wording(quote: str, kind: str) -> str:
     return words[0] if words else ""
 
 
+async def understand(text: str) -> tuple[str, list[str]]:
+    """What a visitor's free question is about, when no rule recognised it («هل صحيح ان اللي يقرا اية الكرسي ...»,
+    «وش حكم ...», a question in English or Urdu): a hadith, a verse, a ruling, or none of these. With it, Arabic
+    search wording only (the hadith's known wording, the verse, or a fatwa title's terms). It never answers."""
+    prompt = (
+        "النص التالي كتبه زائر لأداة تتحقق من الأحاديث والآيات وتعرض فتاوى العلماء، وقد يكون بالعامية أو بغير العربية. "
+        "حدّد ما يسأل عنه: hadith إن كان يسأل عن حديث أو قول منسوب إلى النبي ﷺ (صحته أو معناه)، و quran إن كان يسأل عن آية، "
+        "و ruling إن كان يسأل عن حكم شرعي أو مسألة فقهية أو عقدية، و other إن لم يكن سؤالًا من ذلك. "
+        "ثم اكتب في arabic للبحث فقط: للحديث لفظه العربي المشهور كما في كتب الحديث، وفي alternatives حتى لفظين آخرين إن كان له؛ "
+        "وللآية نصها كما في المصحف؛ وللحكم عنوان المسألة بالفصحى في كلمتين إلى ست كما تُعنون في كتب الفتاوى (مثل: حكم سماع الأغاني)؛ "
+        "ولغير ذلك اتركه فارغًا. لا تجب عن السؤال، ولا تحكم على حديث، ولا تشرح. "
+        'أعد JSON بالشكل {"kind": "hadith" أو "quran" أو "ruling" أو "other", "arabic": "...", "alternatives": []}\n\n' + _wrap(text)
+    )
+    retry = (
+        "A visitor wrote the text below to a tool that checks hadith and Quran citations and shows scholars' fatwas. "
+        "Say whether it asks about a hadith, a Quran verse, an Islamic ruling, or other. Then give Arabic search wording only: "
+        "the hadith's known Arabic wording (up to two other wordings in alternatives), the verse's Arabic text, or the ruling's "
+        "topic as a short Arabic fatwa title (e.g. حكم سماع الأغاني); empty for other. Do not answer the question. "
+        'Reply only with JSON: {"kind": "hadith"|"quran"|"ruling"|"other", "arabic": "...", "alternatives": []}\n\n' + _wrap(text)
+    )
+    data = await _ask(prompt, 200, "intent", retry_user=retry)
+    if not isinstance(data, dict) or data.get("kind") not in ("hadith", "quran", "ruling", "other"):
+        return "", []
+    out = []
+    for w in [data.get("arabic", "")] + list(data.get("alternatives") or [])[:2]:
+        w = str(w).strip()
+        if w and re.search("[ء-ي]", w) and w not in out:
+            out.append(w)
+    return data["kind"], out
+
+
 async def pick_match(quote: str, candidates: list[str]) -> int:
     """Return the 1-based index of the Arabic candidate that matches the quote in meaning, or 0."""
     listing = "\n".join(f"{i}. {c[:300]}" for i, c in enumerate(candidates, 1))
     prompt = (
-        "أي النصوص العربية التالية هو أصل النص المترجم؟ إن لم يكن أيٌّ منها أصله فأعد 0. "
+        "أي النصوص العربية التالية هو أصل النص المترجم أو المذكور بالمعنى؟ إن لم يكن أيٌّ منها أصله فأعد 0. "
         'أعد JSON بالشكل {"match": رقم}\n\n'
         f"النص المترجم:\n{_wrap(quote)}\n\nالنصوص العربية:\n{listing}"
     )

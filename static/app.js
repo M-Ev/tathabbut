@@ -87,6 +87,8 @@ const T = {
     leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
     leveldFound: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. هذه فتاوى منشورة للعالمين الجليلين في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما. اختيرت بتقارب الألفاظ بين السؤال وعناوين الفتاوى، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق حالتك.",
     leveldGeneral: "هذا سؤال عن حكم شرعي، وتثبّت لا يفتي. ابحث عن المسألة في فتاوى العلماء الرسمية:",
+    outOfScope: "تثبّت يتحقق من الآيات والأحاديث، ويعرض فتاوى العلماء في الأحكام الشرعية. وهذا السؤال ليس عن آية ولا حديث ولا حكم شرعي، فليس عندنا ما نعرضه فيه.",
+    searchedAs: (w) => `بحثنا في الفتاوى بعنوان المسألة: «${w}»؛ صاغه النموذج اللغوي من سؤالك للبحث فقط، والفتاوى منقولة بنصها.`,
     leveldGeneralFound: "هذا سؤال عن حكم شرعي، وتثبّت لا يفتي. هذه فتاوى سماحة الشيخ عبدالعزيز بن باز وفضيلة الشيخ محمد بن صالح العثيمين رحمهما الله في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما الرسميين مع مصدر كل فتوى ورابطها. اختيرت بتقارب الألفاظ، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق مسألتك.",
     leveldRuling: "في النص حكم على حالة شخصية بعينها، والفتوى في الحالة الخاصة لمفتٍ يعرف الواقعة.",
     leveldBody: (b) => `فإن لم يوجد فيها ما يستوفي الحالة، فيُرجى سؤال ${b}.`,
@@ -138,7 +140,7 @@ const T = {
       quoteOnly: "الأحكام منقولة بنصها من مصادرها، والأداة لا تعلّل حكمًا ولا ترجّح بين الأحكام؛ فتعليلها في كتب علماء الحديث المعتمدين.",
       noneFound: "فلم نجد لأحدهم حكمًا على نص يقارب هذا.",
       notMeaning: "وعدم وجوده هنا ليس حكمًا عليه، ولذلك نحيله إلى المختص.",
-      modelWords: (w) => `اقترح النموذج اللغوي كلمات عربية للبحث: «${w}»، ثم اختار من نتائج المصادر الأصل الأقرب لمعنى الترجمة.`,
+      modelWords: (w) => `اقترح النموذج اللغوي كلمات عربية للبحث: «${w}»، ثم اختار من نتائج المصادر الأصل الأقرب لمعنى النص المسؤول عنه.`,
       isQuran: "وجدنا هذا النص بلفظه في المصحف، فهو آية لا حديث.",
       needsModel: "النص بغير العربية، والبحث في الموسوعة الحديثية يكون باللفظ العربي، والنموذج اللغوي غير مفعّل الآن.",
     },
@@ -236,6 +238,8 @@ const T = {
     leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
     leveldFound: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Below are published fatwas of the two scholars on close questions, quoted in Arabic exactly as on their sites. They were chosen by word overlap between the question and the fatwa titles; the language model neither wrote nor chose them, so check that they match your case.",
     leveldGeneral: "This is a question about a ruling, and Tathabbut does not issue fatwas. Look for it in the official fatwas of the scholars:",
+    outOfScope: "Tathabbut checks Quran verses and hadith, and shows scholars' fatwas on rulings. This question is not about a verse, a hadith or a ruling, so there is nothing for us to show.",
+    searchedAs: (w) => `The fatwas were searched with the topic «${w}»: the language model worded it from your question for the search only; the fatwas are quoted verbatim.`,
     leveldGeneralFound: "This is a question about a ruling, and Tathabbut does not issue fatwas. Below are published fatwas of Shaykh Abd al-Aziz ibn Baz and Shaykh Muhammad ibn Salih al-Uthaymeen on close questions, quoted in Arabic exactly as on their official sites with each fatwa's source and link. They were chosen by word overlap; the language model neither wrote nor chose them, so check that they match your question.",
     leveldRuling: "The text rules on one person's own case; a fatwa on a particular case belongs to a mufti who knows its facts.",
     leveldBody: (b) => `If they do not cover the case, ask ${b}.`,
@@ -287,7 +291,7 @@ const T = {
       quoteOnly: "Gradings are quoted verbatim from their sources. The tool neither explains nor weighs them; the reasons are in the scholars' own books.",
       noneFound: "None of them has a grading on a text close to this one.",
       notMeaning: "Not finding it here is not a judgment on it, which is why it is referred to a specialist.",
-      modelWords: (w) => `The language model suggested Arabic search words «${w}», then picked, among the sources' results, the one closest in meaning to the translation.`,
+      modelWords: (w) => `The language model suggested Arabic search words «${w}», then picked, among the sources' results, the one closest in meaning to the text asked about.`,
       isQuran: "This exact text is in the Mushaf, so it is a verse, not a hadith.",
       needsModel: "The text is not in Arabic; the hadith encyclopedia is searched in Arabic and the language model is off right now.",
     },
@@ -548,7 +552,7 @@ function reasonsFor(c) {
   }
   if (c.type === "quran" && c.status === "not_in_mushaf") {
     out.push(c.lang === "ar" ? r.notInMushaf(num(6236)) : r.notInTranslation(num(6236)));
-    if (c.marker && !["﴿﴾", "ref", "unmarked", "model", "bare"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
+    if (c.marker && !["﴿﴾", "ref", "unmarked", "model", "bare", "asked"].includes(c.marker)) out.push(r.attributed(c.marker.replace(/[:：]\s*$/, "")));
   }
   if (c.type === "hadith") {
     if (c.search_wording_ar) out.push(r.modelWords((c.search_wordings_ar && c.search_wordings_ar.length ? c.search_wordings_ar : [c.search_wording_ar]).join("» · «")));
@@ -698,7 +702,7 @@ function render(r) {
     const rules = r.summary.hadith ? `<span class="fine rules-note">${esc(dr.status === "signed" ? t().rulesSigned(dr.reviewed_by, dr.reviewed_on) : t().rulesDraft)}</span>` : "";
     $("summary").innerHTML = t().summary(r.summary, (x) => esc(num(x))) + rules;
   }
-  else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
+  else $("summary").textContent = r.unsupported_language ? t().unsupported : r.asked_about === "other" ? t().outOfScope : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
   if (r.disclaimer) $("disclaimer").textContent = r.disclaimer[lang] || r.disclaimer.ar;
   const day = new Date().toLocaleDateString(({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", en: "en-GB" }[lang] || lang), { year: "numeric", month: "long", day: "numeric" });
@@ -721,6 +725,7 @@ function render(r) {
         `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(arData() ? x.ar : x.en)}</a></li>`).join("");
       h = `<p>${esc(r.level_d.form === "general" ? t().leveldGeneral : t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "");
     }
+    if (r.level_d.search_by_model) h += `<p class="fine">${esc(t().searchedAs(r.level_d.search_by_model))}</p>`;
     if (r.level_d.form === "ruling_in_answer") h = `<p class="line warn">${esc(t().leveldRuling)}</p>` + h;
     const fa = r.level_d.answer;
     if (fa) h = `<section class="fatwa-answer${fa.same_question ? "" : " near"}"><h3 class="fatwas-h">${esc(fa.same_question ? t().fAnswerTitle : t().fNearTitle)}</h3>

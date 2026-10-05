@@ -49,6 +49,10 @@ REF_NAME = re.compile(
     r"(?:الآية|آية|ayah|verse)?\s*[:：]?\s*([0-9٠-٩]{1,3})(?:\s*[-–]\s*[0-9٠-٩]{1,3})?\s*[\)\]]",
     re.I,
 )
+# The same written without brackets after the quote: «﴿...﴾ سورة آل عمران آية 10», «في سورة البقرة، الآية ١٥٣».
+REF_PLAIN = re.compile(
+    r"^[\s،,.\-–]*(?:في\s+)?(?:سورة|سوره)\s+([ء-يٱ]+(?:\s+[ء-يٱ]+)?)\s*[،,:：\-]?\s*(?:الآية|آية|الاية|اية|الآيه|آيه)\s*(?:رقم\s*)?[:：]?\s*([0-9٠-٩]{1,3})"
+)
 # A sentence ends at punctuation or where a written reference opens: (2:255), (سورة ...), (البقرة: 255)
 # and (البقرة 255) or (آل عمران ٥) without a colon.
 SENTENCE_END = re.compile(
@@ -148,6 +152,7 @@ class Candidate:
     attribution: dict | None = None  # a written «رواه البخاري» / «متفق عليه» near a hadith (plan item 19)
     cautious: bool = False  # attributed with «رُوي» / «يُروى», not with «قال رسول الله ﷺ»
     asked: bool = True  # a bare text: True when the visitor named it a hadith or quoted it, False for plain text
+    wordings: list[str] | None = None  # a question about a hadith in the visitor's own words: the model's Arabic search wordings
 
     def overlaps(self, other: "Candidate") -> bool:
         return self.start < other.end and other.start < self.end
@@ -190,6 +195,11 @@ def _reference_after(text: str, end: int):
         s = q.surah_number(m.group(1))
         if s:
             return s, int(m.group(2).translate(AR_DIGITS)), m.group(0).strip()
+    m = REF_PLAIN.match(window)
+    if m:
+        s = q.surah_number(m.group(1))
+        if s:
+            return s, int(m.group(2).translate(AR_DIGITS)), m.group(0).strip(" ،,.-–")
     return None
 
 

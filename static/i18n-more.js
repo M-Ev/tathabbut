@@ -32,6 +32,8 @@ const T_MORE = {
       graded: "Encontrado en las fuentes de hadiz, con estos juicios de los eruditos reconocidos", gradedFab: "Encontrado en las fuentes de hadiz; algunos eruditos reconocidos lo juzgaron inventado o sin base",
       found_similar: "Se encontraron narraciones de redacción similar, no idéntica", not_found: "No se encontró ningún juicio de los eruditos reconocidos" },
     leveldGeneral: "Es una pregunta sobre un dictamen, y Tathabbut no emite fetuas. Búsquela en las fetuas oficiales de los eruditos:",
+    outOfScope: "Tathabbut verifica aleyas y hadices, y muestra fetuas de los sabios sobre dictámenes. Esta pregunta no trata de una aleya, un hadiz ni un dictamen, así que no hay nada que mostrar.",
+    searchedAs: (w) => `Las fetuas se buscaron con el tema «${w}», redactado por el modelo de lenguaje solo para la búsqueda; las fetuas se citan textualmente.`,
     leveldGeneralFound: "Es una pregunta sobre un dictamen, y Tathabbut no emite fetuas. Abajo están las fetuas publicadas del jeque Ibn Baz y del jeque Ibn Uzaimín sobre cuestiones cercanas, citadas en árabe tal como aparecen en sus sitios oficiales.",
   },
   fr: {
@@ -63,6 +65,8 @@ const T_MORE = {
       graded: "Trouvé dans les sources du hadith, avec ces jugements des savants reconnus", gradedFab: "Trouvé dans les sources du hadith ; certains savants reconnus l'ont jugé forgé ou sans fondement",
       found_similar: "Des narrations de formulation proche, non identique, ont été trouvées", not_found: "Aucun jugement des savants reconnus n'a été trouvé" },
     leveldGeneral: "Il s'agit d'une question de statut juridique, et Tathabbut ne donne pas de fatwa. Cherchez-la dans les fatwas officielles des savants :",
+    outOfScope: "Tathabbut vérifie les versets et les hadiths, et montre les fatwas des savants sur les statuts juridiques. Cette question ne porte ni sur un verset, ni sur un hadith, ni sur un statut juridique : nous n'avons rien à afficher.",
+    searchedAs: (w) => `Les fatwas ont été cherchées avec le sujet « ${w} », formulé par le modèle de langue pour la recherche seulement ; les fatwas sont citées mot pour mot.`,
     leveldGeneralFound: "Il s'agit d'une question de statut juridique, et Tathabbut ne donne pas de fatwa. Voici les fatwas publiées du cheikh Ibn Baz et du cheikh Ibn Othaymine sur des questions proches, citées en arabe telles qu'elles figurent sur leurs sites officiels.",
   },
   zh: {
@@ -94,6 +98,8 @@ const T_MORE = {
       graded: "见于圣训典籍，公认学者的判定如下", gradedFab: "见于圣训典籍；部分公认学者判定其为伪造或无根据",
       found_similar: "找到措辞相近但不完全相同的传述", not_found: "未找到公认学者的判定" },
     leveldGeneral: "这是关于教法判定的问题，Tathabbut 不发布教法意见。请查阅学者的官方教法意见：",
+    outOfScope: "Tathabbut 核查《古兰经》经文与圣训，并展示学者关于教法判定的教法意见。此问题与经文、圣训或教法判定无关，因此没有可展示的内容。",
+    searchedAs: (w) => `教法意见按主题「${w}」检索：该主题由语言模型据您的问题拟定，仅用于检索；教法意见均为原文引用。`,
     leveldGeneralFound: "这是关于教法判定的问题，Tathabbut 不发布教法意见。以下是伊本·巴兹谢赫与伊本·欧赛敏谢赫就相近问题发布的教法意见，按其官方网站的阿拉伯语原文引用。",
   },
   ja: {
@@ -125,6 +131,8 @@ const T_MORE = {
       graded: "ハディースの典拠に見つかりました。公認学者の判定は以下のとおりです", gradedFab: "ハディースの典拠に見つかりましたが、一部の公認学者は捏造または根拠なしと判定しています",
       found_similar: "似ているが同一ではない文言の伝承が見つかりました", not_found: "公認学者の判定は見つかりませんでした" },
     leveldGeneral: "これは法的判断に関する質問であり、Tathabbut はファトワーを出しません。学者の公式ファトワーで調べてください：",
+    outOfScope: "Tathabbut はクルアーンの節とハディースを検証し、法的判断に関する学者のファトワーを示します。この質問は節・ハディース・法的判断のいずれにも関するものではないため、表示できる内容がありません。",
+    searchedAs: (w) => `ファトワーは「${w}」というテーマで検索しました。このテーマは検索のためだけに言語モデルが質問から作成したもので、ファトワーは原文のまま引用しています。`,
     leveldGeneralFound: "これは法的判断に関する質問であり、Tathabbut はファトワーを出しません。以下は、近い問題についてイブン・バーズ師とイブン・ウサイミーン師が公表したファトワーで、公式サイトのアラビア語原文のまま引用しています。",
   },
   bn: {
@@ -156,6 +164,8 @@ const T_MORE = {
       graded: "হাদিসের উৎসে পাওয়া গেছে, স্বীকৃত বিশারদদের এই হুকুমসহ", gradedFab: "হাদিসের উৎসে পাওয়া গেছে; কিছু স্বীকৃত বিশারদ একে জাল বা ভিত্তিহীন বলেছেন",
       found_similar: "কাছাকাছি, তবে হুবহু নয় এমন শব্দের বর্ণনা পাওয়া গেছে", not_found: "স্বীকৃত বিশারদদের কোনো হুকুম পাওয়া যায়নি" },
     leveldGeneral: "এটি শরয়ি হুকুম সম্পর্কিত প্রশ্ন, আর তাসাব্বুত ফতোয়া দেয় না। আলেমদের অফিসিয়াল ফতোয়ায় খুঁজুন:",
+    outOfScope: "তাসাব্বুত আয়াত ও হাদিস যাচাই করে এবং শরয়ি হুকুম বিষয়ে আলেমদের ফতোয়া দেখায়। এই প্রশ্নটি আয়াত, হাদিস বা শরয়ি হুকুম নিয়ে নয়, তাই দেখানোর মতো কিছু নেই।",
+    searchedAs: (w) => `ফতোয়াগুলো «${w}» বিষয় দিয়ে খোঁজা হয়েছে: ভাষা মডেল শুধু অনুসন্ধানের জন্য আপনার প্রশ্ন থেকে এটি লিখেছে; ফতোয়াগুলো হুবহু উদ্ধৃত।`,
     leveldGeneralFound: "এটি শরয়ি হুকুম সম্পর্কিত প্রশ্ন, আর তাসাব্বুত ফতোয়া দেয় না। নিচে কাছাকাছি বিষয়ে শায়খ ইবনে বায ও শায়খ ইবনে উসাইমিনের প্রকাশিত ফতোয়া তাঁদের অফিসিয়াল ওয়েবসাইটের আরবি মূল শব্দে উদ্ধৃত হলো।",
   },
   tr: {
@@ -187,6 +197,8 @@ const T_MORE = {
       graded: "Hadis kaynaklarında bulundu; kabul gören âlimlerin hükümleri şöyle", gradedFab: "Hadis kaynaklarında bulundu; kabul gören bazı âlimler onu mevzu veya asılsız saydı",
       found_similar: "Benzer, ancak aynı olmayan lafızlı rivayetler bulundu", not_found: "Kabul gören âlimlerin hükmü bulunamadı" },
     leveldGeneral: "Bu, dinî bir hüküm sorusudur ve Tathabbut fetva vermez. Âlimlerin resmî fetvalarında arayın:",
+    outOfScope: "Tathabbut ayet ve hadisleri doğrular, dinî hükümlerde âlimlerin fetvalarını gösterir. Bu soru bir ayet, hadis ya da dinî hükümle ilgili değil; gösterecek bir şeyimiz yok.",
+    searchedAs: (w) => `Fetvalar «${w}» konusuyla arandı: dil modeli bunu yalnızca arama için sorunuzdan yazdı; fetvalar aynen aktarılmıştır.`,
     leveldGeneralFound: "Bu, dinî bir hüküm sorusudur ve Tathabbut fetva vermez. Aşağıda Şeyh İbn Baz ile Şeyh İbn Useymin'in yakın meselelerdeki yayımlanmış fetvaları, resmî sitelerindeki Arapça asılları ile aktarılmıştır.",
   },
   hi: {
@@ -218,6 +230,8 @@ const T_MORE = {
       graded: "हदीस के स्रोतों में मिली, मान्य विद्वानों के इन हुक्मों के साथ", gradedFab: "हदीस के स्रोतों में मिली; कुछ मान्य विद्वानों ने इसे मनगढ़ंत या निराधार कहा",
       found_similar: "मिलते-जुलते, पर हूबहू नहीं, शब्दों की रिवायतें मिलीं", not_found: "मान्य विद्वानों का कोई हुक्म नहीं मिला" },
     leveldGeneral: "यह शरई हुक्म का प्रश्न है, और तसब्बुत फ़तवा नहीं देता। विद्वानों के आधिकारिक फ़तवों में खोजें:",
+    outOfScope: "तसब्बुत आयतों और हदीसों की जाँच करता है और शरई हुक्मों पर उलमा के फ़तवे दिखाता है। यह प्रश्न किसी आयत, हदीस या शरई हुक्म के बारे में नहीं है, इसलिए दिखाने को कुछ नहीं है।",
+    searchedAs: (w) => `फ़तवे «${w}» विषय से खोजे गए: भाषा मॉडल ने इसे केवल खोज के लिए आपके प्रश्न से लिखा; फ़तवे शब्दशः उद्धृत हैं।`,
     leveldGeneralFound: "यह शरई हुक्म का प्रश्न है, और तसब्बुत फ़तवा नहीं देता। नीचे शैख़ इब्न बाज़ और शैख़ इब्न उसैमीन के निकट विषयों पर प्रकाशित फ़तवे उनकी आधिकारिक वेबसाइटों के अरबी मूल शब्दों में उद्धृत हैं।",
   },
 };

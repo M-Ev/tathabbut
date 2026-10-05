@@ -66,10 +66,11 @@ async function go() {
           <p class="fine">${esc(f.who)}${f.source ? " · " + esc(f.source) : ""}</p>
           ${f.answer ? `<details class="fatwa-full"><summary>عرض الفتوى كاملة</summary><p class="fatwa-text">${esc(f.answer)}</p></details>` : f.opening ? `<p class="fatwa-part">${esc(f.opening)}</p>` : ""}</li>`).join("") + `</ul>`
         : `<p class="fine">لم نجد في فتاواهما المنشورة ما يقارب ألفاظ السؤال.</p>`;
+      if (ld.search_by_model) h += `<p class="fine">بحثنا في الفتاوى بعنوان المسألة: «${esc(ld.search_by_model)}»؛ صاغه النموذج اللغوي من سؤالك للبحث فقط، والفتاوى منقولة بنصها.</p>`;
       h += `<p class="fine">ثم: <a href="${esc(ld.body.url)}" target="_blank" rel="noopener">${esc(ld.body.ar)}</a></p></div>`;
       $("seen").innerHTML += h;
     } else if (!res.citations.length) {
-      $("seen").innerHTML += `<p class="fine">لم نجد في الإجابة آية ولا حديثًا مستشهدًا به، ولا سؤال فتوى.</p>`;
+      $("seen").innerHTML += `<p class="fine">${res.asked_about === "other" ? "تثبّت يتحقق من الآيات والأحاديث، ويعرض فتاوى العلماء في الأحكام الشرعية. وهذا السؤال ليس عن آية ولا حديث ولا حكم شرعي، فليس عندنا ما نعرضه فيه." : "لم نجد في الإجابة آية ولا حديثًا مستشهدًا به، ولا سؤال فتوى."}</p>`;
     }
     $("disc").textContent = `${res.disclaimer.ar} السياسة: ${d.policy.name} (${d.policy.version}).`;
     $("out").scrollIntoView({ behavior: "smooth", block: "start" });
