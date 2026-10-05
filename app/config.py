@@ -27,6 +27,9 @@ class Settings:
     llm_fallback_base_url: str = _env("TATHABBUT_LLM_FALLBACK_BASE_URL")
     llm_fallback_api_key: str = _env("TATHABBUT_LLM_FALLBACK_API_KEY")
     llm_fallback_model: str = _env("TATHABBUT_LLM_FALLBACK_MODEL")
+    # Jobs that go to the fallback first even while ALLaM is up (comma list of: citations, arabic, match).
+    # Set from measurements: e.g. "arabic,match" sends the English-to-Arabic jobs to the stronger model.
+    llm_fallback_first: str = _env("TATHABBUT_LLM_FALLBACK_FIRST")
     # Dorar
     dorar_enabled: bool = _env("TATHABBUT_DORAR", "1") != "0"
     dorar_timeout: float = float(_env("TATHABBUT_DORAR_TIMEOUT", "20"))

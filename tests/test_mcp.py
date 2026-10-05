@@ -96,3 +96,31 @@ def test_a_model_that_does_not_answer_gives_a_referral_not_an_error(monkeypatch,
     c = r["citations"][0]
     assert c["status"] == "needs_model" and c["referral"] and r["model"]["used"] is False
     assert r["coverage"]["complete"] is False
+
+
+def test_jobs_listed_as_fallback_first_go_to_the_stronger_model(monkeypatch):
+    from app import llm
+
+    class Allam(llm._Backend):
+        name, label = "llamacpp", "ALLaM-7B-Instruct-preview"
+
+        def ready(self):
+            return True
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '[]' if schema and schema.get("type") == "array" else '{"arabic": "النظافة من الإيمان"}'
+
+    class Strong(Allam):
+        label = "strong"
+
+        async def chat(self, messages, max_tokens=256, schema=None):
+            return '{"arabic": "الطهور شطر الإيمان"}'
+
+    monkeypatch.setattr(llm, "backend", Allam())
+    monkeypatch.setattr(llm, "fallback", Strong())
+    monkeypatch.setattr(llm, "FALLBACK_FIRST", {"arabic", "match"})
+    usage = {"calls": 0, "seconds": 0.0}
+    llm.USAGE.set(usage)
+    assert asyncio.run(llm.arabic_search_wording("Cleanliness is half of faith", "hadith")) == "الطهور شطر الإيمان"
+    asyncio.run(llm.extract_citations("نص"))
+    assert usage["models"] == ["strong", "ALLaM-7B-Instruct-preview"]  # extraction stays with ALLaM

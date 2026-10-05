@@ -18,6 +18,7 @@ ENV PATH=/home/user/.local/bin:$PATH \
     TATHABBUT_N_THREADS=2 \
     TATHABBUT_LLM_FALLBACK_BASE_URL=https://router.huggingface.co/v1 \
     TATHABBUT_LLM_FALLBACK_MODEL=Qwen/Qwen3-235B-A22B-Instruct-2507 \
+    TATHABBUT_LLM_FALLBACK_FIRST=arabic,match \
     PORT=7860
 EXPOSE 7860
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

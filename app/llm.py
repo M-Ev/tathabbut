@@ -150,8 +150,20 @@ def describe() -> dict:
             "fallback": fallback.label if fallback else None}
 
 
-async def _chat(messages, max_tokens, schema) -> tuple[str, str]:
-    """Ask ALLaM; if it cannot answer and a fallback is set, ask the fallback. Returns (reply, model label)."""
+FALLBACK_FIRST = {j.strip() for j in settings.llm_fallback_first.split(",") if j.strip()}
+
+
+async def _chat(messages, max_tokens, schema, job: str = "") -> tuple[str, str]:
+    """Ask ALLaM; if it cannot answer and a fallback is set, ask the fallback. Returns (reply, model label).
+    A job listed in TATHABBUT_LLM_FALLBACK_FIRST goes to the fallback first, and to ALLaM if the fallback fails."""
+    if fallback is not None and job in FALLBACK_FIRST:
+        try:
+            return await fallback.chat(messages, max_tokens, schema=schema), fallback.label
+        except Exception as e:  # noqa: BLE001
+            if backend.name == "none":
+                raise
+            log.warning("fallback failed (%s); asking the primary model", e)
+            return await backend.chat(messages, max_tokens, schema=schema), backend.label or backend.name
     use_primary = backend.name != "none" and (backend.ready() or fallback is None)
     if use_primary:
         try:
@@ -187,7 +199,7 @@ async def _ask(user: str, max_tokens: int, schema: str):
     model = None
     try:
         reply, model = await _chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}], max_tokens,
-                                   SCHEMAS[schema])
+                                   SCHEMAS[schema], job=schema)
     finally:
         u = USAGE.get()
         if u is not None:
