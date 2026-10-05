@@ -522,7 +522,10 @@ def _verdicts(items: list) -> list:
 
 
 def _plain(t: str) -> str:
-    return re.sub(r"\s+", " ", _strip_harakat(t)).strip()
+    """Letters only, for the word-for-word check: harakat, punctuation, quotation marks and spacing aside."""
+    t = normalize_ar(_strip_harakat(t))
+    t = re.sub(r"[^\w\s]|_", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
 
 
 async def _answer_from_fatwas(question: str, found: dict | None) -> dict | None:
