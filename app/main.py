@@ -1,6 +1,7 @@
 """تثبّت · Tathabbut: web app and API."""
 import contextlib
 import logging
+import re
 import time
 from collections import defaultdict, deque
 from pathlib import Path
@@ -154,6 +155,25 @@ async def archive():
     if not f.exists():
         return {"entries": [], "checked_at": None, "reviewed": False}
     return FileResponse(f, media_type="application/json")
+
+
+# The verses on the pillars page, from the Mushaf file as it is, with the approved translations of their meanings.
+_PILLAR_VERSES = {"shahada": (47, 19, 19), "salah": (2, 238, 238), "zakah": (2, 43, 43), "sawm": (2, 183, 183),
+                  "hajj": (3, 97, 97), "fatiha": (1, 1, 7)}
+
+
+@app.get("/api/pillars")
+async def pillars():
+    q = get_quran()
+    out = {}
+    for key, (s, a, b) in _PILLAR_VERSES.items():
+        ayat = [q.ayat[q.index[(s, n)]] for n in range(a, b + 1)]
+        en = [re.sub(r"\s*\[\d+\]", "", re.sub(r"^\s*\d+\.\s*", "", x.translation_en)).strip() for x in ayat]
+        out[key] = {"surah": s, "ayah_from": a, "ayah_to": b, "surah_ar": q.surahs[s]["ar"], "surah_en": q.surahs[s]["tr"],
+                    "ayat": [{"ayah": x.ayah, "text": x.text} for x in ayat],
+                    "translations": {"en": {"text": " ".join(en), "name": "Al-Hilali & Muhsin Khan (King Fahd Complex)"},
+                                     **{k: {"text": v["text"], "name": v["name"]} for k, v in q.translations_for(s, a, b).items()}}}
+    return out
 
 
 @app.get("/")

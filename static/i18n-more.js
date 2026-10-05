@@ -4,7 +4,7 @@
 // in the challenge's scientific package). Draft for native speakers to review.
 const T_MORE = {
   es: {
-    navCheck: "Verificar", navArchive: "Archivo", navBot: "Pregunta a los fiables", navDev: "Desarrolladores",
+    navCheck: "Verificar", navArchive: "Archivo", navBot: "Pregunta a los fiables", navPillars: "Pilares del islam", navDev: "Desarrolladores",
     title: "Tathabbut", tagline: "Verificador de citas islámicas", mottoRef: "al-Hujurat 49:6 · «verificad» (traducción de M. Isa García)",
     inputLabel: "Texto a verificar", intro: "Pegue una publicación, una lección o la respuesta de un asistente de IA, y rastrearemos cada versículo del Corán y cada hadiz hasta su fuente árabe.",
     placeholder: "Pegue su texto aquí", tryLabel: "Ejemplos:", sampleAr: "Texto árabe", sampleEn: "Texto inglés",
@@ -38,7 +38,7 @@ const T_MORE = {
     leveldGeneralFound: "Es una pregunta sobre un dictamen, y Tathabbut no emite fetuas. Abajo están las fetuas publicadas del jeque Ibn Baz y del jeque Ibn Uzaimín sobre cuestiones cercanas, citadas en árabe tal como aparecen en sus sitios oficiales.",
   },
   fr: {
-    navCheck: "Vérifier", navArchive: "Archives", navBot: "Demandez aux savants fiables", navDev: "Développeurs",
+    navCheck: "Vérifier", navArchive: "Archives", navBot: "Demandez aux savants fiables", navPillars: "Piliers de l'islam", navDev: "Développeurs",
     title: "Tathabbut", tagline: "Vérificateur des citations religieuses", mottoRef: "al-Hujurat 49:6 · « voyez bien clair » (trad. Muhammad Hamidullah)",
     inputLabel: "Texte à vérifier", intro: "Collez une publication, un cours ou la réponse d'un assistant IA : nous remonterons chaque verset du Coran et chaque hadith jusqu'à sa source arabe.",
     placeholder: "Collez votre texte ici", tryLabel: "Exemples :", sampleAr: "Texte arabe", sampleEn: "Texte anglais",
@@ -72,7 +72,7 @@ const T_MORE = {
     leveldGeneralFound: "Il s'agit d'une question de statut juridique, et Tathabbut ne donne pas de fatwa. Voici les fatwas publiées du cheikh Ibn Baz et du cheikh Ibn Othaymine sur des questions proches, citées en arabe telles qu'elles figurent sur leurs sites officiels.",
   },
   zh: {
-    navCheck: "核查", navArchive: "档案", navBot: "请教可信学者", navDev: "开发者",
+    navCheck: "核查", navArchive: "档案", navBot: "请教可信学者", navPillars: "伊斯兰五功", navDev: "开发者",
     title: "Tathabbut", tagline: "伊斯兰引文核查工具", mottoRef: "寝室章 49:6 ·「应当弄清楚」(马坚译本)",
     inputLabel: "待核查的文本", intro: "粘贴帖子、讲稿或聊天机器人的回答，我们会把其中每一节《古兰经》经文和每一段圣训追溯到阿拉伯语原始出处。",
     placeholder: "在此粘贴文本", tryLabel: "示例：", sampleAr: "阿拉伯语帖子", sampleEn: "英语帖子",
@@ -106,7 +106,7 @@ const T_MORE = {
     leveldGeneralFound: "这是关于教法判定的问题，Tathabbut 不发布教法意见。以下是伊本·巴兹谢赫与伊本·欧赛敏谢赫就相近问题发布的教法意见，按其官方网站的阿拉伯语原文引用。",
   },
   ja: {
-    navCheck: "検証", navArchive: "アーカイブ", navBot: "信頼できる学者に聞く", navDev: "開発者向け",
+    navCheck: "検証", navArchive: "アーカイブ", navBot: "信頼できる学者に聞く", navPillars: "イスラームの五行", navDev: "開発者向け",
     title: "Tathabbut", tagline: "イスラームの典拠チェッカー", mottoRef: "部屋章 49:6 ·「よく確かめよ」(三田了一訳)",
     inputLabel: "検証するテキスト", intro: "投稿、講話、チャットボットの回答を貼り付けると、そこに含まれるクルアーンの章句とハディースを一つずつアラビア語の原典までたどります。",
     placeholder: "ここにテキストを貼り付け", tryLabel: "例：", sampleAr: "アラビア語の投稿", sampleEn: "英語の投稿",
@@ -140,7 +140,7 @@ const T_MORE = {
     leveldGeneralFound: "これは法的判断に関する質問であり、Tathabbut はファトワーを出しません。以下は、近い問題についてイブン・バーズ師とイブン・ウサイミーン師が公表したファトワーで、公式サイトのアラビア語原文のまま引用しています。",
   },
   bn: {
-    navCheck: "যাচাই", navArchive: "আর্কাইভ", navBot: "নির্ভরযোগ্যদের জিজ্ঞাসা", navDev: "ডেভেলপার",
+    navCheck: "যাচাই", navArchive: "আর্কাইভ", navBot: "নির্ভরযোগ্যদের জিজ্ঞাসা", navPillars: "ইসলামের স্তম্ভ", navDev: "ডেভেলপার",
     title: "তাসাব্বুত", tagline: "ইসলামি উদ্ধৃতি যাচাইকারী", mottoRef: "আল-হুজুরাত ৪৯:৬ · «তোমরা যাচাই করে দেখবে» (আবু বকর যাকারিয়া অনূদিত)",
     inputLabel: "যাচাইয়ের জন্য লেখা", intro: "কোনো পোস্ট, দারস বা চ্যাটবটের উত্তর এখানে দিন; আমরা এর প্রতিটি আয়াত ও হাদিসকে আরবি মূল উৎস পর্যন্ত খুঁজে দেখব।",
     placeholder: "এখানে লেখা দিন", tryLabel: "উদাহরণ:", sampleAr: "আরবি পোস্ট", sampleEn: "ইংরেজি পোস্ট",
@@ -174,7 +174,7 @@ const T_MORE = {
     leveldGeneralFound: "এটি শরয়ি হুকুম সম্পর্কিত প্রশ্ন, আর তাসাব্বুত ফতোয়া দেয় না। নিচে কাছাকাছি বিষয়ে শায়খ ইবনে বায ও শায়খ ইবনে উসাইমিনের প্রকাশিত ফতোয়া তাঁদের অফিসিয়াল ওয়েবসাইটের আরবি মূল শব্দে উদ্ধৃত হলো।",
   },
   tr: {
-    navCheck: "Doğrula", navArchive: "Arşiv", navBot: "Güvenilirlere sor", navDev: "Geliştiriciler",
+    navCheck: "Doğrula", navArchive: "Arşiv", navBot: "Güvenilirlere sor", navPillars: "İslam'ın şartları", navDev: "Geliştiriciler",
     title: "Tathabbut", tagline: "Dinî alıntı doğrulayıcı", mottoRef: "Hucurât 49:6 · «iyice araştırın» (Kral Fahd Kompleksi meali)",
     inputLabel: "Doğrulanacak metin", intro: "Bir paylaşımı, dersi ya da sohbet botu yanıtını yapıştırın; içindeki her ayeti ve hadisi Arapça kaynağına kadar takip edelim.",
     placeholder: "Metni buraya yapıştırın", tryLabel: "Örnekler:", sampleAr: "Arapça paylaşım", sampleEn: "İngilizce paylaşım",
@@ -208,7 +208,7 @@ const T_MORE = {
     leveldGeneralFound: "Bu, dinî bir hüküm sorusudur ve Tathabbut fetva vermez. Aşağıda Şeyh İbn Baz ile Şeyh İbn Useymin'in yakın meselelerdeki yayımlanmış fetvaları, resmî sitelerindeki Arapça asılları ile aktarılmıştır.",
   },
   hi: {
-    navCheck: "जाँच", navArchive: "संग्रह", navBot: "विश्वसनीय से पूछें", navDev: "डेवलपर",
+    navCheck: "जाँच", navArchive: "संग्रह", navBot: "विश्वसनीय से पूछें", navPillars: "इस्लाम के स्तंभ", navDev: "डेवलपर",
     title: "तसब्बुत", tagline: "इस्लामी उद्धरणों की जाँच", mottoRef: "अल-हुजुरात 49:6 · «भली-भाँति जाँच लो» (अज़ीज़ुल हक़ उमरी अनुवाद)",
     inputLabel: "जाँचने के लिए पाठ", intro: "कोई पोस्ट, दर्स या चैटबॉट का उत्तर यहाँ डालें; हम उसकी हर आयत और हदीस को उसके अरबी मूल स्रोत तक पहुँचाएँगे।",
     placeholder: "पाठ यहाँ डालें", tryLabel: "उदाहरण:", sampleAr: "अरबी पोस्ट", sampleEn: "अंग्रेज़ी पोस्ट",

@@ -32,6 +32,7 @@
   --r-1: 2px; --r-2: 4px; --hair: 1px; --rule-strong: 2px; --rule-side: 3px;
   --measure: 860px;
   --touch: 48px;
+  --water: #3FA9F5;
   /* motion */
   --dur-1: 120ms; --dur-2: 220ms; --dur-3: 360ms; --ease: cubic-bezier(.2, .7, .2, 1); --stagger: 70ms;
 }
@@ -362,3 +363,92 @@ html[lang="ur"] body { font-family: "Readex Pro", "Noto Nastaliq Urdu", system-u
 .fatwa-answer blockquote { margin: var(--s-2) 0; font-size: var(--fs-lg); line-height: 1.9; color: var(--ink); }
 .fatwa-answer p { margin: var(--s-1) 0; }
 .fatwa-answer.near { background: var(--warn-tint); border-inline-start-color: var(--warn); }
+
+/* أركان الإسلام: pillars, wudu and prayer steps, drawn figures and their player */
+.jump { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.jump a { color: var(--mast-ink); text-decoration: none; font-size: var(--fs-sm); padding: var(--s-1) var(--s-3); border: var(--hair) solid rgba(255, 255, 255, .25); border-radius: 999px; transition: background-color var(--dur-1) var(--ease); }
+.jump a:hover { background: rgba(255, 255, 255, .08); }
+.pl-section { background: var(--surface); border: var(--hair) solid var(--line); border-radius: var(--r-2); padding: var(--s-6) var(--s-5); margin-bottom: var(--s-5); scroll-margin-top: var(--s-4); }
+.pl-h { font-size: var(--fs-xl); line-height: var(--lh-tight); margin: 0 0 var(--s-4); color: var(--ink); }
+.pl-lead { color: var(--ink-2); margin: 0 0 var(--s-4); }
+.pl-hadith { margin: 0 0 var(--s-5); padding: var(--s-4) var(--s-5); background: var(--brand-light); border-inline-start: var(--rule-side) solid var(--ok); border-radius: var(--r-2); }
+.pl-hadith blockquote { margin: 0; font-size: var(--fs-lg); line-height: var(--lh-ui); }
+.pl-hadith figcaption { font-size: var(--fs-sm); color: var(--ink-3); margin-top: var(--s-2); }
+.pillar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.pillar { position: relative; border: var(--hair) solid var(--line); border-radius: var(--r-2); padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
+.pillar h3 { margin: 0; font-size: var(--fs-md); line-height: var(--lh-tight); }
+.pillar-n { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--accent); }
+.pillar details summary { cursor: pointer; font-size: var(--fs-xs); color: var(--ink-3); }
+.pillar-go { margin-top: auto; font-size: var(--fs-sm); font-weight: 500; }
+.pl-verse { font-family: var(--font-quran); font-size: var(--fs-lg); line-height: var(--lh-quran); margin: var(--s-2) 0 0; }
+.ayah-no { color: var(--accent); font-size: var(--fs-sm); }
+.pl-meaning { font-size: var(--fs-sm); color: var(--ink-2); }
+.pl-say { margin: var(--s-2) 0; }
+.pl-say > span[lang="ar"] { font-size: var(--fs-lg); font-weight: 600; color: var(--ink); line-height: var(--lh-ui); }
+.pl-tr { margin: var(--s-1) 0 var(--s-2); }
+.pl-tr > span[dir="ltr"] { font-style: italic; color: var(--ink-2); }
+.pl-quote { margin: var(--s-2) 0; padding: var(--s-2) var(--s-3); border-inline-start: var(--rule-side) solid var(--accent); background: var(--canvas); border-radius: var(--r-1); font-size: var(--fs-sm); color: var(--ink); }
+.pl-quote blockquote { margin: 0; }
+.pl-quote figcaption { font-size: var(--fs-xs); color: var(--ink-3); margin-top: var(--s-1); }
+.pl-count { margin-inline-start: var(--s-2); font-size: var(--fs-xs); font-weight: 600; color: var(--ok); background: var(--ok-tint); padding: 0 var(--s-2); border-radius: 999px; vertical-align: middle; }
+.pl-fatiha { margin: var(--s-3) 0; padding: var(--s-3); border: var(--hair) solid var(--line); border-radius: var(--r-2); }
+
+.steps { list-style: none; margin: var(--s-5) 0 0; padding: 0; display: grid; gap: var(--s-3); }
+.step { display: grid; grid-template-columns: 112px 1fr; gap: var(--s-4); align-items: start; padding: var(--s-3); border: var(--hair) solid var(--line); border-radius: var(--r-2); transition: border-color var(--dur-2) var(--ease), background-color var(--dur-2) var(--ease); }
+.step.is-on { border-color: var(--accent); background: var(--brand-light); }
+.step-note { list-style: none; }
+.step-fig { padding: 0; border: 0; background: var(--canvas); border-radius: var(--r-2); cursor: pointer; display: block; width: 112px; }
+.step-body h3 { margin: 0 0 var(--s-1); font-size: var(--fs-md); line-height: var(--lh-tight); }
+.step-n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; margin-inline-end: var(--s-2); border-radius: 50%; background: var(--accent); color: var(--on-brand); font-size: var(--fs-xs); }
+@media (max-width: 600px) {
+  .pl-section { padding: var(--s-5) var(--s-4); }
+  .step { grid-template-columns: 76px 1fr; gap: var(--s-3); }
+  .step-fig { width: 76px; }
+}
+
+.rakat { margin: 0 0 var(--s-4); }
+.rakat ul { list-style: none; padding: 0; margin: var(--s-1) 0 var(--s-2); display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.rakat li { display: flex; align-items: center; gap: var(--s-2); border: var(--hair) solid var(--line); border-radius: 999px; padding: var(--s-1) var(--s-3); font-size: var(--fs-sm); }
+.rakat li span { font-weight: 700; color: var(--accent); }
+
+.player { border: var(--hair) solid var(--line); border-radius: var(--r-2); background: linear-gradient(180deg, var(--brand-light), var(--surface)); padding: var(--s-4); }
+.player-stage { display: grid; place-items: center; }
+.player-stage .fig { width: min(280px, 70vw); height: auto; }
+.player-cap { text-align: center; min-height: 72px; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); }
+.player-n { font-size: var(--fs-xs); color: var(--ink-3); }
+.player-t { font-size: var(--fs-lg); }
+.player-say { font-size: var(--fs-md); color: var(--accent); font-weight: 600; }
+.player-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s-2); margin-top: var(--s-2); }
+.pbtn { min-height: 40px; min-width: 40px; padding: 0 var(--s-4); border-radius: 999px; border: var(--hair) solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-size: var(--fs-md); }
+.pbtn.play { background: var(--brand-blue); color: var(--on-brand); border-color: var(--brand-blue); font-weight: 600; }
+.pbtn:hover { border-color: var(--accent); }
+.player-dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.dot { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; }
+.dot[aria-selected="true"] { background: var(--accent); transform: scale(1.3); }
+
+.fig polyline, .fig-front path, .fig-front circle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fig-near polyline { stroke: var(--ink); stroke-width: 14; }
+.fig-near .fig-torso { stroke: var(--brand-blue); stroke-width: 30; }
+.fig-far polyline { stroke: var(--ink-3); stroke-width: 13; opacity: .45; }
+.fig-head { fill: var(--ink); }
+.fig-shadow { fill: var(--ink); opacity: .08; }
+.fig-mat { fill: var(--ok); opacity: .35; }
+.fig-turn { fill: none; stroke: var(--accent); stroke-width: 3; }
+.fig-arrowhead { fill: var(--accent); }
+.fig-front .fb-limb { stroke: var(--ink); stroke-width: 14; fill: none; }
+.fig-front .fb-torso { fill: var(--brand-blue); stroke: none; }
+.fig-front .fb-head { fill: var(--ink); stroke: none; }
+.fig-front .fb-neck { stroke: var(--ink); stroke-width: 12; }
+.fig-wudu .lit > * { fill: var(--brand-turq); stroke: var(--surface); stroke-width: 2; opacity: .9; animation: glow 1.6s var(--ease) infinite alternate; }
+.drop { fill: var(--water); animation: drip 1.4s linear infinite; }
+.wipe { fill: none; stroke: var(--ok); stroke-width: 4; stroke-dasharray: 60; animation: wipe 1.6s var(--ease) infinite; }
+@keyframes glow { from { opacity: .45; } to { opacity: .95; } }
+@keyframes drip { from { transform: translateY(0); opacity: 1; } to { transform: translateY(28px); opacity: 0; } }
+@keyframes wipe { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .drop, .wipe, .fig-wudu .lit > * { animation: none; } }
+
+.treatise { display: flex; flex-wrap: wrap; gap: var(--s-2); list-style: none; padding: 0; }
+.treatise li a { display: inline-block; padding: var(--s-1) var(--s-3); border: var(--hair) solid var(--line); border-radius: 999px; text-decoration: none; font-size: var(--fs-sm); }
+.treatise li.is-mine a { background: var(--brand-blue); color: var(--on-brand); border-color: var(--brand-blue); }
+.fig-hand { fill: var(--ink); }
+.fig-wudu .lit .ln { fill: none; stroke: var(--brand-turq); stroke-width: 16; stroke-linecap: round; }

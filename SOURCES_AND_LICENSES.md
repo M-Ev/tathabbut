@@ -30,6 +30,13 @@ The package says that for personal fatwa questions the tool «لا يقدم … 
 
 From quranpedia.net (named in the package), fetched by `scripts/fetch_translations.py`, each with its source URL, fetch date and sha256 in `data/translations/`: Bengali (Abu Bakr Muhammad Zakaria, book 1967), Turkish (King Fahd Complex, 1959), French (Muhammad Hamidullah, 27812), Spanish (Muhammad Isa Garcia, 1950), Hindi (Aziz ul-Haq al-Umari, 1986), Chinese (Muhammad Makin / Ma Jian, 1974), Japanese (Ryoichi Mita, 1976). Shown beside the Mushaf text for readers of these languages; not used to match quotes.
 
+### The pillars page «أركان الإسلام» (owner's request, 5 Oct)
+
+- Every ruling sentence on the page is quoted word for word from eight fatwas on binbaz.org.sa, the official site of Shaykh Abd al-Aziz ibn Baz (the site publishes its fatwas in full): the description of the prayer from the takbir to the salam (fatwas 10166 and 6122), of wudu (18835, 10255), raising the hands (4103), placing them on the chest (12198), and one who cannot recite al-Fatiha (20532, 3711). The fetched texts are kept in `data/pillars_sources.json`; `tests/test_pillars.py` fails if any quote or any phrase given to say is not in them.
+- The links to the Shaykh's treatise «كيفية صلاة النبي ﷺ» and its official translations (English, Urdu, Spanish, Bengali, Turkish, Chinese, French, Hindi, Japanese) point to his site; nothing is copied from them.
+- The hadith «بني الإسلام على خمس» is shown as Dorar gives it (al-Bukhari 8, Muslim 16), found by Tathabbut's own check. The verses come from the Mushaf file and their meanings from the approved translations above (`/api/pillars`).
+- The drawn figures and the Latin-letter pronunciations were made by the team (with Claude Code) as learning aids; faceless figures, no photographs.
+
 ### How each domain of the package's reference table is covered
 
 | Package domain | In Tathabbut |
