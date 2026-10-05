@@ -82,3 +82,6 @@ async function go() {
 }
 $("go").addEventListener("click", go);
 document.querySelectorAll("[data-sample]").forEach((b) => b.addEventListener("click", () => { $("answer").value = SAMPLES[b.dataset.sample]; $("answer").focus(); }));
+
+// On phones the sections bar scrolls: bring the current page into view.
+try { const cur = document.querySelector(".mast-nav [aria-current=\"page\"]"); if (cur) cur.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) { /* ignore */ }

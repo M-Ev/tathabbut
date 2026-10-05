@@ -518,3 +518,7 @@ html[lang="ur"] body { font-family: "Readex Pro", "Noto Nastaliq Urdu", system-u
 .primary-link { font-weight: 600; }
 @media (min-width: 601px) { .mast-nav a { padding: 0 var(--s-2); } .mast-nav { flex-wrap: nowrap; } }
 .dk-tiles-main { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.dk-loading { display: flex; align-items: center; justify-content: center; gap: var(--s-3); min-height: 160px; color: var(--ink-3); font-size: var(--fs-sm); }
+.dk-spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: dk-spin .8s linear infinite; }
+@keyframes dk-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dk-spin { animation-duration: 2.4s; } }

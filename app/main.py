@@ -205,6 +205,11 @@ async def adhkar(lang: str = "ar"):
     q = get_quran()
     for x in d.get("quran", []):
         x.update(_verse(q, x["surah"], x["ayah_from"], x["ayah_to"], lang))
+    for x in d.get("hadith", []):  # the page needs the supporting narration's text; the others by name and link only
+        c = x.get("check", {})
+        c["narrations"] = [{k: n.get(k) for k in ("scholar_ar", "grade", "book", "number", "url", "authentic")}
+                           for n in c.get("narrations", [])[:6]]
+        c.pop("sahihayn", None)
     return d
 
 

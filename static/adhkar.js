@@ -66,6 +66,15 @@ const navWord = (k) => {
 };
 
 let DATA = null, CATS = {};
+// The categories are known before any data arrives, so the home screen is drawn at once.
+const STATIC_CATS = [["morning", "أذكار الصباح", "Morning adhkar"], ["evening", "أذكار المساء", "Evening adhkar"],
+  ["after_prayer", "أذكار بعد الصلاة", "After the prayer"], ["in_prayer", "أذكار الصلاة", "In the prayer"], ["waking", "أذكار الاستيقاظ", "On waking"],
+  ["sleep", "أذكار النوم", "Before sleep"], ["prophet", "من دعاء الرسول ﷺ", "From the Prophet's du'a ﷺ"], ["quran_dua", "أدعية من القرآن", "Du'as from the Quran"],
+  ["ruqya_quran", "الرقية بالقرآن", "Ruqyah from the Quran"], ["ruqya_sunnah", "الرقية بالسنة", "Ruqyah from the Sunnah"], ["praise", "الحمد والثناء", "Praise"],
+  ["istighfar", "الاستغفار", "Seeking forgiveness"], ["comprehensive", "أدعية شاملة", "Comprehensive du'as"], ["ease", "أدعية التيسير", "Du'as for ease"],
+  ["sick", "أدعية المريض", "For the sick"], ["deceased", "أدعية الميت", "For the deceased"]];
+CATS = Object.fromEntries(STATIC_CATS.map(([key, ar, en]) => [key, { key, ar, en }]));
+const loading = () => `<div class="dk-loading" role="status"><span class="dk-spin" aria-hidden="true"></span>${esc(lang === "ar" ? "جارٍ التحميل…" : "Loading…")}</div>`;
 const catName = (k) => (lang === "ar" ? (CATS[k] || {}).ar : (t().cats && t().cats[k]) || (CATS[k] || {}).en) || k;
 
 // ---------- cards ----------
@@ -136,7 +145,7 @@ function tile(href, title, sub, extra) {
 function viewHome() {
   const m = store.get("mushaf", { max: 0 });
   const pct = DATA_MUSHAF_TOTAL ? Math.floor((m.max || 0) * 100 / DATA_MUSHAF_TOTAL) : 0;
-  const cats = (DATA ? DATA.categories : []).map((c) => tile(`#c/${c.key}`, catName(c.key), "")).join("");
+  const cats = STATIC_CATS.map(([key]) => tile(`#c/${key}`, catName(key), "")).join("");
   return `<div class="dk-tiles dk-tiles-main">
       ${tile("#mushaf", t().mushaf, t().beta, `<span class="dk-bar"><i style="width:${pct}%"></i></span><span class="dk-pct">${num(pct)}${lang === "ar" ? "٪" : "%"}</span>`)}
       ${tile("#tracker", t().tracker, t().trackerSub)}
@@ -146,7 +155,7 @@ function viewHome() {
     <div class="dk-tiles">${cats}${tile("#tasbih", t().tasbih, "")}${tile("#ayah", t().ayah, "")}</div>`;
 }
 function viewCategory(key) {
-  if (!DATA) return `<p>${esc(t().empty)}</p>`;
+  if (!DATA) return loading();
   const cards = [];
   for (const x of DATA.quran) for (const p of x.shown || []) if (p.category === key) cards.push(quranCard(x, p));
   for (const x of DATA.hadith) if (!x.id.startsWith("ev_")) for (const p of x.shown || []) if (p.category === key) cards.push(hadithCard(x, p));
@@ -157,6 +166,7 @@ function viewCategory(key) {
 }
 function viewFav() {
   const f = store.get("fav", []);
+  if (f.length && !DATA) return loading();
   if (!f.length || !DATA) return `<h2 class="pl-h">${esc(t().fav)}</h2><p>${esc(t().favEmpty)}</p>`;
   const cards = [];
   for (const id of f) {
@@ -274,6 +284,8 @@ async function render() {
   const titles = { mushaf: t().mushaf, tracker: t().tracker, asma: t().asma, fav: t().fav, tasbih: t().tasbih, ayah: t().ayah, c: arg ? catName(arg) : "" };
   $("crumbs").innerHTML = route === "home" ? "" : `<a href="#home">${esc(t().home)}</a> › <span>${esc(titles[route] || "")}</span>`;
   try {
+    const slow = ["mushaf", "asma", "ayah"].includes(route);
+    if (slow) v.innerHTML = loading();
     if (route === "c") { v.innerHTML = viewCategory(arg); bindCards(v); }
     else if (route === "fav") { v.innerHTML = viewFav(); bindCards(v); }
     else if (route === "mushaf") { v.innerHTML = await viewMushaf(arg ? Number(arg) : 0); if (arg) bindMushaf(v, Number(arg)); }
@@ -290,11 +302,16 @@ async function render() {
 }
 
 async function load() {
-  try { DATA = await (await fetch(`/api/adhkar?lang=${lang}`)).json(); CATS = Object.fromEntries((DATA.categories || []).map((c) => [c.key, c])); } catch (e) { DATA = null; }
-  try { const d = await (await fetch("/api/mushaf")).json(); SURAHS = d.surahs; DATA_MUSHAF_TOTAL = d.total; } catch (e) { /* the tile shows 0% */ }
+  render();  // the home screen and every tile at once; the data fills in behind
+  const [a, m] = await Promise.allSettled([fetch(`/api/adhkar?lang=${lang}`).then((r) => r.json()), fetch("/api/mushaf").then((r) => r.json())]);
+  if (a.status === "fulfilled") DATA = a.value;
+  if (m.status === "fulfilled") { SURAHS = m.value.surahs; DATA_MUSHAF_TOTAL = m.value.total; }
   render();
 }
 $("lang").value = lang;
 $("lang").addEventListener("change", (e) => { lang = e.target.value; try { localStorage.setItem("tathabbut-lang", lang); } catch (x) { /* ignore */ } ASMA = null; load(); });
 window.addEventListener("hashchange", () => { render(); window.scrollTo({ top: 0 }); });
 load();
+
+// On phones the sections bar scrolls: bring the current page into view.
+try { const cur = document.querySelector(".mast-nav [aria-current=\"page\"]"); if (cur) cur.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) { /* ignore */ }

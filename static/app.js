@@ -876,3 +876,6 @@ try {
   const q = new URLSearchParams(location.search).get("q");
   if (q) { $("text").value = q.slice(0, 8000); $("text").dispatchEvent(new Event("input")); check(); }
 } catch (e) { /* ignore */ }
+
+// On phones the sections bar scrolls: bring the current page into view.
+try { const cur = document.querySelector(".mast-nav [aria-current=\"page\"]"); if (cur) cur.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) { /* ignore */ }

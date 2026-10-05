@@ -177,3 +177,6 @@ fetch("/api/archive").then((r) => r.json()).then((d) => {
   applyLang();
 }).catch(() => { $("count").textContent = "—"; });
 applyLang();
+
+// On phones the sections bar scrolls: bring the current page into view.
+try { const cur = document.querySelector(".mast-nav [aria-current=\"page\"]"); if (cur) cur.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) { /* ignore */ }
