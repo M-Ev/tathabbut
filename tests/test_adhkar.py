@@ -41,7 +41,9 @@ def test_a_verse_is_placed_under_an_occasion_only_on_a_verified_hadith():
     by_id = {x["id"]: x for x in DATA["hadith"]}
     for q in DATA["quran"]:
         for p in q["shown"]:
-            if B.CONTEXT.get(p["category"]) or p["category"] == "ruqya_quran":
+            # A time or an act («after the prayer», «before sleep», ruqyah) is a claim a hadith must make; a Quranic
+            # du'a under a topic (for the sick, for the deceased) is the verse itself and claims no time.
+            if p["category"] in ("morning", "evening", "after_prayer", "in_prayer", "waking", "sleep", "ruqya_quran"):
                 ev = p["evidence"]
                 assert ev and any(s["category"] == p["category"] for s in by_id[ev["id"]]["shown"]), (q["id"], p["category"])
 

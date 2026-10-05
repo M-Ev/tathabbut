@@ -29,8 +29,8 @@ ACCEPTED = {"authentic", "good"}
 # An occasion-bound dhikr is shown under that occasion only if the authentic narration itself names it: the same
 # words said on another occasion (e.g. after hearing the adhan) do not make it a morning dhikr.
 CONTEXT = {
-    "morning": r"أصبح|يصبح|الصباح|صباح|أصبحت|أصبحنا",
-    "evening": r"أمسى|يمسي|المساء|مساء|أمسيت|أمسينا",
+    "morning": r"أصبح|يصبح|تصبح|نصبح|الصباح|صباح|أصبحت|أصبحنا",
+    "evening": r"أمسى|يمسي|تمسي|نمسي|المساء|مساء|أمسيت|أمسينا",
     "after_prayer": r"صلاة|الصلاة|سلم|دبر|انصرف|صلى|يصلي|المكتوبة",
     "in_prayer": r"صلاة|الصلاة|ركوع|ركع|سجود|سجد|كبر|استفتح|ركوعه|سجوده",
     "waking": r"استيقظ|من نومه|انتبه|تعار|قام من",
@@ -98,6 +98,24 @@ def place(item: dict) -> list:
     return out
 
 
+def quran_section(out: dict) -> None:
+    """The Quran items, from the Mushaf by reference: written with every save, so the file never lacks them.
+    A verse is under an occasion only once its evidence hadith is verified there."""
+    out["quran"] = []
+    by_id = {x["id"]: x for x in out["hadith"]}
+    for qid, cats, s, a, b in QURAN:
+        shown = []
+        for cat, ev in cats.items():
+            if ev is None:  # the verse is itself the du'a: its text is the Mushaf's
+                shown.append({"category": cat, "evidence": None, "count": None})
+                continue
+            hit = next((p for p in by_id.get(ev, {}).get("shown", []) if p["category"] == cat), None)
+            if hit:  # placed under an occasion only on a verified hadith that names it
+                shown.append({"category": cat, "evidence": {"id": ev, "text": by_id[ev]["text"], **hit}, "count": hit["count"]})
+        out["quran"].append({"id": qid, "surah": s, "ayah_from": a, "ayah_to": b, "shown": shown,
+                             "not_shown": [c for c in cats if c not in {x["category"] for x in shown}]})
+
+
 def main():
     old = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     done = {x["id"]: x for x in old.get("hadith", []) if x.get("check")}
@@ -118,21 +136,11 @@ def main():
         item = {"id": hid, "categories": cats, "text": text, "count": count, "cited": cited, "check": check}
         item["shown"] = place(item)
         out["hadith"].append(item)
+        quran_section(out)
         print(("ok   " if item["shown"] else "FAIL ") + hid, [p["category"] for p in item["shown"]], "of", cats, flush=True)
         OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
         time.sleep(max(0, 32 - (time.time() - t0)))
-    by_id = {x["id"]: x for x in out["hadith"]}
-    for qid, cats, s, a, b in QURAN:
-        shown = []
-        for cat, ev in cats.items():
-            if ev is None:  # the verse is itself the du'a: its text is the Mushaf's
-                shown.append({"category": cat, "evidence": None, "count": None})
-                continue
-            hit = next((p for p in by_id.get(ev, {}).get("shown", []) if p["category"] == cat), None)
-            if hit:  # placed under an occasion only on a verified hadith that names it
-                shown.append({"category": cat, "evidence": {"id": ev, "text": by_id[ev]["text"], **hit}, "count": hit["count"]})
-        out["quran"].append({"id": qid, "surah": s, "ayah_from": a, "ayah_to": b, "shown": shown,
-                             "not_shown": [c for c in cats if c not in {x["category"] for x in shown}]})
+    quran_section(out)
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     n = sum(1 for x in out["hadith"] if x["shown"])
     print(f"\n{n}/{len(out['hadith'])} hadith items verified; {len(out['quran'])} Quran items from the Mushaf")

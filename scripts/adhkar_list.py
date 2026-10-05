@@ -107,7 +107,7 @@ HADITH = [
 # authentic grading, the occasion named in the narration). Not shown as a dhikr; shown as the verse's evidence.
 HADITH += [
     ("ev_kursi_sleep", ["sleep"], "إذا أويت إلى فراشك فاقرأ آية الكرسي", 1, "البخاري"),
-    ("ev_kursi_prayer", ["after_prayer"], "من قرأ آية الكرسي في دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت", 1, "النسائي في الكبرى"),
+    ("ev_kursi_prayer", ["after_prayer"], "من قرأ آية الكرسي دبر كل صلاة مكتوبة لم يمنعه من دخول الجنة إلا أن يموت", 1, "النسائي في الكبرى"),
     ("ev_muawwidhat_day", ["morning", "evening"], "قل هو الله أحد والمعوذتين حين تمسي وحين تصبح ثلاث مرات تكفيك من كل شيء", 3, "أبو داود والترمذي"),
     ("ev_muawwidhat_sleep", ["sleep"], "كان إذا أوى إلى فراشه كل ليلة جمع كفيه ثم نفث فيهما", 1, "البخاري"),
     ("ev_muawwidhat_ruqya", ["ruqya_quran"], "كان إذا اشتكى يقرأ على نفسه بالمعوذات وينفث", 1, "البخاري"),
