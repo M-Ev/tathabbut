@@ -128,6 +128,18 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 
 See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, tool and license, and [STARTING_VERSION.md](STARTING_VERSION.md) for what existed before the challenge's build days.
 
+## الفريق · Team
+
+طوّر فريق «قيد الأوابد» أداة تثبّت وبناها، مستعينًا بـ Claude Code في كتابة الكود.
+
+- **الفكرة والمنهج العلمي:** أداة تتحقق ولا تحكم؛ العلماء الثلاثة عشر المعتمدون؛ مرجعية الفتوى.
+- **النشر والتشغيل:** Hugging Face Space، وربط النماذج (علّام وGroq) ومفاتيحها.
+- **قرارات النماذج:** بناءً على قياسات حية على الموقع (`eval/model_live_report.md`).
+- **الاختبار:** فحص الأداة على الموقع المباشر وكشف أخطائها.
+- **المراجعة الشرعية:** عضو الفريق المختص.
+
+Built by team Qayd al-Awabid, with Claude Code used to write the code.
+
 ## الترخيص · License
 
 Code: Apache-2.0 (see LICENSE). Data and model keep their own licenses, listed in SOURCES_AND_LICENSES.md.
