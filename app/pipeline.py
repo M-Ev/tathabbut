@@ -244,6 +244,8 @@ def _grade_groups(quote: str, res: DorarResult, min_sim: float = WEAK_MATCH) -> 
         "longer_only": bool(items) and not any(strong(i) and i["match"] == "same" for i in items) and any(strong(i) for i in items),
         "fabricated_by": flagged, "fabricated_by_en": [en for _, _, en in flagged_scholars], "hidden_narrator_statements": hidden, "error": res.error or None,
         "count": len(items), "sahihayn": sahihayn, "verdicts": _verdicts(items),
+        # Only texts that share some words (no narration close to the quote as a whole): the gradings are of other texts.
+        "loose_only": bool(items) and best < STRONG_MATCH,
     }
 
 
@@ -474,13 +476,13 @@ async def _model_candidates(text: str, existing: list[Candidate]) -> tuple[list[
 # A text that is only a quote, or a question about one («هل حديث ... صحيح؟», "Is the hadith ... authentic?"):
 # people paste a saying alone to ask about it, with no «قال ﷺ» before it.
 _BARE_HEAD_AR = re.compile(
-    r"^\s*(?P<ask>هل(?:\s+(?:صحيح|صح))?|ما\s+(?:مدى\s+)?(?:صحة|درجة|حكم|حال|مصدر|أصل|معنى)|كم\s+درجة|(?:أريد|اريد|ابي|أبي|ابغى|أبغى)\s+(?:التحقق\s+من|معرفة\s+صحة|اعرف|أعرف)"
+    r"^\s*(?P<ask>هل(?:\s+(?:صحيح|صح))?|ما\s+(?:مدى\s+)?(?:صحة|درجة|حكم|حال|مصدر|أصل|معنى)|كم\s+درجة|(?:أريد|اريد|ابي|أبي|ابغى|أبغى)\s+(?:التحقق\s+من|معرفة\s+صحة|اعرف|أعرف)(?:\s+(?:صحة|درجة|معنى))?"
     # Saudi and Gulf speech: «وش يعني حديث ...»، «ايش درجة حديث ...»، «معنى حديث ...»
     r"|(?:وش|ايش|إيش|شنو|شو)\s+(?:يعني|معنى|درجة|صحة|حكم)|معنى)?\s*"
     r"(?P<kw>(?:ال)?(?:حديث|أثر|مقولة|عبارة)(?:\s+(?:النبي|الرسول)\s*(?:ﷺ|صلى الله عليه وسلم)?)?)?\s*[:：]?\s*")
 _BARE_TAIL_AR = re.compile(
     r"\s*(?:(?:هل\s+)?(?:هو|هذا)\s+)?(?:(?:حديث|الحديث)\s+)?(?:(?:صحيح|صح)\s+(?:أم|ام|ولا|او|أو)\s+(?:لا|لأ|ضعيف|موضوع|مكذوب)|صحيح|ضعيف|موضوع|ثابت"
-    r"|(?:وش|ايش|إيش|ما|كم)\s+(?:درجته|درجتة|درجتها|صحته|صحتها|حكمه|معناه|معناها)|(?:وش|ايش|إيش)\s+(?:يعني|معناه))?\s*[؟?!.]*\s*$")
+    r"|(?:ولا|او|أو|أم|ام)\s+(?:لا|لأ)|(?:وش|ايش|إيش|ما|كم)\s+(?:درجته|درجتة|درجتها|صحته|صحتها|حكمه|معناه|معناها)|(?:وش|ايش|إيش)\s+(?:يعني|معناه))?\s*[؟?!.]*\s*$")
 _BARE_HEAD_EN = re.compile(
     r"^\s*(?P<ask>is\s+(?:the|this)|is\s+it\s+(?:true|authentic)\s+that|check)?\s*(?P<kw>(?:the\s+)?(?:hadith|narration|saying))?\s*[:,]?\s*", re.I)
 _BARE_TAIL_EN = re.compile(r"\s*(?:(?:a\s+)?(?:authentic|sahih|true|real|weak|fabricated)(?:\s+hadith)?)?\s*[?!.]*\s*$", re.I)

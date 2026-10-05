@@ -51,7 +51,7 @@ const T = {
       not_in_translation: "لم نجد آية تقابل هذه الترجمة",
       graded: "وُجد في كتب الحديث، وهذه أحكام علماء الحديث المعتمدين عليه",
       gradedFab: "وُجد في كتب الحديث، ومن علماء الحديث المعتمدين من حكم عليه بالوضع أو البطلان أو بأنه لا أصل له",
-      found_similar: "وُجدت روايات بلفظ مقارب، لا بلفظه",
+      loose_only: "لم نجد هذا النص بعينه، ووجدنا نصوصًا أخرى تشبهه في بعض ألفاظه", found_similar: "وُجدت روايات بلفظ مقارب، لا بلفظه",
       not_found: "لم نجد حكمًا لأحد علماء الحديث المعتمدين على هذا النص",
       needs_model: "النص مترجم، والبحث عن أصله العربي يحتاج إلى النموذج اللغوي",
       language_referral: "حديث بغير العربية والإنجليزية، فلم نبحث عن أصله آليًا، ونحيله إلى المختص",
@@ -87,6 +87,7 @@ const T = {
     leveld: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. فيُرجى البحث عن المسألة في فتاوى العالمين الجليلين:",
     leveldFound: "يبدو أن في النص سؤالًا عن حالة شخصية، وتثبّت لا يفتي. هذه فتاوى منشورة للعالمين الجليلين في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما. اختيرت بتقارب الألفاظ بين السؤال وعناوين الفتاوى، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق حالتك.",
     leveldGeneral: "هذا سؤال عن حكم شرعي، وتثبّت لا يفتي. ابحث عن المسألة في فتاوى العلماء الرسمية:",
+    looseNote: "الأحاديث أدناه نصوص أخرى غير النص المنقول، تشبهه في بعض ألفاظه فقط. وأحكام العلماء المذكورة عليها هي، لا على نصك، فلا تُعدّ حكمًا عليه.",
     outOfScope: "تثبّت يتحقق من الآيات والأحاديث، ويعرض فتاوى العلماء في الأحكام الشرعية. وهذا السؤال ليس عن آية ولا حديث ولا حكم شرعي، فليس عندنا ما نعرضه فيه.",
     searchedAs: (w) => `بحثنا في الفتاوى بعنوان المسألة: «${w}»؛ صاغه النموذج اللغوي من سؤالك للبحث فقط، والفتاوى منقولة بنصها.`,
     leveldGeneralFound: "هذا سؤال عن حكم شرعي، وتثبّت لا يفتي. هذه فتاوى سماحة الشيخ عبدالعزيز بن باز وفضيلة الشيخ محمد بن صالح العثيمين رحمهما الله في مسائل قريبة من السؤال، منقولة بنصها من موقعيهما الرسميين مع مصدر كل فتوى ورابطها. اختيرت بتقارب الألفاظ، ولم يكتبها النموذج اللغوي ولم يخترها، فتأكد أنها تطابق مسألتك.",
@@ -196,7 +197,7 @@ const T = {
       not_in_translation: "We could not match this to any verse",
       graded: "Found in hadith sources, with these gradings by the approved hadith scholars",
       gradedFab: "Found in hadith sources; some of the approved hadith scholars graded it fabricated, false or baseless",
-      found_similar: "Narrations with similar, not identical, wording were found",
+      loose_only: "This text itself was not found; other texts that share some of its words were", found_similar: "Narrations with similar, not identical, wording were found",
       not_found: "No grading by the approved hadith scholars was found",
       needs_model: "This is a translation; finding its Arabic source needs the language model",
       language_referral: "A hadith in a language other than Arabic or English; its source was not searched automatically, so it is referred to a specialist",
@@ -238,6 +239,7 @@ const T = {
     leveld: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Look for the question in the published fatwas of these two scholars:",
     leveldFound: "The text seems to include a personal fatwa question, and Tathabbut does not issue fatwas. Below are published fatwas of the two scholars on close questions, quoted in Arabic exactly as on their sites. They were chosen by word overlap between the question and the fatwa titles; the language model neither wrote nor chose them, so check that they match your case.",
     leveldGeneral: "This is a question about a ruling, and Tathabbut does not issue fatwas. Look for it in the official fatwas of the scholars:",
+    looseNote: "The hadiths below are other texts, not the one quoted; they share only some of its words. The scholars' gradings shown are on them, not on your text, so they are not a grading of it.",
     outOfScope: "Tathabbut checks Quran verses and hadith, and shows scholars' fatwas on rulings. This question is not about a verse, a hadith or a ruling, so there is nothing for us to show.",
     searchedAs: (w) => `The fatwas were searched with the topic «${w}»: the language model worded it from your question for the search only; the fatwas are quoted verbatim.`,
     leveldGeneralFound: "This is a question about a ruling, and Tathabbut does not issue fatwas. Below are published fatwas of Shaykh Abd al-Aziz ibn Baz and Shaykh Muhammad ibn Salih al-Uthaymeen on close questions, quoted in Arabic exactly as on their official sites with each fatwa's source and link. They were chosen by word overlap; the language model neither wrote nor chose them, so check that they match your question.",
@@ -379,6 +381,7 @@ function verdictFor(c) {
     if (c.status === "not_in_mushaf") return c.lang === "ar" ? [v.not_in_mushaf, "warn"] : [v.not_in_translation, "warn"];
   }
   if (c.status === "graded" && hd.fabricated_by && hd.fabricated_by.length) return [v.gradedFab, "bad"];
+  if (c.status === "found_similar" && hd.loose_only) return [v.loose_only, "warn"];
   const cls = { graded: "ok", found_similar: "warn", not_found: "warn", needs_model: "warn", language_referral: "warn", source_error: "warn", error: "bad" }[c.status] || "";
   return [v[c.status] || c.status, cls];
 }
@@ -479,6 +482,7 @@ function renderGradings(hd) {
       `<p class="line ${cls[v.verdict]}"><b>${esc(t().verdictLbl[v.verdict])}</b> ${esc((arData() ? v.scholars_ar : v.scholars_en).join(arData() ? "، " : ", "))}</p>`).join("")
       + `<p class="fine">${esc(t().verdictNote)}</p></div>`;
   } else if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(arData() ? "، " : ", ")))}</p>`;
+  if (hd.loose_only) h += `<p class="line warn">${esc(t().looseNote)}</p>`;
   if (hd.sahihayn && hd.sahihayn.length) {
     const list = hd.sahihayn.map((x) => {
       const name = arData() ? `${esc(x.book)} (${esc(localDigits(x.number))})` : `${esc(x.book_en || x.book)} (no. ${esc(x.number)})`;
