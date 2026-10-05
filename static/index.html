@@ -19,7 +19,9 @@
       <a href="/static/archive.html" data-i18n="navArchive">الأرشيف</a>
       <a href="/static/chatbot.html" data-i18n="navBot">إجابة روبوت</a>
       <a href="/docs" data-i18n="navDev">للمطورين</a>
-      <button id="lang" class="linkish lang" type="button">English</button>
+      <select id="lang" class="lang" aria-label="اللغة · Language">
+        <option value="ar">العربية</option><option value="en">English</option><option value="ur">اردو</option><option value="id">Indonesia</option>
+      </select>
     </nav>
   </div>
   <div class="wrap mast-hero">
@@ -97,6 +99,7 @@
     <div data-i18n="credit">يعمل بنموذج علّام من سدايا، ومصادره من الحزمة العلمية للتحدي.</div>
   </div>
 </div></footer>
+<script src="/static/i18n.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

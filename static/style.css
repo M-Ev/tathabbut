@@ -341,3 +341,9 @@ html[dir="ltr"] .ar-inline { text-align: left; }
 .ag-tag { font-size: var(--fs-xs); color: var(--warn); background: var(--warn-tint); padding: 0 var(--s-2); border-radius: var(--r-1); }
 .ag-grade { margin-top: var(--s-1) !important; }
 .ag-text { margin-top: var(--s-1) !important; }
+.mast-nav select.lang {
+  font: inherit; font-size: var(--fs-sm); color: var(--mast-ink); background: transparent; cursor: pointer;
+  min-height: 40px; padding: 0 var(--s-2); border: var(--hair) solid rgba(255, 255, 255, .25); border-radius: var(--r-2);
+}
+.mast-nav select.lang option { color: var(--ink); background: var(--surface); }
+html[lang="ur"] body { font-family: "Readex Pro", "Noto Nastaliq Urdu", system-ui, sans-serif; }

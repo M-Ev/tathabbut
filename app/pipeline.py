@@ -393,6 +393,8 @@ async def check_quran(c: Candidate, out: dict) -> None:
     if c.ref_surah:
         Q.check_reference(m, c.ref_surah, c.ref_ayah, c.ref_label)
     out["quran"] = m.to_dict()
+    if m.surah is not None:  # the verse in each approved translation, for readers of Urdu and Indonesian
+        out["quran"]["translations"] = Q.translations_for(m.surah, m.ayah_from, m.ayah_to)
     if m.status == "exact":
         out["status"] = "verified"
     elif m.status == "differs":
@@ -615,6 +617,8 @@ async def check_text(text: str, deep: bool = False) -> dict:
 DISCLAIMER = {
     "ar": "تثبّت أداة آلية مدعومة بالذكاء الاصطناعي وليست عالمًا ولا مفتيًا. تحققت من الاستشهادات وحدها، لا من صحة الشرح أو الاستدلال.",
     "en": "Tathabbut is an automated, AI-assisted tool, not a scholar or a mufti. It checked the citations only, not the explanation or the reasoning.",
+    "ur": "تثبّت مصنوعی ذہانت سے مدد یافتہ ایک خودکار آلہ ہے، نہ عالم ہے نہ مفتی۔ اس نے صرف حوالے جانچے ہیں، شرح یا استدلال نہیں۔",
+    "id": "Tathabbut adalah alat otomatis berbantuan AI, bukan ulama dan bukan mufti. Alat ini hanya memeriksa kutipan, bukan penjelasan atau penalarannya.",
 }
 POLICY = json.loads((Path(__file__).resolve().parent.parent / "data" / "chatbot_policy.json").read_text(encoding="utf-8"))
 _UNCHECKED = {"source_error", "source_offline", "needs_model", "language_referral", "error"}

@@ -301,7 +301,7 @@ const CASES = [
 
 function renderCases() {
   $("cases-list").innerHTML = CASES.map((c, i) =>
-    `<li><button type="button" class="linkish case" data-case="${i}">${esc(num(i + 1))}. ${esc(c.text)}</button><span class="fine">${esc(t().expected)}: ${esc(lang === "ar" ? c.ar : c.en)}</span></li>`).join("");
+    `<li><button type="button" class="linkish case" data-case="${i}">${esc(num(i + 1))}. ${esc(c.text)}</button><span class="fine">${esc(t().expected)}: ${esc(arData() ? c.ar : c.en)}</span></li>`).join("");
 }
 
 const SAMPLES = {
@@ -315,6 +315,13 @@ let lastResult = null;
 let lastText = "";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Urdu and Indonesian (static/i18n.js) fall back to English for any missing key.
+const merge = (base, over) => Object.fromEntries(Object.keys({ ...base, ...over }).map((k) =>
+  [k, over && k in over ? (over[k] && typeof over[k] === "object" && !Array.isArray(over[k]) && base[k] ? merge(base[k], over[k]) : over[k]) : base[k]]));
+if (typeof T_EXTRA !== "undefined") for (const k of Object.keys(T_EXTRA)) T[k] = merge(T.en, T_EXTRA[k]);
+const LANGS = ["ar", "en", "ur", "id"];
+const arData = () => lang === "ar" || lang === "ur";  // Arabic names of scholars, books and surahs (Urdu readers read them)
+const latin = () => lang === "en" || lang === "id";
 const t = () => T[lang];
 const num = (n) => (lang === "ar" ? Number(n).toLocaleString("ar-EG") : String(n));
 const localDigits = (s) => (lang === "ar" ? String(s ?? "").replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) : String(s ?? ""));
@@ -325,12 +332,12 @@ const updateCounter = () => { $("counter").textContent = localDigits(`${$("text"
 
 function applyLang() {
   document.documentElement.lang = lang;
-  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.documentElement.dir = arData() ? "rtl" : "ltr";
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t()[el.dataset.i18n]; });
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t()[el.dataset.i18nPh]; });
-  $("lang").textContent = lang === "ar" ? "English" : "العربية";
+  $("lang").value = lang;
   updateCounter();
-  document.title = lang === "ar" ? "تثبّت · مدقق الاستشهادات الشرعية" : "Tathabbut · Islamic citation checker";
+  document.title = { ar: "تثبّت · مدقق الاستشهادات الشرعية", en: "Tathabbut · Islamic citation checker", ur: "تثبّت · شرعی حوالوں کی جانچ", id: "Tathabbut · Pemeriksa kutipan dalil" }[lang];
   if (lastResult) render(lastResult);
   showBanner();
   renderCases();
@@ -338,10 +345,10 @@ function applyLang() {
 }
 
 function place(q) {
-  const name = lang === "ar" ? q.surah_name_ar : q.surah_name_en;
+  const name = arData() ? q.surah_name_ar : q.surah_name_en;
   const a = q.ayah_from === q.ayah_to ? num(q.ayah_from) : `${num(q.ayah_from)}–${num(q.ayah_to)}`;
   const word = q.ayah_from === q.ayah_to ? t().ayahWord : t().ayatWord;
-  return `${t().surah} ${name}، ${word} ${a}`.replace("، ", lang === "ar" ? "، " : ", ");
+  return `${t().surah} ${name}، ${word} ${a}`.replace("، ", arData() ? "، " : ", ");
 }
 
 function verdictFor(c) {
@@ -384,10 +391,14 @@ function renderMushaf(q, c) {
   let h = `<div class="mushaf"><div class="mushaf-inner">
     <div class="mushaf-head">${esc(place(q))}</div>
     <p class="ayat">${ayat}</p>`;
-  if (q.translation) {
+  const uiTr = (lang === "ur" || lang === "id") && q.translations && q.translations[lang];
+  if (uiTr) {
+    // The reader's language: the King Fahd Complex translation of this verse, copied as published.
+    h += `<p class="translation" dir="${lang === "ur" ? "rtl" : "ltr"}" lang="${lang}"><span class="lbl">${esc(t().translationLbl)}</span>${esc(uiTr.text)}</p>`;
+  } else if (q.translation) {
     // Plan item 36: the approved translation in the quote's own language, beside the Mushaf text.
     const tr = q.translation;
-    h += `<p class="translation" dir="${tr.lang === "ur" ? "rtl" : "ltr"}" lang="${esc(tr.lang)}"><span class="lbl" dir="${lang === "ar" ? "rtl" : "ltr"}">${esc(lang === "ar" ? tr.name_ar : tr.name_en)}</span>${esc(tr.text)}</p>`;
+    h += `<p class="translation" dir="${tr.lang === "ur" ? "rtl" : "ltr"}" lang="${esc(tr.lang)}"><span class="lbl" dir="${arData() ? "rtl" : "ltr"}">${esc(arData() ? tr.name_ar : tr.name_en)}</span>${esc(tr.text)}</p>`;
   } else if (lang === "en" || c.lang === "en") h += `<p class="translation"><span class="lbl">${esc(t().translationLbl)}</span>${esc(q.translation_en)}</p>`;
   h += `</div></div>`;
   if (changed.length) {
@@ -399,7 +410,8 @@ function renderMushaf(q, c) {
   }
   if (q.occurrences > 1) h += `<p class="line note">${esc(t().occurrences(q.occurrences))}</p>`;
   h += `<p class="after"><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(t().ayahLink)}</a>`;
-  if (q.translation) h += ` · <a href="${esc(q.translation.url)}" target="_blank" rel="noopener">${esc(t().trLinkOther)}</a>`;
+  if (uiTr) h += ` · <a href="${esc(uiTr.url)}" target="_blank" rel="noopener">${esc(t().trLinkOther)}</a>`;
+  else if (q.translation) h += ` · <a href="${esc(q.translation.url)}" target="_blank" rel="noopener">${esc(t().trLinkOther)}</a>`;
   else if (lang === "en" || c.lang === "en") h += ` · <a href="${esc(q.translation_url)}" target="_blank" rel="noopener">${esc(t().trLink)}</a>`;
   h += `</p>`;
   return h;
@@ -420,7 +432,7 @@ function groupRows(items) {
 function sourceLine(i) {
   const no = esc(localDigits(i.number));
   const link = i.url ? ` · <a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(t().openDorar)}</a>` : "";
-  if (lang === "ar") return `<li>${esc(i.book)}، ${no}${link}</li>`;
+  if (arData()) return `<li>${esc(i.book)}، ${no}${link}</li>`;
   const title = i.book_en ? esc(i.book_en) : `<bdi lang="ar" dir="rtl">${esc(i.book)}</bdi>`;
   const arTitle = i.book_en ? `<bdi class="ar-inline" lang="ar" dir="rtl">${esc(i.book)}</bdi>` : "";
   return `<li>${title}, no. ${no}${link}${arTitle}</li>`;
@@ -447,16 +459,16 @@ function glossLine(gl) {
 function renderGradings(hd) {
   if (!hd) return "";
   let h = "";
-  const fab = lang === "en" && hd.fabricated_by_en ? hd.fabricated_by_en : hd.fabricated_by;
+  const fab = latin() && hd.fabricated_by_en ? hd.fabricated_by_en : hd.fabricated_by;
   if (hd.verdicts && hd.verdicts.length) {
     const cls = { accepted: "ok", weak: "warn", fabricated: "bad" };
     h += `<div class="verdicts"><p class="lbl">${esc(t().verdictsTitle)}</p>` + hd.verdicts.map((v) =>
-      `<p class="line ${cls[v.verdict]}"><b>${esc(t().verdictLbl[v.verdict])}</b> ${esc((lang === "ar" ? v.scholars_ar : v.scholars_en).join(lang === "ar" ? "، " : ", "))}</p>`).join("")
+      `<p class="line ${cls[v.verdict]}"><b>${esc(t().verdictLbl[v.verdict])}</b> ${esc((arData() ? v.scholars_ar : v.scholars_en).join(arData() ? "، " : ", "))}</p>`).join("")
       + `<p class="fine">${esc(t().verdictNote)}</p></div>`;
-  } else if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(lang === "ar" ? "، " : ", ")))}</p>`;
+  } else if (fab && fab.length) h += `<p class="line bad">${esc(t().fabBy(fab.join(arData() ? "، " : ", ")))}</p>`;
   if (hd.sahihayn && hd.sahihayn.length) {
     const list = hd.sahihayn.map((x) => {
-      const name = lang === "ar" ? `${esc(x.book)} (${esc(localDigits(x.number))})` : `${esc(x.book_en || x.book)} (no. ${esc(x.number)})`;
+      const name = arData() ? `${esc(x.book)} (${esc(localDigits(x.number))})` : `${esc(x.book_en || x.book)} (no. ${esc(x.number)})`;
       return x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${name}</a>` : name;
     }).join(t().and);
     h += `<p class="line ok">${t().sahihayn(list)}</p>`;
@@ -467,16 +479,16 @@ function renderGradings(hd) {
   const cats = new Set(all.filter((i) => !i.match || i.match === "same").map((i) => (i.grade_gloss || {}).category).filter((c) => c && c !== "narrators"));
   if (cats.size > 1) h += `<p class="line note">${esc(t().ijtihad)}</p>`;
   for (const g of groups) {
-    h += `<table class="grades"><caption>${esc(lang === "ar" ? g.label_ar : g.label_en)}</caption>
+    h += `<table class="grades"><caption>${esc(arData() ? g.label_ar : g.label_en)}</caption>
       <thead><tr><th>${esc(t().gradeCols[0])}</th><th>${esc(t().gradeCols[1])}</th><th>${esc(t().gradeCols[2])}</th></tr></thead><tbody>`;
     for (const row of groupRows(g.items)) {
       const i = row.first;
       const gl = i.grade_gloss || {};
-      let meaning = lang === "en" ? glossLine(gl) : "";
+      let meaning = latin() ? glossLine(gl) : "";
       if (i.match === "longer") meaning += `<span class="gloss match-note">${esc(t().longerText(num(i.source_words)))}</span>`;
       if (i.match === "partial" && (i.missing_words || []).length) meaning += `<span class="gloss match-note">${bidi(esc(t().partialText(i.missing_words.join(" "))))}</span>`;
       h += `<tr>
-        <td class="who">${esc(lang === "ar" ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(localDigits(i.died_ah)))}</span></td>
+        <td class="who">${esc(arData() ? i.scholar_ar : i.scholar_en)}<span class="died">${esc(t().died(localDigits(i.died_ah)))}</span></td>
         <td><span class="g" lang="ar" dir="rtl">${esc(i.grade)}</span>${meaning}
           <details><summary>${esc(t().sourceText)}</summary><div class="htext" lang="ar" dir="rtl">${esc(i.text)}${i.rawi ? `<div class="after">${esc(t().rawi)}: ${esc(i.rawi)}</div>` : ""}</div></details></td>
         <td class="src"><ul class="srcs">${row.sources.map(sourceLine).join("")}</ul></td>
@@ -489,7 +501,7 @@ function renderGradings(hd) {
   }
   if (hd.hidden_narrator_statements) h += `<p class="after">${esc(t().narrator(num(hd.hidden_narrator_statements)))}</p>`;
   if (groups.length) h += `<p class="after">${esc(t().onlyApproved)}</p>`;
-  if (groups.length && lang === "en") h += `<p class="after">${esc(t().glossNote)}</p>`;
+  if (groups.length && latin()) h += `<p class="after">${esc(t().glossNote)}</p>`;
   if (hd.search_url) h += `<p class="after"><a href="${esc(hd.search_url)}" target="_blank" rel="noopener">${esc(t().searchDorar)}</a></p>`;
   return h;
 }
@@ -519,7 +531,7 @@ function reasonsFor(c) {
       out.push(r.refWritten(q.reference_given));
       const cp = place({ surah_name_ar: q.cited.surah_name_ar, surah_name_en: q.cited.surah_name_en, ayah_from: q.cited.ayah, ayah_to: q.cited.ayah });
       if (q.cited.exists) out.push({ text: r.refHolds(cp), quran: q.cited.text });
-      else out.push(r.refNoAyah(lang === "ar" ? q.cited.surah_name_ar : q.cited.surah_name_en, num(q.cited.surah_ayat)));
+      else out.push(r.refNoAyah(arData() ? q.cited.surah_name_ar : q.cited.surah_name_en, num(q.cited.surah_ayat)));
       out.push(r.refActual(place(q)));
     } else if (q.reference_given && q.reference_ok === false) {
       out.push(r.refWritten(q.reference_given), r.refActual(place(q)));  // a surah named without an ayah
@@ -555,7 +567,7 @@ function reasonsFor(c) {
 // In the English view an Arabic reference such as «(البقرة: 154)» must keep its own direction inside the sentence.
 const AR_RUN = /[(\[]?[\u0600-\u06FF][\u0600-\u06FF\u0660-\u06690-9\s:،.\-–]*[\u0600-\u06FF\u0660-\u06690-9][)\]]?/g;
 function bidi(escaped) {
-  return lang === "en" ? escaped.replace(AR_RUN, (m) => `<bdi dir="rtl">${m}</bdi>`) : escaped;
+  return latin() ? escaped.replace(AR_RUN, (m) => `<bdi dir="rtl">${m}</bdi>`) : escaped;
 }
 
 function renderWhy(c, cls) {
@@ -634,18 +646,18 @@ function renderEntry(c) {
 // The two scholars' fatwas: their words verbatim, the site's own source line and link; nothing written by the tool.
 function renderScholarFatwas(sc) {
   const ar = (x) => `<bdi dir="rtl" lang="ar">${esc(x)}</bdi>`;
-  let h = `<section class="fatwas"><h3 class="fatwas-h">${esc(t().fatwasOf(lang === "ar" ? sc.ar : sc.en))}</h3>`;
-  if (sc.error) h += `<p class="fine">${esc(t().ferror)} <a href="${esc(sc.site)}" target="_blank" rel="noopener">${esc(lang === "ar" ? sc.site_ar : sc.site_en)}</a></p>`;
+  let h = `<section class="fatwas"><h3 class="fatwas-h">${esc(t().fatwasOf(arData() ? sc.ar : sc.en))}</h3>`;
+  if (sc.error) h += `<p class="fine">${esc(t().ferror)} <a href="${esc(sc.site)}" target="_blank" rel="noopener">${esc(arData() ? sc.site_ar : sc.site_en)}</a></p>`;
   else if (!sc.fatwas.length) h += `<p class="fine">${esc(t().fnone)} <a href="${esc(sc.search_url)}" target="_blank" rel="noopener">${esc(t().fsearch)}</a></p>`;
   for (const f of sc.fatwas) {
     h += `<article class="fatwa"><p class="fatwa-title">${ar(f.title)}</p>`;
     if (f.question) h += `<p class="fatwa-part"><span class="lbl">${esc(t().fq)}</span>${ar(f.question)}</p>`;
     if (f.opening) h += `<p class="fatwa-part"><span class="lbl">${esc(t().fopen)}</span>${ar(f.opening)}</p>`;
     if (f.answer) h += `<details class="fatwa-full"><summary>${esc(t().ffull)}</summary><div class="fatwa-text" dir="rtl" lang="ar">${esc(f.answer)}</div></details>`;
-    const src = [lang === "ar" ? sc.site_ar : sc.site_en, f.source].filter(Boolean).join("، ");
+    const src = [arData() ? sc.site_ar : sc.site_en, f.source].filter(Boolean).join("، ");
     h += `<p class="after">${esc(t().fsource)}: ${esc(src)} · <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.answer || !f.opening ? t().flink : t().ffullSite)}</a></p></article>`;
   }
-  h += `<p class="fine">${esc(lang === "ar" ? sc.terms_ar : sc.terms_en)}</p>`;
+  h += `<p class="fine">${esc(arData() ? sc.terms_ar : sc.terms_en)}</p>`;
   return h + `</section>`;
 }
 
@@ -680,7 +692,7 @@ function render(r) {
   else $("summary").textContent = r.unsupported_language ? t().unsupported : t().none;
   if (r.summary.total && r.unsupported_language) $("summary").innerHTML += `<span class="fine rules-note">${esc(t().unsupportedPart)}</span>`;
   if (r.disclaimer) $("disclaimer").textContent = r.disclaimer[lang] || r.disclaimer.ar;
-  const day = new Date().toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { year: "numeric", month: "long", day: "numeric" });
+  const day = new Date().toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { year: "numeric", month: "long", day: "numeric" });
   $("report-meta").textContent = t().meta(day, (r.versions || {}).app || "—");
   const md = r.model || {};
   $("summary").innerHTML += `<span class="fine rules-note">${esc(md.used ? t().modelUsed(num(md.seconds), (md.answered_by || []).join("، ")) : t().modelNotUsed)}</span>`;
@@ -697,11 +709,11 @@ function render(r) {
       h = `<p>${esc(r.level_d.form === "general" ? t().leveldGeneralFound : t().leveldFound)}</p>` + r.level_d.fatwas.scholars.map(renderScholarFatwas).join("");
     } else {
       const refs = (r.level_d.references || []).map((x) =>
-        `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? x.ar : x.en)}</a></li>`).join("");
+        `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(arData() ? x.ar : x.en)}</a></li>`).join("");
       h = `<p>${esc(r.level_d.form === "general" ? t().leveldGeneral : t().leveld)}</p>` + (refs ? `<ul class="refs">${refs}</ul>` : "");
     }
     if (r.level_d.form === "ruling_in_answer") h = `<p class="line warn">${esc(t().leveldRuling)}</p>` + h;
-    ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(lang === "ar" ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
+    ld.innerHTML = h + `<p class="body-ref">${esc(t().leveldBody(arData() ? b.ar : b.en))} <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(t().bodyLink)}</a></p>`;
   }
   $("annotated").innerHTML = renderAnnotated(lastText, r.citations);
   $("annotated").hidden = !r.citations.length;
@@ -788,12 +800,12 @@ document.querySelectorAll("[data-sample]").forEach((b) => b.addEventListener("cl
   $("text").dispatchEvent(new Event("input"));
   $("text").focus();
 }));
-$("lang").addEventListener("click", () => {
-  lang = lang === "ar" ? "en" : "ar";
+$("lang").addEventListener("change", () => {
+  lang = LANGS.includes($("lang").value) ? $("lang").value : "ar";
   try { localStorage.setItem("tathabbut-lang", lang); } catch (e) { /* storage may be blocked */ }
   applyLang();
 });
-try { const saved = localStorage.getItem("tathabbut-lang"); if (saved === "en" || saved === "ar") lang = saved; } catch (e) { /* ignore */ }
+try { const saved = localStorage.getItem("tathabbut-lang"); if (LANGS.includes(saved)) lang = saved; } catch (e) { /* ignore */ }
 // My checks: kept in this browser only (localStorage), never sent anywhere; the page works without it.
 const HKEY = "tathabbut-history", HMAX = 12;
 function readHistory() {
@@ -811,7 +823,7 @@ function showHistory() {
   const h = readHistory(), box = $("history");
   if (!box) return;
   box.hidden = !h.length;
-  const day = (iso) => new Date(iso).toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { day: "numeric", month: "long" });
+  const day = (iso) => new Date(iso).toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { day: "numeric", month: "long" });
   $("history-list").innerHTML = h.map((x, i) => {
     const s = (x.result && x.result.summary) || {};
     return `<li><button type="button" class="linkish case" data-h="${i}">${esc(x.text.slice(0, 90))}${x.text.length > 90 ? "…" : ""}</button>

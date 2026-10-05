@@ -3,7 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let lang = "ar";
-try { const s = localStorage.getItem("tathabbut-lang"); if (s === "en" || s === "ar") lang = s; } catch (e) { /* ignore */ }
+try { const s = localStorage.getItem("tathabbut-lang"); if (["ar", "en", "ur", "id"].includes(s)) lang = s; } catch (e) { /* ignore */ }
 const num = (n) => (lang === "ar" ? String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]) : String(n));
 
 const T = {
@@ -44,6 +44,38 @@ const T = {
     empty: "No results. Try another word, or check the text yourself on the Check page.",
   },
 };
+T.ur = { ...T.en,
+  title: "تثبّت آرکائیو", tagline: "رائج احادیث و آیات، معتمد علمائے حدیث کے اقوال کے ساتھ، اصل متن اور ماخذ سمیت",
+  navCheck: "جانچ", navArchive: "آرکائیو", navBot: "چیٹ بوٹ کا جواب", navDev: "ڈویلپرز",
+  searchLabel: "آرکائیو میں تلاش کریں", searchPh: "حدیث یا آیت کا کوئی لفظ لکھیں",
+  filters: { all: "سب", supported: "مآخذ سے تائید", not_supported: "تائید نہیں", verify: "مزید تحقیق درکار", quran: "آیات" },
+  stats: { total: "حوالے", supported: "تائید", not_supported: "تائید نہیں", quran: "آیات" },
+  tier: { documented: "مصحف کے مطابق", supported: "مآخذ سے تائید", not_supported: "معتمد مآخذ سے تائید نہیں", verify: "مزید تحقیق درکار", refer: "ماہر کے حوالے" },
+  tierLbl: "دلیل کی حیثیت", hadith: "حدیث", quran: "آیت",
+  verdict: { accepted: "صحیح یا حسن، بقول", weak: "ضعیف، بقول", fabricated: "موضوع یا بے اصل، بقول" },
+  sahihayn: "صحیحین میں:", gradings: (n) => `علماء کے احکام اصل متن میں (${n})`, died: (y) => `وفات ${y}ھ`,
+  longer: "طویل یا ملتی جلتی روایت پر حکم؛ اس پر بنیاد نہیں",
+  check: "خود ابھی جانچیں", source: "ماخذ", count: (n, m) => `${m} میں سے ${n}`,
+  note: (d) => `یہ حوالے ${d} کو خودکار طور پر جانچے گئے؛ احکام الدرر سے اصل متن میں روابط سمیت منقول ہیں۔ ٹیم کی شرعی ماہر نے ابھی ان کا جائزہ نہیں لیا، اور آلہ کسی حکم کو ترجیح نہیں دیتا۔`,
+  empty: "کوئی نتیجہ نہیں۔ کوئی اور لفظ آزمائیں، یا جانچ کے صفحے پر خود متن جانچیں۔",
+};
+T.id = { ...T.en,
+  title: "Arsip Tathabbut", tagline: "Hadis dan ayat yang beredar, beserta penilaian ulama hadis yang diakui, teks asli dan sumbernya",
+  navCheck: "Periksa", navArchive: "Arsip", navBot: "Jawaban chatbot", navDev: "Pengembang",
+  searchLabel: "Cari di arsip", searchPh: "Ketik kata dari hadis atau ayat",
+  filters: { all: "Semua", supported: "Didukung", not_supported: "Tidak didukung", verify: "Perlu verifikasi", quran: "Ayat" },
+  stats: { total: "kutipan", supported: "didukung", not_supported: "tidak didukung", quran: "ayat" },
+  tier: { documented: "Sesuai Mushaf", supported: "Didukung sumber", not_supported: "Tidak didukung sumber yang diakui", verify: "Perlu verifikasi lanjut", refer: "Dirujuk ke ahli" },
+  tierLbl: "Status dalil", hadith: "Hadis", quran: "Ayat",
+  verdict: { accepted: "Shahih atau hasan menurut", weak: "Dha'if menurut", fabricated: "Maudhu' atau tidak berdasar menurut" },
+  sahihayn: "Dalam Shahihain:", gradings: (n) => `Penilaian ulama, teks asli (${n})`, died: (y) => `w. ${y} H`,
+  longer: "dinilai pada riwayat lebih panjang atau lafaz mirip; tidak dihitung",
+  check: "Periksa sendiri sekarang", source: "Sumber", count: (n, m) => `${n} dari ${m}`,
+  note: (d) => `Diperiksa otomatis pada ${d}. Penilaian dikutip apa adanya dari Dorar beserta tautannya. Belum ditinjau oleh peninjau syariah tim; alat ini tidak mengunggulkan satu penilaian atas yang lain.`,
+  empty: "Tidak ada hasil. Coba kata lain, atau periksa teks sendiri di halaman Periksa.",
+};
+const LANGS = ["ar", "en", "ur", "id"];
+const arData = () => lang === "ar" || lang === "ur";
 const t = () => T[lang];
 let data = { entries: [] }, filter = "all";
 const CLS = { documented: "ok", supported: "ok", not_supported: "warn", verify: "warn", refer: "warn" };
@@ -67,7 +99,7 @@ function card(e, i) {
     <p class="arch-quote"><bdi dir="${e.lang === "en" ? "ltr" : "rtl"}">«${esc(e.quote)}»</bdi></p>`;
   if (e.quran) {
     const q = e.quran;
-    h += `<div class="mushaf arch-mushaf"><p class="mushaf-head">${esc(lang === "ar" ? `سورة ${q.surah_name_ar}، ${q.ref}` : `${q.surah_name_en} ${q.ref}`)}</p>
+    h += `<div class="mushaf arch-mushaf"><p class="mushaf-head">${esc(arData() ? `سورة ${q.surah_name_ar}، ${q.ref}` : `${q.surah_name_en} ${q.ref}`)}</p>
       <p class="ayat" lang="ar" dir="rtl">${esc(q.mushaf_text)}</p></div>`;
     for (const d of (q.diff || []).slice(0, 3)) if (d.quoted || d.mushaf) h += `<p class="line warn">${esc(t().wrote(d.quoted || "—", d.mushaf || "—"))}</p>`;
     if (q.reference_ok === false) h += `<p class="line warn">${esc(t().wrongRef(q.ref))}</p>`;
@@ -76,15 +108,15 @@ function card(e, i) {
     const hd = e.hadith, vcls = { accepted: "ok", weak: "warn", fabricated: "bad" };
     if ((hd.verdicts || []).length) {
       h += `<div class="verdicts">` + hd.verdicts.map((v) =>
-        `<p class="line ${vcls[v.verdict]}"><b>${esc(t().verdict[v.verdict])}</b> ${esc((lang === "ar" ? v.scholars_ar : v.scholars_en).join(lang === "ar" ? "، " : ", "))}</p>`).join("") + `</div>`;
+        `<p class="line ${vcls[v.verdict]}"><b>${esc(t().verdict[v.verdict])}</b> ${esc((arData() ? v.scholars_ar : v.scholars_en).join(arData() ? "، " : ", "))}</p>`).join("") + `</div>`;
     }
     if ((hd.sahihayn || []).length) {
       h += `<p class="line ok">${esc(t().sahihayn)} ` + hd.sahihayn.map((x) =>
-        `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? `${x.book} (${num(x.number)})` : `${x.book_en || x.book} (no. ${x.number})`)}</a>`).join(lang === "ar" ? "، " : ", ") + `</p>`;
+        `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(arData() ? `${x.book} (${num(x.number)})` : `${x.book_en || x.book} (no. ${x.number})`)}</a>`).join(arData() ? "، " : ", ") + `</p>`;
     }
     if ((hd.gradings || []).length) {
       h += `<details class="arch-grades"><summary>${esc(t().gradings(hd.gradings.length))}</summary><ul>` + hd.gradings.map((g) =>
-        `<li><p class="ag-head"><b>${esc(lang === "ar" ? g.scholar_ar : g.scholar_en)}</b> <span class="fine">${esc(t().died(g.died_ah))}</span>`
+        `<li><p class="ag-head"><b>${esc(arData() ? g.scholar_ar : g.scholar_en)}</b> <span class="fine">${esc(t().died(g.died_ah))}</span>`
         + (g.match && g.match !== "same" ? ` <span class="ag-tag">${esc(t().longer)}</span>` : "") + `</p>
           <p class="ag-grade">«<bdi dir="rtl">${esc(g.grade)}</bdi>» · <a href="${esc(g.url)}" target="_blank" rel="noopener"><bdi dir="rtl">${esc(g.book)}${g.number ? " " + esc(g.number) : ""}</bdi></a></p>
           <p class="fine ag-text" dir="rtl">${esc((g.text || "").slice(0, 160))}${(g.text || "").length > 160 ? "…" : ""}</p></li>`).join("") + `</ul></details>`;
@@ -106,17 +138,17 @@ function render() {
   const st = { total: es.length, supported: es.filter((e) => e.tier === "supported").length,
     not_supported: es.filter((e) => e.tier === "not_supported").length, quran: es.filter((e) => e.type === "quran").length };
   $("stats").innerHTML = Object.entries(st).map(([k, v]) => `<div><dt>${esc(num(v))}</dt><dd>${esc(t().stats[k])}</dd></div>`).join("");
-  const day = data.checked_at ? new Date(data.checked_at).toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-islamic-umalqura" : "en-GB", { year: "numeric", month: "long", day: "numeric" }) : "—";
+  const day = data.checked_at ? new Date(data.checked_at).toLocaleDateString({ ar: "ar-SA-u-ca-islamic-umalqura", ur: "ur-PK-u-ca-islamic-umalqura", id: "id-ID", en: "en-GB" }[lang], { year: "numeric", month: "long", day: "numeric" }) : "—";
   $("note").textContent = t().note(day);
 }
 
 function applyLang() {
   document.documentElement.lang = lang;
-  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.documentElement.dir = arData() ? "rtl" : "ltr";
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t()[el.dataset.i18n]; });
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t()[el.dataset.i18nPh]; });
-  $("lang").textContent = lang === "ar" ? "English" : "العربية";
-  document.title = lang === "ar" ? "أرشيف تثبّت · استشهادات متداولة ومصادرها" : "Tathabbut archive · circulated citations and their sources";
+  $("lang").value = lang;
+  document.title = { ar: "أرشيف تثبّت · استشهادات متداولة ومصادرها", ur: "تثبّت آرکائیو", id: "Arsip Tathabbut" }[lang] || "Tathabbut archive · circulated citations and their sources";
   render();
 }
 
@@ -127,8 +159,8 @@ $("filters").addEventListener("click", (e) => {
   render();
 });
 $("q").addEventListener("input", render);
-$("lang").addEventListener("click", () => {
-  lang = lang === "ar" ? "en" : "ar";
+$("lang").addEventListener("change", () => {
+  lang = LANGS.includes($("lang").value) ? $("lang").value : "ar";
   try { localStorage.setItem("tathabbut-lang", lang); } catch (e) { /* ignore */ }
   applyLang();
 });

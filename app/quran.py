@@ -383,6 +383,19 @@ class Quran:
             }
         return m
 
+    def translations_for(self, surah: int, ayah_from: int, ayah_to: int) -> dict:
+        """The approved translations of an ayah range in every loaded language, for readers of that language.
+        Copied from the King Fahd Complex files as they are; nothing is translated here."""
+        i, j = self.index.get((surah, ayah_from)), self.index.get((surah, ayah_to))
+        if i is None or j is None:
+            return {}
+        out = {}
+        for lang, tr in self.translations.items():
+            src = tr["source"]
+            out[lang] = {"text": " ".join(tr["texts"][k] for k in range(i, j + 1)), "name_ar": src["name_ar"],
+                         "name_en": src["name_en"], "url": src["url"].replace("{s}", str(surah))}
+        return out
+
     # Measured by eval/translation_census.py: token_set_ratio alone lets an invented sentence made of common
     # words reach 85; also requiring the words in order (partial_ratio) leaves no invented sentence above 77.
     TR_FLOOR, TR_EXACT = 80, 95
