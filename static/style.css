@@ -57,16 +57,33 @@ button { font: inherit; }
 .linkish { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
 :focus-visible { outline: var(--rule-strong) solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
 
-/* masthead */
-.masthead { border-bottom: var(--hair) solid var(--line); padding: var(--s-6) 0 var(--s-4); }
+/* masthead: the challenge's navy band with its geometric pattern, as on the challenge's own slides */
+.masthead {
+  --mast-ink: #FFFFFF; --mast-ink-2: #C9D3EA;
+  background: var(--brand-navy) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='.045' stroke-width='1'%3E%3Cpath d='M48 14l10 24 24 10-24 10-10 24-10-24-24-10 24-10z'/%3E%3Cpath d='M24 24h48v48H24z' transform='rotate(45 48 48)'/%3E%3Cpath d='M24 24h48v48H24z'/%3E%3C/g%3E%3C/svg%3E") repeat; background-size: 96px 96px;
+  color: var(--mast-ink); padding: var(--s-4) 0 var(--s-8); position: relative;
+}
+.masthead::after { content: ""; position: absolute; inset-inline: 0; bottom: 0; height: var(--hair); background: linear-gradient(90deg, transparent, var(--brand-turq), transparent); opacity: .5; }
+.mast-top { display: flex; justify-content: space-between; align-items: center; min-height: var(--touch); }
+.challenge { display: inline-flex; line-height: 0; border-radius: var(--r-2); }
+.challenge img { height: 64px; width: auto; display: block; }
+.masthead .lang { color: var(--mast-ink-2); min-height: var(--touch); display: inline-flex; align-items: center; padding: 0 var(--s-2); }
+.masthead .lang:hover { color: var(--mast-ink); }
+.masthead :focus-visible { outline-color: var(--brand-turq); }
+.mast-hero { padding-top: var(--s-6); }
 .mast-row { display: flex; justify-content: space-between; align-items: flex-start; }
-.wordmark { margin: 0; font-size: var(--fs-2xl); font-weight: 700; line-height: var(--lh-tight); }
-.wordmark::after { content: ""; display: block; width: var(--s-7); height: var(--s-1); background: var(--brand-turq); margin-top: var(--s-2); }
-.tagline { margin: var(--s-2) 0 0; color: var(--ink-2); font-size: var(--fs-sm); }
-.motto { margin: var(--s-3) 0 0; color: var(--ink-3); font-size: var(--fs-xs); }
-.motto .q { font-family: var(--font-quran); font-size: var(--fs-lg); color: var(--ink); }
+.wordmark { margin: 0; font-size: 48px; font-weight: 700; line-height: 1.2; color: var(--mast-ink); letter-spacing: 0; }
+.wordmark::after { content: ""; display: block; width: var(--s-7); height: var(--s-1); background: var(--brand-turq); margin-top: var(--s-3); border-radius: var(--r-1); }
+.tagline { margin: var(--s-3) 0 0; color: var(--mast-ink-2); font-size: var(--fs-lg); font-weight: 500; }
+.motto { margin: var(--s-5) 0 0; color: var(--mast-ink-2); font-size: var(--fs-xs); display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); }
+.motto .q { font-family: var(--font-quran); font-size: 22px; line-height: 2; color: var(--mast-ink); }
+.motto-ref { white-space: nowrap; }
 
-.section-h { font-size: var(--fs-sm); font-weight: 700; color: var(--accent); margin: 0 0 var(--s-2); }
+/* the working sheet rises over the band */
+.sheet { position: relative; margin-top: calc(-1 * var(--s-7)); }
+.sheet > .compose { background: var(--surface); border: var(--hair) solid var(--line); border-radius: var(--r-2); padding: var(--s-5) var(--s-5) var(--s-4); }
+
+.section-h { font-size: var(--fs-lg); font-weight: 700; color: var(--ink); margin: 0 0 var(--s-2); line-height: var(--lh-tight); }
 
 /* compose */
 .compose { padding: var(--s-6) 0 var(--s-2); }
@@ -198,7 +215,9 @@ details[open] > :not(summary) { animation: open var(--dur-2) var(--ease); }
 .method dt { font-weight: 600; }
 .method dd { margin: 0; color: var(--ink-2); }
 .fine { font-size: var(--fs-xs); color: var(--ink-3); margin: var(--s-1) 0; }
-.foot { margin-top: var(--s-6); padding: var(--s-4) 0 var(--s-7); border-top: var(--hair) solid var(--line); font-size: var(--fs-xs); color: var(--ink-3); }
+.foot { margin-top: var(--s-7); padding: var(--s-5) 0 var(--s-6); background: var(--brand-navy); color: #C9D3EA; font-size: var(--fs-xs); }
+.foot-row { display: flex; align-items: center; gap: var(--s-4); }
+.foot-row img { height: 48px; width: auto; flex: none; }
 
 /* touch targets: 44px at least for every control that stands alone (WCAG 2.5.5, DGA) */
 #lang, .samples .linkish, .why summary, .grades summary, .api-link { display: inline-flex; align-items: center; min-height: 44px; }
@@ -265,3 +284,12 @@ html[dir="ltr"] .ar-inline { text-align: left; }
 .verdicts { border-inline-start: 3px solid var(--line, currentColor); padding-inline-start: var(--s-3); margin: var(--s-3) 0; }
 .verdicts .lbl { font-weight: 600; margin: 0 0 var(--s-1); }
 .verdicts .line b { font-weight: 600; }
+@media (prefers-color-scheme: dark) { .masthead, .foot { background-color: #090C24; } }
+@media (max-width: 600px) {
+  .challenge img { height: 44px; }
+  .wordmark { font-size: 40px; }
+  .tagline { font-size: var(--fs-md); }
+  .motto .q { font-size: 19px; }
+  .sheet > .compose { padding: var(--s-4) var(--s-4) var(--s-3); }
+  .foot-row { flex-direction: column; align-items: flex-start; }
+}
