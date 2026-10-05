@@ -132,6 +132,15 @@ async def sources():
     }
 
 
+@app.middleware("http")
+async def _revalidate(request: Request, call_next):
+    """After every rebuild visitors must get the new pages and scripts, not a cached copy."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 # MCP over streamable HTTP at /mcp, sharing the web API's per-visitor limit.
 if mcp_server is not None:
     mcp_server.guard = lambda request: _rate_limit(_client_ip(request))
