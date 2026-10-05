@@ -51,6 +51,21 @@ async function go() {
       return `<li>«${esc(c.quote)}» · ${esc(TIER[c.tier] || c.tier)}${x.action === "block" ? " · سبب الإيقاف" : ""}</li>`;
     }).join("") + res.citations.filter((c) => !d.reasons.some((x) => x.citation === c.id))
       .map((c) => `<li>«${esc(c.quote)}» · ${esc(TIER[c.tier] || c.tier)}</li>`).join("");
+    // A question about a ruling: the two scholars' published fatwas, verbatim with their source; never written by the tool.
+    const ld = res.level_d;
+    if (ld) {
+      const sc = ((ld.fatwas || {}).scholars || []);
+      const items = sc.flatMap((x) => (x.fatwas || []).map((f) => ({ who: x.ar, ...f })));
+      let h = `<div class="bot-fatwas"><p class="line warn">${esc(ld.form === "general" ? "في النص سؤال عن حكم شرعي، وتثبّت لا يفتي. هذه فتاوى العالمين الجليلين في مسائل قريبة، بنصها من موقعيهما الرسميين. اختيرت بتقارب الألفاظ لا بالمعنى، فاقرأ الفتوى كاملة وتأكد أنها في مسألتك نفسها:" : "في النص سؤال فتوى شخصية، وتثبّت لا يفتي. هذه فتاوى العالمين الجليلين في مسائل قريبة، بنصها من موقعيهما الرسميين. اختيرت بتقارب الألفاظ لا بالمعنى، فاقرأ الفتوى كاملة وتأكد أنها في مسألتك نفسها:")}</p>`;
+      h += items.length ? `<ul class="bot-fatwa-list">` + items.map((f) => `<li><p class="fatwa-title"><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.title)}</a></p>
+          <p class="fine">${esc(f.who)}${f.source ? " · " + esc(f.source) : ""}</p>
+          ${f.answer ? `<details class="fatwa-full"><summary>عرض الفتوى كاملة</summary><p class="fatwa-text">${esc(f.answer)}</p></details>` : f.opening ? `<p class="fatwa-part">${esc(f.opening)}</p>` : ""}</li>`).join("") + `</ul>`
+        : `<p class="fine">لم نجد في فتاواهما المنشورة ما يقارب ألفاظ السؤال.</p>`;
+      h += `<p class="fine">ثم: <a href="${esc(ld.body.url)}" target="_blank" rel="noopener">${esc(ld.body.ar)}</a></p></div>`;
+      $("seen").innerHTML += h;
+    } else if (!res.citations.length) {
+      $("seen").innerHTML += `<p class="fine">لم نجد في الإجابة آية ولا حديثًا مستشهدًا به، ولا سؤال فتوى.</p>`;
+    }
     $("disc").textContent = `${res.disclaimer.ar} السياسة: ${d.policy.name} (${d.policy.version}).`;
     $("out").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (e) {

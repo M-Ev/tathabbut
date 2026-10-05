@@ -354,3 +354,7 @@ html[lang="ur"] body { font-family: "Readex Pro", "Noto Nastaliq Urdu", system-u
   .mast-top select.lang { order: 2; margin-inline-start: auto; }
   .mast-top .mast-nav { order: 3; margin-inline-start: calc(-1 * var(--s-3)); }
 }
+.bot-fatwas { margin-top: var(--s-4); padding-top: var(--s-3); border-top: var(--hair) solid var(--line); }
+.bot-fatwa-list { list-style: none; margin: 0; padding: 0; }
+.bot-fatwa-list li { padding: var(--s-2) 0; border-bottom: var(--hair) solid var(--line); }
+.bot-fatwa-list p { margin: 0; }
