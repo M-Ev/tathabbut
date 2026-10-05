@@ -4,6 +4,10 @@
 
 Starting point: `1bc66fb` (see STARTING_VERSION.md). Each entry names what was wrong before and what the tool does now.
 
+### 5 October
+
+- **A hadith pasted alone, or asked about, is checked; each card says who graded it how (owner's report, 5 Oct).** Before: «اطلبوا العلم ولو بالصين», «هل حديث اطلبوا العلم ولو بالصين صحيح؟», «حديث النظافة من الإيمان» and «من غشنا فليس منا» each returned "no citation found", even with the model. After: a short text that is only a quote, or a question naming a hadith («هل حديث ...», «ما صحة حديث ...», «Is the hadith "..." authentic?»), is checked as one citation: as an ayah if it is in the Mushaf, otherwise as a hadith. A question without the word حديث («هل يجوز ...؟»), a personal fatwa question or a multi-sentence answer is not. Each hadith card now opens with «خلاصة أحكام علماء الحديث المعتمدين على هذا اللفظ»: the scholars who graded this very wording, grouped as «صحيح أو حسن عند» / «ضعيف عند» / «موضوع أو لا أصل له عند», side by side and never weighed; each grading follows verbatim. Test: `test_a_bare_hadith_or_a_question_about_it_is_checked`.
+
 ### 4 October
 
 - **Evidence status follows written rules (plan item 13, preflight B1).** Before: a hadith graded fabricated by al-Albani showed «حالة الدليل: موثّق المصدر» beside a red verdict, and the API returned `tier: documented`. After: the hadith tiers come from `data/display_rules.json` (team draft, awaiting the Sharia reviewer's signature, and the interface says so): `supported` (in the two Sahihs, or every matching grading accepted), `not_supported` (every matching grading weak or fabricated; red only for fabricated), `verify`, `refer` (orange, not red). `documented` now means only "the Quran quote matches the Mushaf". Tests: `test_fabricated_hadith_is_never_tagged_as_supported`, `test_weak_only_hadith_is_not_supported`.
