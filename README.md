@@ -18,7 +18,19 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 - **الأحاديث** يُبحث عنها في الموسوعة الحديثية للدرر السنية، وتُعرض أحكام علماء الحديث المعتمدين حرفيًا مع اسم قائل كل حكم: أحكام أئمة الحديث أولًا ثم أحكام المحققين المعاصرين، كلٌّ مرتب بسنة الوفاة، دون ترجيح آلي.
 - **إن لم يجد** قال ذلك صراحة وأحال إلى المختص. وفي أسئلة الفتوى الشخصية تدلّ على فتاوى الشيخين عبدالعزيز بن باز ومحمد بن صالح العثيمين رحمهما الله في موقعيهما الرسميين، فإن لم يوجد فيها ما يستوفي الحالة فإلى جهة الإفتاء الرسمية (وفي المملكة: الرئاسة العامة للبحوث العلمية والإفتاء). وتعرض الأداة فتاوى الشيخين المنشورة في المسائل القريبة بنصها كما في موقعيهما مع مصدرها ورابطها: تجدها ببحث الموقعين نفسيهما وترتبها بتقارب الألفاظ، ولا يكتب النموذج اللغوي منها حرفًا ولا يختارها. فتاوى ابن باز كاملة (الموقع يتيح النقل بشرط ذكر المصدر)، وفتاوى ابن عثيمين سؤالها وأول جوابها ورابطها (الحقوق محفوظة لمؤسسة الشيخ).
 
-النموذج اللغوي (علّام من سدايا) يستخرج ويطابق فقط، ولا يُصدر حكمًا ولا فتوى. وكل استشهاد يقترحه يجب أن يوجد حرفيًا في نص المستخدم وإلا يُحذف.
+النموذج اللغوي (علّام من سدايا، ونموذج سريع مفتوح احتياطيًا) يستخرج ويطابق فقط، ولا يُصدر حكمًا ولا فتوى. وكل استشهاد يقترحه يجب أن يوجد حرفيًا في نص المستخدم وإلا يُحذف، وكل جملة ينقلها من فتوى يجب أن توجد فيها حرفًا بحرف وإلا لا تُعرض.
+
+**أقسام الموقع** · https://3rb-tathabbut.hf.space
+
+| القسم | ما فيه |
+|---|---|
+| **الفحص** | الصق نصًا، فتُستخرج آياته وأحاديثه وتُتتبع إلى مصادرها، مع حالة الدليل وسبب الحكم |
+| **اسأل الثقات** | اسأل عن حكم أو حديث بأي صياغة، بالعامية أو بغير العربية، فيأتيك الجواب من فتاوى ابن باز وابن عثيمين بنصها، أو الصق إجابة مساعد ذكي فيقرر: تُعرض، أو تُعرض مع ملاحظة، أو تُوقف |
+| **الأرشيف** | استشهادات متداولة فحصتها الأداة، مع أحكام العلماء بنصها |
+| **أركان الإسلام** | الأركان الخمسة، والوضوء والصلاة خطوة خطوة برسوم متحركة، بكلام الشيخ ابن باز بنصه، ولغير العرب |
+| **للمطورين** | الواجهة البرمجية (`/docs`) وخادم MCP لوكلاء الذكاء الاصطناعي (`/mcp`) |
+
+بإحدى عشرة لغة: العربية، والإنجليزية، والأردية، والإندونيسية، والبنغالية، والتركية، والفرنسية، والإسبانية، والهندية، والصينية، واليابانية. المصدر يبقى عربيًا: الآية بترجمة معتمدة لمعانيها، وكلام العلماء والحديث لا يُترجمان آليًا.
 
 ![واجهة تثبّت: آية منقولة بخطأ في كلمتين مع عزو خطأ، وحديث بأحكام العلماء](docs/screenshots/ui-ar.png)
 
@@ -36,19 +48,24 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 
 وتحت كل استشهاد «سبب الحكم»: كيف عرفت الأداة ما قالته، ورابط المصدر، وزر «أبلغ عن خطأ في هذه النتيجة».
 
-## ما يعمل الآن وما يُبنى في أيام التحدي · Status
+## ما بُني في أيام التحدي · Built during the challenge (4 to 6 Oct)
 
-| يعمل الآن (نسخة البداية) | يُبنى من 4 إلى 6 أكتوبر |
+نقطة البداية `1bc66fb` ([STARTING_VERSION.md](STARTING_VERSION.md))، وكل تغيير بعدها في [CHANGELOG.md](CHANGELOG.md)، وقرارات الفريق في [docs/team.md](docs/team.md).
+
+| تم | باقٍ |
 |---|---|
-| استخراج الآيات والأحاديث بالعربية والإنجليزية | التحقق الحي من الدرر السنية |
-| مطابقة كل آية مع المصحف، وفروق الكلمات، وخطأ العزو | تشغيل علّام على الاستضافة وقياس سرعته |
-| البحث في الدرر مقيدًا بالعلماء المعتمدين، بمجموعتين (اختُبر على نماذج ثابتة فقط) | أرقام التقييم على مجموعة المختصة الشرعية |
-| حالة الدليل وسبب الحكم والإحالة | الأردية والإندونيسية والفرنسية، من ترجمات مجمع الملك فهد أو الواردة في quranpedia.net |
-| واجهة عربية وإنجليزية، والواجهة البرمجية | عرض فحص إجابات روبوتات المحادثة |
+| التحقق الحي من الدرر السنية، وعلّام على الاستضافة مع نموذج سريع مجاني، وقياس حي للنموذجين | مراجعة المختصة الشرعية لقواعد العرض والأرشيف وصفحة أركان الإسلام |
+| خادم MCP، وقرار فحص إجابات المساعدات الذكية | العرض التقديمي والفيديو |
+| «اسأل الثقات»: جواب من نص الفتوى متحقق منه حرفًا بحرف، وأقرب فتوى عند عدم المطابقة | مراجعة ترجمات الواجهة من متحدثين أصليين |
+| الحديث الملصوق لحاله أو المسؤول عنه، وفهم الأسئلة بالعامية وبغير العربية | |
+| الأرشيف العام، وسجل الزائر في متصفحه دون تسجيل دخول | |
+| 11 لغة، والآية بترجمة معتمدة للغة القارئ | |
+| قسم أركان الإسلام برسوم متحركة | |
+| 116 اختبارًا، واختبار 25 زائرًا على الموقع المباشر (`scripts/persona_check.py`) | |
 
 ## Tathabbut in English
 
-Paste a post, a lecture or a chatbot answer. Tathabbut extracts every Quran verse and hadith and traces each one to its Arabic source. Verses are matched against the King Fahd Complex Mushaf text (word-level differences and wrong references are shown). Hadith are looked up in the Dorar hadith encyclopedia and the approved scholars' gradings are quoted verbatim, grouped as classical imams then modern editors, with no automated preference. When nothing is found it says so and refers to a specialist. The language model (SDAIA's ALLaM) only extracts and matches; it never grades or rules.
+Paste a post, a lecture or a chatbot answer. Tathabbut extracts every Quran verse and hadith and traces each one to its Arabic source. Verses are matched against the King Fahd Complex Mushaf text (word-level differences and wrong references are shown). Hadith are looked up in the Dorar hadith encyclopedia and the approved scholars' gradings are quoted verbatim, grouped as classical imams then modern editors, with no automated preference. When nothing is found it says so and refers to a specialist. The language models (SDAIA's ALLaM, with a fast open model first for some jobs) only extract and match; they never grade or rule. Ruling questions are answered with a sentence quoted verbatim from Ibn Baz's or Ibn al-Uthaymeen's published fatwa, checked letter by letter. The site also has a public archive, a «Pillars of Islam» section (wudu and prayer step by step, in Ibn Baz's words), eleven interface languages, a REST API and an MCP server.
 
 ## التشغيل · Run
 
@@ -76,7 +93,9 @@ Docker / Hugging Face Space: `docker build -t tathabbut . && docker run -p 7860:
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `TATHABBUT_LLM` | `none` (also in the Dockerfile: the live Space runs without the model until the team's ALLaM endpoint is connected) | `llamacpp`, `openai` or `none` |
+| `TATHABBUT_LLM` | `none` (the live Space sets `llamacpp`: see `docs/space-Dockerfile`) | `llamacpp`, `openai` or `none` |
+| `TATHABBUT_LLM_FALLBACK_BASE_URL` / `_MODEL` / `_API_KEY` | unset | the fast model (Groq `openai/gpt-oss-120b` on the live site); the key is a Space secret |
+| `TATHABBUT_LLM_FALLBACK_FIRST` | unset | jobs the fast model answers first (live: `arabic,citations,match`) |
 | `TATHABBUT_GGUF_REPO` / `_FILE` | bartowski ALLaM-7B-Instruct Q4_K_M | GGUF to download |
 | `TATHABBUT_DORAR` | `1` | `0` turns hadith lookup off |
 | `TATHABBUT_MAX_CHARS` | `8000` | maximum text length |
@@ -110,7 +129,12 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | `static/` | Arabic/English web interface in the challenge identity |
 | `data/quran.json` | Mushaf text (King Fahd Complex) and its English translation by al-Hilali & Muhsin Khan (King Fahd Complex, 1417 AH); Saheeh International is kept only to recognise English quotes |
 | `data/translations/` | King Fahd Complex Urdu (Junagarhi) and Indonesian translations from quranpedia.net, with pinned sha256 (`scripts/fetch_translations.py`) |
-| `eval/` | synthetic evaluation set and runner |
+| `app/fatwa.py` | the two Shaykhs' fatwas through their sites' own search, ranked by word overlap |
+| `app/mcp_server.py` | MCP tools for AI agents |
+| `static/pillars.html`, `pillars.js`, `figures.js` | the «Pillars of Islam» section and its drawn, animated figures |
+| `data/pillars_sources.json` | Ibn Baz's fatwas quoted on the pillars page, as fetched from his site |
+| `data/archive.json` | the public archive (`scripts/build_archive.py`) |
+| `eval/` | synthetic evaluation set and runner; `eval/personas.json`: 25 visitors' questions for the live site |
 
 ## التوثيق · Documentation
 
@@ -125,20 +149,22 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/api.md](docs/api.md) | فحص إجابة روبوت المحادثة قبل عرضها: القرار والسياسة وأمثلة Python وJavaScript |
 | [docs/api-and-keys.md](docs/api-and-keys.md) | الواجهات البرمجية التي تستدعيها الأداة، ومفاتيحها ومصدر كل مفتاح، وما يُرسل إلى كل خدمة |
 | [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |
+| [docs/team.md](docs/team.md) | الفريق وأدواره، وسجل قرارات قائد الفريق بالتاريخ والـcommit |
+| [docs/challenge-compliance.md](docs/challenge-compliance.md) | مطابقة شروط التحدي ومخرجاته ومعاييره، وما بقي قبل التسليم |
 
 See [SOURCES_AND_LICENSES.md](SOURCES_AND_LICENSES.md) for every source, model, tool and license, and [STARTING_VERSION.md](STARTING_VERSION.md) for what existed before the challenge's build days.
 
 ## الفريق · Team
 
-طوّر فريق «قيد الأوابد» أداة تثبّت وبناها، مستعينًا بـ Claude Code في كتابة الكود.
+فريق «قيد الأوابد». قاد الفريق المشروع: الفكرة، والمنهج العلمي، والمرجعية، والقرارات، والاختبار، والنشر والتشغيل. وكُتب الكود بمساعدة Claude Code تحت توجيه الفريق ومراجعته.
 
-- **الفكرة والمنهج العلمي:** أداة تتحقق ولا تحكم؛ العلماء الثلاثة عشر المعتمدون؛ مرجعية الفتوى.
-- **النشر والتشغيل:** Hugging Face Space، وربط النماذج (علّام وGroq) ومفاتيحها.
-- **قرارات النماذج:** بناءً على قياسات حية على الموقع (`eval/model_live_report.md`).
-- **الاختبار:** فحص الأداة على الموقع المباشر وكشف أخطائها.
-- **المراجعة الشرعية:** عضو الفريق المختص.
+- **قائد الفريق:** المنتج والتطوير، وكل قرار في [سجل القرارات](docs/team.md): تحويل النماذج بعد القياس الحي، واختيار مزود مجاني، والتصميم بهوية التحدي، والخصوصية بلا تسجيل دخول، ومرجعية الفتوى، واللغات مع إبقاء المصدر عربيًا، و«اسأل الثقات»، وأركان الإسلام، واختبار الزوار. وإدارة الـSpace والمفاتيح والنشر.
+- **المختصة الشرعية:** مراجعة قواعد العرض ومجموعة التقييم (لم تتم بعد).
+- **عضو تجربة المستخدم والعرض:** العرض التقديمي والتوثيق.
 
-Built by team Qayd al-Awabid, with Claude Code used to write the code.
+Team Qayd al-Awabid led the project (idea, method, references, decisions, testing, deployment); the code was written with Claude Code under the team's direction. See [docs/team.md](docs/team.md).
+
+**كل تطوير يُوثّق:** يُرفع مع اختباراته، ويُسجَّل في [CHANGELOG.md](CHANGELOG.md) بما كان وما صار، ويُضاف إلى سجل القرارات إن كان قرارًا من الفريق، ثم يُختبر على الموقع المباشر.
 
 ## الترخيص · License
 
