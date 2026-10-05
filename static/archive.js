@@ -18,7 +18,7 @@ const T = {
     tier: { documented: "مطابق للمصحف", supported: "تؤيده المصادر", not_supported: "لا تؤيده المصادر المعتمدة", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     tierLbl: "حالة الدليل", hadith: "حديث", quran: "آية",
     verdict: { accepted: "صحيح أو حسن عند", weak: "ضعيف عند", fabricated: "موضوع أو لا أصل له عند" },
-    sahihayn: "في الصحيحين:", gradings: (n) => `أحكام العلماء بنصها (${num(n)})`, died: (y) => `ت ${num(y)}هـ`,
+    sahihayn: "في الصحيحين:", longer: "حكمٌ على رواية أطول أو لفظ مقارب، لا يُبنى عليه", gradings: (n) => `أحكام العلماء بنصها (${num(n)})`, died: (y) => `ت ${num(y)}هـ`,
     wrote: (a, b) => `كُتب «${a}»، وفي المصحف «${b}»`, wrongRef: (r) => `العزو المكتوب لا يطابق موضع الآية؛ موضعها ${r}`,
     notFound: "لم نجد له أصلًا في المصادر المعتمدة، ويُحال إلى مختص.",
     check: "افحصه بنفسك الآن", source: "المصدر", count: (n, m) => `${num(n)} من ${num(m)}`,
@@ -36,7 +36,7 @@ const T = {
     tier: { documented: "Matches the Mushaf", supported: "Supported by the sources", not_supported: "Not supported by the approved sources", verify: "Needs more verification", refer: "Refer to a specialist" },
     tierLbl: "Evidence status", hadith: "Hadith", quran: "Verse",
     verdict: { accepted: "Authentic or good according to", weak: "Weak according to", fabricated: "Fabricated or baseless according to" },
-    sahihayn: "In the two Sahihs:", gradings: (n) => `The scholars' gradings, verbatim (${n})`, died: (y) => `d. ${y} AH`,
+    sahihayn: "In the two Sahihs:", longer: "graded on a longer or near wording; not counted", gradings: (n) => `The scholars' gradings, verbatim (${n})`, died: (y) => `d. ${y} AH`,
     wrote: (a, b) => `Written «${a}»; the Mushaf has «${b}»`, wrongRef: (r) => `The written reference is wrong; the verse is at ${r}`,
     notFound: "No source was found in the approved references; refer to a specialist.",
     check: "Check it yourself now", source: "Source", count: (n, m) => `${n} of ${m}`,
@@ -83,10 +83,11 @@ function card(e, i) {
         `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(lang === "ar" ? `${x.book} (${num(x.number)})` : `${x.book_en || x.book} (no. ${x.number})`)}</a>`).join(lang === "ar" ? "، " : ", ") + `</p>`;
     }
     if ((hd.gradings || []).length) {
-      h += `<details class="arch-grades"><summary>${esc(t().gradings(hd.gradings.length))}</summary><ul class="grades">` + hd.gradings.map((g) =>
-        `<li><span class="who">${esc(lang === "ar" ? g.scholar_ar : g.scholar_en)}</span> <span class="died">(${esc(t().died(g.died_ah))})</span>:
-          «<bdi dir="rtl">${esc(g.grade)}</bdi>» · <a href="${esc(g.url)}" target="_blank" rel="noopener"><bdi dir="rtl">${esc(g.book)}${g.number ? " " + esc(g.number) : ""}</bdi></a>
-          <span class="fine htext" dir="rtl">${esc((g.text || "").slice(0, 140))}${(g.text || "").length > 140 ? "…" : ""}</span></li>`).join("") + `</ul></details>`;
+      h += `<details class="arch-grades"><summary>${esc(t().gradings(hd.gradings.length))}</summary><ul>` + hd.gradings.map((g) =>
+        `<li><p class="ag-head"><b>${esc(lang === "ar" ? g.scholar_ar : g.scholar_en)}</b> <span class="fine">${esc(t().died(g.died_ah))}</span>`
+        + (g.match && g.match !== "same" ? ` <span class="ag-tag">${esc(t().longer)}</span>` : "") + `</p>
+          <p class="ag-grade">«<bdi dir="rtl">${esc(g.grade)}</bdi>» · <a href="${esc(g.url)}" target="_blank" rel="noopener"><bdi dir="rtl">${esc(g.book)}${g.number ? " " + esc(g.number) : ""}</bdi></a></p>
+          <p class="fine ag-text" dir="rtl">${esc((g.text || "").slice(0, 160))}${(g.text || "").length > 160 ? "…" : ""}</p></li>`).join("") + `</ul></details>`;
     } else if (e.tier === "refer") h += `<p class="refer">${esc(t().notFound)}</p>`;
   }
   const src = (e.quran && e.quran.url) || (e.hadith && e.hadith.search_url);

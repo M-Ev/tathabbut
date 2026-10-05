@@ -334,3 +334,10 @@ html[dir="ltr"] .ar-inline { text-align: left; }
 .arch-grades .htext { display: block; }
 .arch-check { display: inline-flex; align-items: center; text-decoration: none; color: var(--on-brand); font-size: var(--fs-sm); }
 .arch-check:hover { color: var(--on-brand); }
+.arch-grades ul { list-style: none; margin: 0; padding: 0; }
+.arch-grades li { padding: var(--s-3) 0; border-top: var(--hair) solid var(--line); }
+.arch-grades li p { margin: 0; }
+.ag-head b { font-weight: 600; }
+.ag-tag { font-size: var(--fs-xs); color: var(--warn); background: var(--warn-tint); padding: 0 var(--s-2); border-radius: var(--r-1); }
+.ag-grade { margin-top: var(--s-1) !important; }
+.ag-text { margin-top: var(--s-1) !important; }
