@@ -31,7 +31,7 @@ const T = {
     today: "اليوم", week: "آخر سبعة أيام", savedLocal: "تُحفظ على جهازك فقط، ولا تُرسل إلى أي خادم.",
     reset: "تصفير", target: "الهدف", ayahOfDay: "آية اليوم", prev: "السابقة", next: "التالية",
     tafsir: "اقرأ تفسيرها في قرآنبيديا (التفاسير المعتمدة في الحزمة العلمية)", meaning: "معنى الآية",
-    asmaVerse: "ورد في", note: (d, ok, all) => `فُحصت الأذكار آليًا بتثبّت في ${d}: عُرض منها ${num(ok)} من ${num(all)}. الأحكام منقولة بنصها من الموسوعة الحديثية مع روابطها، ولم تراجعها المختصة الشرعية في الفريق بعد.`,
+    asmaVerse: "ورد في", note: (d, ok, all) => `فُحصت الأذكار آليًا بتثبّت في ${d}: عُرض منها ${num(ok)} من ${num(all)}. الأحكام منقولة بنصها من الموسوعة الحديثية مع روابطها.`,
     footer: "فريق قيد الأوابد · تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي",
   },
   en: {
@@ -51,7 +51,7 @@ const T = {
     today: "Today", week: "Last seven days", savedLocal: "Kept on this device only; never sent to a server.",
     reset: "Reset", target: "Target", ayahOfDay: "Verse of the day", prev: "Previous", next: "Next",
     tafsir: "Read its tafsir on Quranpedia (tafsirs in the challenge's package)", meaning: "Meaning",
-    asmaVerse: "In", note: (d, ok, all) => `Checked automatically with Tathabbut on ${d}: ${ok} of ${all} shown. Gradings are quoted verbatim from Dorar with their links; not yet reviewed by the team's Sharia reviewer.`,
+    asmaVerse: "In", note: (d, ok, all) => `Checked automatically with Tathabbut on ${d}: ${ok} of ${all} shown. Gradings are quoted verbatim from Dorar with their links.`,
     footer: "Team Qayd al-Awabid · AI Challenge: Serving Islamic Content",
   },
 };

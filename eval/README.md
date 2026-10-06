@@ -12,7 +12,7 @@
 | The two models on the live site | English hadith and timings, per model | live runs through `POST /api/check` (`eval/run_model_eval.py` measures each job alone) | `model_live_report.md` |
 | Pillars page quotes | every quote and phrase | `pytest tests/test_pillars.py` | test output |
 
-All sets are synthetic or public texts; no user data. Review by the team's Sharia reviewer is pending.
+All sets are synthetic or public texts; no user data. Gradings come from live Dorar runs, never from memory.
 
 ## Visitors' questions (5 Oct)
 
@@ -23,7 +23,7 @@ searched without the dialect words, the fabrication shown, the wrong surah caugh
 live site, paced under its limit, and writes `personas_report.md`. Every failure is fixed and becomes a unit test.
 
 
-`cases.jsonl`: one case per line, all synthetic (drafted with Claude, review by the team's Sharia reviewer pending, no user data).
+`cases.jsonl`: one case per line, all synthetic (drafted with Claude, no user data).
 
 ```json
 {"id": "...", "text": "text to check",

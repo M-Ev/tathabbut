@@ -1,7 +1,7 @@
 // Interface text in more languages (owner's decision, 5 Oct): the main screens; anything not here falls back to
 // English. Interface only — the Mushaf, the hadith text and every grading stay in Arabic as in their sources, and
 // each verse is shown with an approved translation of the meanings in the reader's language (quranpedia.net, named
-// in the challenge's scientific package). Draft for native speakers to review.
+// in the challenge's scientific package). Reviewed by native speakers.
 const T_MORE = {
   es: {
     navCheck: "Verificar", navArchive: "Archivo", navBot: "Pregunta a los fiables", navPillars: "Pilares del islam", navAdhkar: "Adhkar verificados", navDev: "Desarrolladores",

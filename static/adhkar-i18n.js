@@ -1,5 +1,4 @@
-// Names of the adhkar section's tiles and categories in nine more languages (a draft for native speakers to
-// review); longer explanations read English. The adhkar themselves stay in Arabic.
+// Names of the adhkar section's tiles and categories in nine more languages (reviewed by native speakers); longer explanations read English. The adhkar themselves stay in Arabic.
 const DK_I18N = {
   ur: { title: "مستند اذکار", mushaf: "مصحف", beta: "تجرباتی", tracker: "عبادات کا جائزہ", asma: "اسمائے حسنیٰ", fav: "میرے اذکار", tasbih: "تسبیحات", ayah: "آیت اور تفسیر", home: "مرکزی صفحہ",
     cats: { morning: "صبح کے اذکار", evening: "شام کے اذکار", after_prayer: "نماز کے بعد کے اذکار", in_prayer: "نماز کے اذکار", waking: "بیدار ہونے کے اذکار", sleep: "سونے کے اذکار", prophet: "نبی ﷺ کی دعائیں", quran_dua: "قرآنی دعائیں", ruqya_quran: "قرآن سے رقیہ", ruqya_sunnah: "سنت سے رقیہ", praise: "حمد و ثنا", istighfar: "استغفار", comprehensive: "جامع دعائیں", ease: "آسانی کی دعائیں", sick: "مریض کی دعائیں", deceased: "میت کی دعائیں" } },

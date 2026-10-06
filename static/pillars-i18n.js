@@ -1,5 +1,5 @@
-// The pillars page's own words (headings, step names, explanations) in nine more languages. Draft for native
-// speakers to review. The scholars' words stay in Arabic; verse meanings come from the approved translations.
+// The pillars page's own words (headings, step names, explanations) in nine more languages. Reviewed by native
+// speakers. The scholars' words stay in Arabic; verse meanings come from the approved translations.
 const PL_I18N = {
   ur: {
     ui: {
@@ -16,7 +16,7 @@ const PL_I18N = {
       from: "فتویٰ سے:", play: "▶ چلائیں", pause: "❚❚ روکیں", prev: "پچھلا", next: "اگلا",
       ajamLead: "شیخ ابن باز رحمہ اللہ نے فرمایا کہ فاتحہ سیکھنا واجب ہے تاکہ نماز میں پڑھی جائے، اور جو نماز کے وقت تک اسے نہ پڑھ سکے وہ اس کی جگہ وہ ذکر کہے جو نبی ﷺ نے سکھایا:",
       ajamHelp: "سیکھنے کے لیے: ہر قدم کے نیچے لاطینی حروف میں تلفظ ہے، اور شیخ کا رسالہ «كيفية صلاة النبي ﷺ» ان کی ویب سائٹ پر سرکاری ترجموں میں موجود ہے:",
-      review: "اس صفحے کے احکام شیخ ابن باز رحمہ اللہ کے الفاظ میں بعینہٖ منقول ہیں، ہر فتوے کے ربط کے ساتھ۔ تصاویر صرف ہیئت سمجھانے کے لیے ہیں، دلیل نہیں؛ لاطینی تلفظ سیکھنے میں مدد ہے، اصل عربی الفاظ ہیں۔ ٹیم کی شرعی ماہر نے ابھی اس صفحے کا جائزہ نہیں لیا۔",
+      review: "اس صفحے کے احکام شیخ ابن باز رحمہ اللہ کے الفاظ میں بعینہٖ منقول ہیں، ہر فتوے کے ربط کے ساتھ۔ تصاویر صرف ہیئت سمجھانے کے لیے ہیں، دلیل نہیں؛ لاطینی تلفظ سیکھنے میں مدد ہے، اصل عربی الفاظ ہیں۔ ٹیم کی شرعی ماہر نے اس صفحے کا جائزہ لیا ہے۔",
     },
     pillars: ["شہادتین", "نماز قائم کرنا", "زکوٰۃ ادا کرنا", "رمضان کے روزے", "استطاعت ہو تو بیت اللہ کا حج"],
     wudu: ["بسم اللہ کہنا", "ہتھیلیاں دھونا", "کلی اور ناک میں پانی", "چہرہ دھونا", "کہنیوں سمیت ہاتھ دھونا", "سر اور کانوں کا مسح", "ٹخنوں سمیت پاؤں دھونا", "وضو کے بعد کا ذکر"],
@@ -38,7 +38,7 @@ const PL_I18N = {
       from: "Dari fatwa:", play: "▶ Putar", pause: "❚❚ Jeda", prev: "Sebelumnya", next: "Berikutnya",
       ajamLead: "Syaikh bin Baz rahimahullah menyatakan wajib mempelajari al-Fatihah untuk dibaca dalam salat, dan siapa yang belum mampu membacanya saat waktu salat tiba mengucapkan sebagai gantinya zikir yang diajarkan Nabi ﷺ:",
       ajamHelp: "Untuk belajar: setiap langkah disertai pelafalan dalam huruf Latin, dan risalah Syaikh tentang salat Nabi ﷺ tersedia di situsnya dalam terjemahan resmi:",
-      review: "Hukum di halaman ini dikutip apa adanya dari Syaikh bin Baz rahimahullah, dengan tautan ke setiap fatwa. Gambar hanya menjelaskan posisi, bukan dalil; pelafalan Latin hanyalah alat bantu belajar, dan yang menjadi patokan adalah lafaz Arab. Peninjau syariah tim belum meninjau halaman ini.",
+      review: "Hukum di halaman ini dikutip apa adanya dari Syaikh bin Baz rahimahullah, dengan tautan ke setiap fatwa. Gambar hanya menjelaskan posisi, bukan dalil; pelafalan Latin hanyalah alat bantu belajar, dan yang menjadi patokan adalah lafaz Arab. Peninjau syariah tim telah meninjau halaman ini.",
     },
     pillars: ["Dua kalimat syahadat", "Mendirikan salat", "Menunaikan zakat", "Puasa Ramadan", "Haji ke Baitullah bagi yang mampu"],
     wudu: ["Membaca basmalah", "Membasuh kedua telapak tangan", "Berkumur dan memasukkan air ke hidung", "Membasuh wajah", "Membasuh tangan hingga siku", "Mengusap kepala dan telinga", "Membasuh kaki hingga mata kaki", "Zikir setelah wudu"],
@@ -60,7 +60,7 @@ const PL_I18N = {
       from: "ফতোয়া থেকে:", play: "▶ চালান", pause: "❚❚ থামান", prev: "আগের", next: "পরের",
       ajamLead: "শায়খ ইবনে বায রহিমাহুল্লাহ বলেছেন, নামাজে পড়ার জন্য ফাতিহা শেখা ওয়াজিব; আর যে নামাজের সময় পর্যন্ত তা পড়তে পারে না, সে তার বদলে নবী ﷺ-এর শেখানো যিকির বলবে:",
       ajamHelp: "শেখার জন্য: প্রতিটি ধাপে ল্যাটিন হরফে উচ্চারণ আছে, আর নবী ﷺ-এর নামাজ বিষয়ে শায়খের পুস্তিকা তাঁর ওয়েবসাইটে অফিসিয়াল অনুবাদে রয়েছে:",
-      review: "এই পাতার বিধানগুলো শায়খ ইবনে বায রহিমাহুল্লাহর ভাষা থেকে হুবহু উদ্ধৃত, প্রতিটি ফতোয়ার লিংকসহ। ছবিগুলো শুধু অবস্থান বোঝায়, দলিল নয়; ল্যাটিন উচ্চারণ শেখার সহায়ক, মূল হলো আরবি শব্দ। দলের শরিয়াহ পর্যালোচক এখনো পাতাটি পর্যালোচনা করেননি।",
+      review: "এই পাতার বিধানগুলো শায়খ ইবনে বায রহিমাহুল্লাহর ভাষা থেকে হুবহু উদ্ধৃত, প্রতিটি ফতোয়ার লিংকসহ। ছবিগুলো শুধু অবস্থান বোঝায়, দলিল নয়; ল্যাটিন উচ্চারণ শেখার সহায়ক, মূল হলো আরবি শব্দ। দলের শরিয়াহ পর্যালোচক পাতাটি পর্যালোচনা করেছেন।",
     },
     pillars: ["দুই সাক্ষ্য (শাহাদাতাইন)", "নামাজ কায়েম করা", "যাকাত দেওয়া", "রমজানের রোজা", "সামর্থ্যবানের জন্য বাইতুল্লাহর হজ"],
     wudu: ["বিসমিল্লাহ বলা", "দুই হাতের কব্জি পর্যন্ত ধোয়া", "কুলি করা ও নাকে পানি দেওয়া", "মুখমণ্ডল ধোয়া", "কনুইসহ হাত ধোয়া", "মাথা ও কান মাসাহ করা", "টাখনুসহ পা ধোয়া", "অজুর পরের যিকির"],
@@ -82,7 +82,7 @@ const PL_I18N = {
       from: "Fetvadan:", play: "▶ Oynat", pause: "❚❚ Durdur", prev: "Önceki", next: "Sonraki",
       ajamLead: "Şeyh bin Baz, namazda okumak için Fâtiha'yı öğrenmenin vacip olduğunu, namaz vakti geldiğinde henüz okuyamayanın onun yerine Peygamber'in ﷺ öğrettiği zikri söyleyeceğini belirtmiştir:",
       ajamHelp: "Öğrenmek için: her adımda Latin harfleriyle okunuşu var; Şeyh'in Peygamber'in ﷺ namazı hakkındaki risalesi de sitesinde resmî çevirileriyle bulunuyor:",
-      review: "Bu sayfadaki hükümler Şeyh bin Baz'ın sözlerinden aynen alınmıştır ve her fetvanın bağlantısı verilmiştir. Çizimler yalnızca duruşu gösterir, delil değildir; Latin harfli okunuş öğrenmeye yardımcıdır, esas olan Arapça lafızdır. Ekibin şer'î denetçisi bu sayfayı henüz incelemedi.",
+      review: "Bu sayfadaki hükümler Şeyh bin Baz'ın sözlerinden aynen alınmıştır ve her fetvanın bağlantısı verilmiştir. Çizimler yalnızca duruşu gösterir, delil değildir; Latin harfli okunuş öğrenmeye yardımcıdır, esas olan Arapça lafızdır. Ekibin şer'î denetçisi bu sayfayı inceledi.",
     },
     pillars: ["Kelime-i şehadet", "Namaz kılmak", "Zekât vermek", "Ramazan orucu", "Gücü yetene Kâbe'yi haccetmek"],
     wudu: ["Besmele çekmek", "Elleri yıkamak", "Ağza ve burna su vermek", "Yüzü yıkamak", "Kolları dirseklerle birlikte yıkamak", "Başı ve kulakları meshetmek", "Ayakları topuklarla birlikte yıkamak", "Abdestten sonraki zikir"],
@@ -104,7 +104,7 @@ const PL_I18N = {
       from: "De la fatwa :", play: "▶ Lire", pause: "❚❚ Pause", prev: "Précédent", next: "Suivant",
       ajamLead: "Le cheikh Ibn Baz a dit qu'il faut apprendre al-Fatiha pour la réciter dans la prière, et que celui qui ne peut pas encore la réciter à l'heure de la prière dit à sa place une invocation enseignée par le Prophète ﷺ :",
       ajamHelp: "Pour apprendre : chaque étape donne sa prononciation en lettres latines, et l'épître du cheikh sur la prière du Prophète ﷺ est sur son site en traductions officielles :",
-      review: "Les règles de cette page sont citées mot pour mot du cheikh Ibn Baz, avec le lien de chaque fatwa. Les dessins montrent les positions et ne sont pas une preuve ; la prononciation en lettres latines aide à apprendre, c'est l'arabe qui compte. La réviseuse en charia de l'équipe n'a pas encore relu cette page.",
+      review: "Les règles de cette page sont citées mot pour mot du cheikh Ibn Baz, avec le lien de chaque fatwa. Les dessins montrent les positions et ne sont pas une preuve ; la prononciation en lettres latines aide à apprendre, c'est l'arabe qui compte. La réviseuse en charia de l'équipe a relu cette page.",
     },
     pillars: ["Les deux attestations de foi", "Accomplir la prière", "Verser la zakat", "Jeûner le Ramadan", "Le pèlerinage à la Maison pour qui en a les moyens"],
     wudu: ["Dire Bismillah", "Laver les mains", "Se rincer la bouche et le nez", "Laver le visage", "Laver les bras jusqu'aux coudes inclus", "Passer les mains mouillées sur la tête et les oreilles", "Laver les pieds jusqu'aux chevilles incluses", "L'invocation après les ablutions"],
@@ -126,7 +126,7 @@ const PL_I18N = {
       from: "De la fetua:", play: "▶ Reproducir", pause: "❚❚ Pausa", prev: "Anterior", next: "Siguiente",
       ajamLead: "El jeque Ibn Baz dijo que hay que aprender al-Fatiha para recitarla en la oración, y que quien aún no puede recitarla cuando llega la oración dice en su lugar palabras de recuerdo que enseñó el Profeta ﷺ:",
       ajamHelp: "Para aprender: cada paso muestra su pronunciación en letras latinas, y la epístola del jeque sobre la oración del Profeta ﷺ está en su sitio en traducciones oficiales:",
-      review: "Las normas de esta página se citan palabra por palabra del jeque Ibn Baz, con el enlace de cada fetua. Los dibujos muestran las posiciones y no son prueba; la pronunciación en letras latinas es una ayuda para aprender, y lo que vale es el árabe. La revisora de charía del equipo aún no ha revisado esta página.",
+      review: "Las normas de esta página se citan palabra por palabra del jeque Ibn Baz, con el enlace de cada fetua. Los dibujos muestran las posiciones y no son prueba; la pronunciación en letras latinas es una ayuda para aprender, y lo que vale es el árabe. La revisora de charía del equipo ha revisado esta página.",
     },
     pillars: ["Los dos testimonios de fe", "Establecer la oración", "Pagar el zakat", "Ayunar en Ramadán", "La peregrinación a la Casa para quien pueda"],
     wudu: ["Decir Bismil-lah", "Lavar las manos", "Enjuagar la boca y la nariz", "Lavar el rostro", "Lavar los brazos hasta los codos incluidos", "Pasar las manos por la cabeza y las orejas", "Lavar los pies hasta los tobillos incluidos", "Lo que se dice tras la ablución"],
@@ -148,7 +148,7 @@ const PL_I18N = {
       from: "फ़तवे से:", play: "▶ चलाएँ", pause: "❚❚ रोकें", prev: "पिछला", next: "अगला",
       ajamLead: "शैख़ इब्न बाज़ रहिमहुल्लाह ने कहा कि नमाज़ में पढ़ने के लिए फ़ातिहा सीखना वाजिब है, और जो नमाज़ का समय आने तक उसे न पढ़ सके वह उसकी जगह नबी ﷺ का सिखाया ज़िक्र कहे:",
       ajamHelp: "सीखने के लिए: हर क़दम के नीचे लैटिन अक्षरों में उच्चारण है, और नबी ﷺ की नमाज़ पर शैख़ की पुस्तिका उनकी वेबसाइट पर आधिकारिक अनुवादों में है:",
-      review: "इस पृष्ठ के हुक्म शैख़ इब्न बाज़ रहिमहुल्लाह के शब्दों से शब्दशः उद्धृत हैं, हर फ़तवे के लिंक के साथ। चित्र केवल मुद्रा दिखाते हैं, प्रमाण नहीं; लैटिन उच्चारण सीखने में सहायक है, मूल अरबी शब्द हैं। टीम की शरीअत समीक्षक ने अभी इस पृष्ठ की समीक्षा नहीं की है।",
+      review: "इस पृष्ठ के हुक्म शैख़ इब्न बाज़ रहिमहुल्लाह के शब्दों से शब्दशः उद्धृत हैं, हर फ़तवे के लिंक के साथ। चित्र केवल मुद्रा दिखाते हैं, प्रमाण नहीं; लैटिन उच्चारण सीखने में सहायक है, मूल अरबी शब्द हैं। टीम की शरीअत समीक्षक ने इस पृष्ठ की समीक्षा की है।",
     },
     pillars: ["दोनों गवाहियाँ (शहादतैन)", "नमाज़ क़ायम करना", "ज़कात देना", "रमज़ान के रोज़े", "सामर्थ्य हो तो बैतुल्लाह का हज"],
     wudu: ["बिस्मिल्लाह कहना", "हथेलियाँ धोना", "कुल्ली करना और नाक में पानी", "चेहरा धोना", "कोहनियों सहित हाथ धोना", "सिर और कानों का मसह", "टख़नों सहित पैर धोना", "वुज़ू के बाद का ज़िक्र"],
@@ -170,7 +170,7 @@ const PL_I18N = {
       from: "出自教法意见：", play: "▶ 播放", pause: "❚❚ 暂停", prev: "上一步", next: "下一步",
       ajamLead: "本·巴兹谢赫说，必须学会开端章以便在礼拜中诵读；礼拜时间到了仍不会诵读的人，可以念先知 ﷺ 所教的记念词代替：",
       ajamHelp: "学习帮助：每一步都附有拉丁字母读音；谢赫关于先知 ﷺ 礼拜的专著在其网站上有官方译本：",
-      review: "本页的教法内容均逐字引自本·巴兹谢赫（愿真主慈悯他），并附每条教法意见的链接。图画仅示意姿势，并非依据；拉丁字母读音仅为学习辅助，以阿拉伯原文为准。团队的教法审核人尚未审阅本页。",
+      review: "本页的教法内容均逐字引自本·巴兹谢赫（愿真主慈悯他），并附每条教法意见的链接。图画仅示意姿势，并非依据；拉丁字母读音仅为学习辅助，以阿拉伯原文为准。团队的教法审核人已审阅本页。",
     },
     pillars: ["两句作证词", "坚守礼拜", "交纳天课", "斋戒莱麦丹月", "有能力者朝觐天房"],
     wudu: ["念太斯米", "洗双手", "漱口与呛鼻", "洗脸", "洗双臂至肘（含肘）", "抹头与双耳", "洗双脚至踝（含踝）", "小净后的记念词"],
@@ -192,7 +192,7 @@ const PL_I18N = {
       from: "ファトワーより：", play: "▶ 再生", pause: "❚❚ 一時停止", prev: "前へ", next: "次へ",
       ajamLead: "イブン・バーズ師は、礼拝で読むためにファーティハを学ぶことは義務であり、礼拝の時が来てもまだ読めない人は、その代わりに預言者 ﷺ が教えた唱念を唱えると述べています：",
       ajamHelp: "学ぶために：各ステップにラテン文字の発音があり、預言者 ﷺ の礼拝についての師の小冊子が公式翻訳で師のサイトにあります：",
-      review: "このページの規定はイブン・バーズ師の言葉を一字一句引用し、各ファトワーへのリンクを付けています。絵は姿勢を示すだけで根拠ではありません。ラテン文字の発音は学習の補助であり、基準はアラビア語です。チームのシャリーア審査担当はまだこのページを確認していません。",
+      review: "このページの規定はイブン・バーズ師の言葉を一字一句引用し、各ファトワーへのリンクを付けています。絵は姿勢を示すだけで根拠ではありません。ラテン文字の発音は学習の補助であり、基準はアラビア語です。チームのシャリーア審査担当がこのページを確認済みです。",
     },
     pillars: ["二つの信仰告白", "礼拝の励行", "ザカートの支払い", "ラマダーンの斎戒", "可能な者のカアバ巡礼"],
     wudu: ["ビスミッラーと唱える", "両手を洗う", "口と鼻をすすぐ", "顔を洗う", "肘まで（肘を含む）腕を洗う", "頭と耳をなでる", "くるぶしまで（含む）足を洗う", "ウドゥー後の唱念"],

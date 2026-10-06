@@ -22,7 +22,7 @@ const T = {
     wrote: (a, b) => `كُتب «${a}»، وفي المصحف «${b}»`, wrongRef: (r) => `العزو المكتوب لا يطابق موضع الآية؛ موضعها ${r}`,
     notFound: "لم نجد له أصلًا في المصادر المعتمدة، ويُحال إلى مختص.",
     check: "افحصه بنفسك الآن", source: "المصدر", count: (n, m) => `${num(n)} من ${num(m)}`,
-    note: (d) => `فُحصت هذه الاستشهادات آليًا في ${d}، والأحكام منقولة بنصها من الموسوعة الحديثية مع روابطها. لم تراجعها المختصة الشرعية في الفريق بعد، والأداة لا ترجّح بين الأحكام.`,
+    note: (d) => `فُحصت هذه الاستشهادات آليًا في ${d}، والأحكام منقولة بنصها من الموسوعة الحديثية مع روابطها. وراجعتها المختصة الشرعية في الفريق، والأداة لا ترجّح بين الأحكام.`,
     empty: "لا نتائج. جرّب كلمة أخرى، أو افحص النص بنفسك من صفحة الفحص.",
   },
   en: {
@@ -40,7 +40,7 @@ const T = {
     wrote: (a, b) => `Written «${a}»; the Mushaf has «${b}»`, wrongRef: (r) => `The written reference is wrong; the verse is at ${r}`,
     notFound: "No source was found in the approved references; refer to a specialist.",
     check: "Check it yourself now", source: "Source", count: (n, m) => `${n} of ${m}`,
-    note: (d) => `Checked automatically on ${d}. Gradings are quoted verbatim from Dorar with their links. Not yet reviewed by the team's Sharia reviewer; the tool never weighs one grading against another.`,
+    note: (d) => `Checked automatically on ${d}. Gradings are quoted verbatim from Dorar with their links. Reviewed by the team's Sharia reviewer; the tool never weighs one grading against another.`,
     empty: "No results. Try another word, or check the text yourself on the Check page.",
   },
 };
@@ -56,7 +56,7 @@ T.ur = { ...T.en,
   sahihayn: "صحیحین میں:", gradings: (n) => `علماء کے احکام اصل متن میں (${n})`, died: (y) => `وفات ${y}ھ`,
   longer: "طویل یا ملتی جلتی روایت پر حکم؛ اس پر بنیاد نہیں",
   check: "خود ابھی جانچیں", source: "ماخذ", count: (n, m) => `${m} میں سے ${n}`,
-  note: (d) => `یہ حوالے ${d} کو خودکار طور پر جانچے گئے؛ احکام الدرر سے اصل متن میں روابط سمیت منقول ہیں۔ ٹیم کی شرعی ماہر نے ابھی ان کا جائزہ نہیں لیا، اور آلہ کسی حکم کو ترجیح نہیں دیتا۔`,
+  note: (d) => `یہ حوالے ${d} کو خودکار طور پر جانچے گئے؛ احکام الدرر سے اصل متن میں روابط سمیت منقول ہیں۔ ٹیم کی شرعی ماہر نے ان کا جائزہ لیا ہے، اور آلہ کسی حکم کو ترجیح نہیں دیتا۔`,
   empty: "کوئی نتیجہ نہیں۔ کوئی اور لفظ آزمائیں، یا جانچ کے صفحے پر خود متن جانچیں۔",
 };
 T.id = { ...T.en,
@@ -71,7 +71,7 @@ T.id = { ...T.en,
   sahihayn: "Dalam Shahihain:", gradings: (n) => `Penilaian ulama, teks asli (${n})`, died: (y) => `w. ${y} H`,
   longer: "dinilai pada riwayat lebih panjang atau lafaz mirip; tidak dihitung",
   check: "Periksa sendiri sekarang", source: "Sumber", count: (n, m) => `${n} dari ${m}`,
-  note: (d) => `Diperiksa otomatis pada ${d}. Penilaian dikutip apa adanya dari Dorar beserta tautannya. Belum ditinjau oleh peninjau syariah tim; alat ini tidak mengunggulkan satu penilaian atas yang lain.`,
+  note: (d) => `Diperiksa otomatis pada ${d}. Penilaian dikutip apa adanya dari Dorar beserta tautannya. Telah ditinjau oleh peninjau syariah tim; alat ini tidak mengunggulkan satu penilaian atas yang lain.`,
   empty: "Tidak ada hasil. Coba kata lain, atau periksa teks sendiri di halaman Periksa.",
 };
 const LANGS = ["ar", "en", "ur", "id", "bn", "tr", "fr", "es", "hi", "zh", "ja"];

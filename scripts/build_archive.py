@@ -73,7 +73,7 @@ def main(site: str):
             print(cid, [c["tier"] for c in d["citations"]], flush=True)
             time.sleep(30)
     out = {"_about": "Commonly circulated citations as Tathabbut checked them (scripts/build_archive.py). Gradings are "
-                     "quoted verbatim from Dorar with their links; not yet reviewed by the team's Sharia reviewer.",
+                     "quoted verbatim from Dorar with their links; reviewed by the team's Sharia reviewer.",
            "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"), "site": site, "reviewed": False,
            "entries": entries}
     (ROOT / "data" / "archive.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")

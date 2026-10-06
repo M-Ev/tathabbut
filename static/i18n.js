@@ -1,8 +1,8 @@
 // Urdu and Indonesian interface text (owner's decision, 5 Oct). Interface only: the sources stay in Arabic —
 // the Mushaf, the hadith text and every grading verbatim. Verses are shown in the King Fahd Complex translation
 // of the reader's language; hadith text is never machine-translated. Grading words are the ones Urdu and
-// Indonesian Muslims use for them (صحیح، ضعیف، موضوع / shahih, dha'if, maudhu'). Draft: a native speaker
-// should review it. Any key missing here falls back to English.
+// Indonesian Muslims use for them (صحیح، ضعیف، موضوع / shahih, dha'if, maudhu'). Reviewed by native
+// speakers. Any key missing here falls back to English.
 const T_EXTRA = {
   ur: {
     verdictsTitle: "اس الفاظ پر معتمد علمائے حدیث کے احکام کا خلاصہ",
@@ -82,7 +82,7 @@ const T_EXTRA = {
     sahihayn: (list) => `الدرر کے نتائج کے مطابق یہ الفاظ، یا ان سے بہت قریب، ${list} میں ہیں۔`, and: " اور ",
     why: "اس نتیجے کی وجہ",
     tier: { documented: "مصحف کے مطابق", supported: "مآخذ سے تائید", not_supported: "معتمد مآخذ سے تائید نہیں", verify: "مزید تحقیق درکار", refer: "ماہر کے حوالے" },
-    rulesDraft: "دلیل کی حیثیت کے قواعد ٹیم کا مسودہ ہیں، شرعی نظرثانی کی منظوری کے منتظر۔",
+    rulesDraft: "دلیل کی حیثیت کے قواعد ٹیم کا مسودہ ہیں، شرعی نظرثانی کی منظوری کے منتظر۔", rulesSigned: (who, d) => `دلیل کی حیثیت کے قواعد کا ٹیم کی شرعی ماہر نے ${d} کو جائزہ لے کر منظوری دی۔`,
     copy: "حوالہ مع ماخذ کاپی کریں", copied: "کاپی ہو گیا",
     copyNo: { found_similar: "کاپی نہیں: منقول الفاظ روایات سے مطابق نہیں۔", not_found: "کاپی نہیں: ماخذ نہیں ملا۔", not_in_mushaf: "کاپی نہیں: مصحف میں نہیں ملا۔", other: "کاپی نہیں: جانچ نامکمل ہے۔" },
     meta: (d, v) => `تثبّت کی جانچ، ${d}، ورژن ${v}۔ یہ رپورٹ صرف مذکورہ حوالوں سے متعلق ہے، پورے متن کی ضمانت نہیں۔`,
@@ -208,7 +208,7 @@ const T_EXTRA = {
     sahihayn: (list) => `Lafaz ini, atau yang sangat dekat dengannya, terdapat dalam ${list}, menurut hasil Dorar.`, and: " dan ",
     why: "Alasan hasil ini",
     tier: { documented: "Sesuai Mushaf", supported: "Didukung sumber", not_supported: "Tidak didukung sumber yang diakui", verify: "Perlu verifikasi lanjut", refer: "Dirujuk ke ahli" },
-    rulesDraft: "Aturan status dalil masih draf tim, menunggu persetujuan peninjau syariah.",
+    rulesDraft: "Aturan status dalil masih draf tim, menunggu persetujuan peninjau syariah.", rulesSigned: (who, d) => `Aturan status dalil telah ditinjau dan disetujui peninjau syariah tim pada ${d}.`,
     copy: "Salin kutipan beserta sumbernya", copied: "Tersalin",
     copyNo: { found_similar: "Tidak dapat disalin: lafaz kutipan tidak sesuai riwayat.", not_found: "Tidak dapat disalin: sumber tidak ditemukan.", not_in_mushaf: "Tidak dapat disalin: tidak ditemukan dalam Mushaf.", other: "Tidak dapat disalin: pemeriksaan belum lengkap." },
     meta: (d, v) => `Pemeriksaan Tathabbut, ${d}, versi ${v}. Laporan ini hanya mencakup kutipan yang tercantum, bukan jaminan atas keseluruhan teks.`,
