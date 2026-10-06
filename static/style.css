@@ -522,3 +522,15 @@ html[lang="ur"] body { font-family: "Readex Pro", "Noto Nastaliq Urdu", system-u
 .dk-spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: dk-spin .8s linear infinite; }
 @keyframes dk-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .dk-spin { animation-duration: 2.4s; } }
+
+/* Share as image and text */
+.dk-share { border: 0; background: none; font-size: var(--fs-lg); color: var(--accent); cursor: pointer; min-width: 40px; min-height: 40px; }
+.share-dlg { border: 0; border-radius: var(--r-2); padding: 0; max-width: min(600px, 94vw); width: 100%; background: var(--surface); color: var(--ink); box-shadow: 0 16px 48px rgba(18, 24, 63, .35); }
+.share-dlg::backdrop { background: rgba(13, 17, 48, .55); }
+.share-box { padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
+.share-head { display: flex; justify-content: space-between; align-items: center; }
+.share-x { border: 0; background: none; font-size: 28px; cursor: pointer; color: var(--ink-3); min-width: 40px; min-height: 40px; }
+.share-prev { display: grid; place-items: center; min-height: 200px; background: var(--canvas); border-radius: var(--r-2); }
+.share-prev img { width: 100%; height: auto; max-height: 62vh; object-fit: contain; border-radius: var(--r-1); }
+.share-btns { display: flex; flex-wrap: wrap; gap: var(--s-2); justify-content: center; }
+.share-btns .pbtn { text-decoration: none; display: inline-flex; align-items: center; }

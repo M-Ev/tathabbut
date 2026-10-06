@@ -101,7 +101,7 @@ const T = {
     tier: { documented: "مطابق للمصحف", supported: "تؤيده المصادر", not_supported: "لا تؤيده المصادر المعتمدة", verify: "يحتاج مزيدًا من التحقق", refer: "يُحال إلى مختص" },
     rulesDraft: "قواعد حالة الدليل مسودة من الفريق، تنتظر توقيع المراجِعة الشرعية.", rulesSigned: (who, d) => `قواعد حالة الدليل راجعتها ووقّعتها ${who} في ${d}.`,
     copy: "انسخ الاستشهاد بمصدره", copied: "نُسخ",
-    copyNo: { found_similar: "لا يُنسخ: اللفظ المنقول لا يطابق الروايات.", not_found: "لا يُنسخ: لم نجد له مصدرًا.", not_in_mushaf: "لا يُنسخ: لم نجده في المصحف.", other: "لا يُنسخ: لم يكتمل التحقق." },
+    share: "مشاركة صورة ونص", copyNo: { found_similar: "لا يُنسخ: اللفظ المنقول لا يطابق الروايات.", not_found: "لا يُنسخ: لم نجد له مصدرًا.", not_in_mushaf: "لا يُنسخ: لم نجده في المصحف.", other: "لا يُنسخ: لم يكتمل التحقق." },
     rawaHu: (b, n) => `رواه ${b} (${n})`, gradedBy: (who, g, src) => `حكم ${who}: «${g}» (${src})`,
     meta: (d, v) => `فحص تثبّت بتاريخ ${d}، الإصدار ${v}. هذا التقرير يخص الاستشهادات المذكورة فقط، وليس شهادة على النص كله.`,
     casesTitle: "جرّب حالات الاختبار", expected: "النتيجة المتوقعة",
@@ -253,7 +253,7 @@ const T = {
     tier: { documented: "Matches the Mushaf", supported: "Supported by the sources", not_supported: "Not supported by the approved sources", verify: "Needs more verification", refer: "Refer to a specialist" },
     rulesDraft: "The evidence-status rules are the team's draft, awaiting the Sharia reviewer's signature.", rulesSigned: (who, d) => `The evidence-status rules were reviewed and signed by ${who} on ${d}.`,
     copy: "Copy the citation with its source", copied: "Copied",
-    copyNo: { found_similar: "Not copyable: the quoted wording does not match the narrations.", not_found: "Not copyable: no source was found.", not_in_mushaf: "Not copyable: not found in the Mushaf.", other: "Not copyable: the check is incomplete." },
+    share: "Share as image and text", copyNo: { found_similar: "Not copyable: the quoted wording does not match the narrations.", not_found: "Not copyable: no source was found.", not_in_mushaf: "Not copyable: not found in the Mushaf.", other: "Not copyable: the check is incomplete." },
     rawaHu: (b, n) => `Narrated by ${b} (${n})`, gradedBy: (who, g, src) => `${who}: «${g}» (${src})`,
     meta: (d, v) => `Tathabbut check of ${d}, version ${v}. This report covers the citations listed only; it does not vouch for the text as a whole.`,
     casesTitle: "Try the test cases", expected: "Expected result",
@@ -619,10 +619,35 @@ function copyFor(c) {
   return { text: `«${same[0].text}»\n${lines.join("\n")}` };
 }
 
+// The card to share: built from the same source fields as the copied text. A hadith the sources do not support is
+// shared as a correction (red), with the scholars' gradings verbatim.
+const SHARE_BADGE = { documented: ["مطابق للمصحف", "ok"], supported: ["تؤيده المصادر", "ok"], not_supported: ["لا تؤيده المصادر المعتمدة", "bad"], verify: ["يحتاج مزيدًا من التحقق", "warn"] };
+function shareFor(c) {
+  const x = copyFor(c);
+  if (x.no) return null;
+  const q = c.quran || {};
+  if (c.type === "quran") {
+    const text = glyphs((q.ayat && q.ayat.length ? q.ayat.map((a) => a.text) : [q.mushaf_text]).join(" "));
+    const a = q.ayah_from === q.ayah_to ? q.ayah_from : `${q.ayah_from}-${q.ayah_to}`;
+    const right = c.status === "verified" && q.reference_ok !== false;
+    return { kind: "quran", text, check: text, shareText: x.text, badge: right ? "مطابق للمصحف" : "النص الصحيح من المصحف", tone: right ? "ok" : "warn",
+      lines: [`سورة ${q.surah_name_ar}، الآية ${a}`, "من مصحف مجمع الملك فهد لطباعة المصحف الشريف"] };
+  }
+  const hd = c.hadith || {};
+  const items = (hd.groups || []).flatMap((g) => g.items);
+  const [badge, tone] = SHARE_BADGE[c.tier] || SHARE_BADGE.verify;
+  const narr = x.text.split("\n")[0].replace(/^«|»$/g, "").replace(/» رواه .*$/, "");
+  const lines = (hd.sahihayn || []).length
+    ? [`رواه ${hd.sahihayn.map((s) => `${s.book.replace("صحيح ", "")} (${s.number})`).join(" و")}`, "من الموسوعة الحديثية في الدرر السنية"]
+    : items.filter((i) => (i.match || "same") === "same" && i.similarity >= 85).slice(0, 3).map((i) => `${i.scholar_ar}: «${i.grade}» · ${i.book} (${i.number})`);
+  return { kind: "hadith", text: narr, check: narr, shareText: x.text, badge: c.tier === "supported" && (hd.sahihayn || []).length ? "في الصحيحين" : badge, tone, lines };
+}
+
 function copyButton(c) {
   const x = copyFor(c);
   if (x.no) return `<p class="after copy-row"><button type="button" class="linkish copy" disabled>${esc(t().copy)}</button> <span class="fine">${esc(x.no)}</span></p>`;
-  return `<p class="after copy-row"><button type="button" class="linkish copy" data-copy="${esc(x.text)}">${esc(t().copy)}</button></p>`;
+  return `<p class="after copy-row"><button type="button" class="linkish copy" data-copy="${esc(x.text)}">${esc(t().copy)}</button>`
+    + (typeof TathShare !== "undefined" ? ` · <button type="button" class="linkish share-btn" data-cit="${c.id}">${esc(t().share || "مشاركة")}</button>` : "") + `</p>`;
 }
 
 function reportLink(c) {
@@ -792,6 +817,13 @@ function showBanner() {
 
 $("go").addEventListener("click", check);
 $("results").addEventListener("click", async (e) => {
+  const sb = e.target.closest("button.share-btn[data-cit]");
+  if (sb && lastResult) {
+    const c = lastResult.citations.find((x) => String(x.id) === sb.dataset.cit);
+    const card = c && shareFor(c);
+    if (card) TathShare.open(card, lang);
+    return;
+  }
   const b = e.target.closest("button.copy[data-copy]");
   if (!b) return;
   try { await navigator.clipboard.writeText(b.dataset.copy); } catch (err) {

@@ -85,6 +85,25 @@ function counter(id, n) {
   if (!n) return "";
   return `<button type="button" class="dk-count" data-id="${esc(id)}" data-n="${n}" aria-label="${esc(t().tapCount)}"><b>${num(n)}</b><span>${esc(t().count(n))}</span></button>`;
 }
+function shareBtn(id) {
+  return typeof TathShare === "undefined" ? "" : `<button type="button" class="dk-share" data-share="${esc(id)}" aria-label="${esc(lang === "ar" ? "مشاركة صورة ونص" : "Share")}">⤴</button>`;
+}
+// A verified dhikr or verse as a card to share: its words, and the grading that supports it verbatim with its book.
+function shareCard(id) {
+  const [kind, xid, cat] = id.split(":");
+  if (kind === "h") {
+    const x = DATA.hadith.find((y) => y.id === xid); const p = (x.shown || []).find((q) => q.category === cat) || x.shown[0]; const s = p.source;
+    const src = `${s.scholar_ar}: «${s.grade}» · ${s.book} (${s.number})`;
+    return { kind: "hadith", text: x.text, check: x.text, badge: "تؤيده المصادر", tone: "ok",
+      lines: [src, "من الموسوعة الحديثية في الدرر السنية"], shareText: `${x.text}\n${src}\n${s.url}` };
+  }
+  const x = DATA.quran.find((y) => y.id === xid);
+  const text = x.ayat.map((a) => a.text).join(" ");
+  const ref = `سورة ${x.surah_ar}، الآية ${x.ayah_from}${x.ayah_to !== x.ayah_from ? "-" + x.ayah_to : ""}`;
+  return { kind: "quran", text, check: text, badge: "مطابق للمصحف", tone: "ok",
+    lines: [ref, "من مصحف مجمع الملك فهد لطباعة المصحف الشريف"], shareText: `﴿${text}﴾ [${x.surah_ar}: ${x.ayah_from}${x.ayah_to !== x.ayah_from ? "-" + x.ayah_to : ""}]` };
+}
+
 function star(id) {
   const on = store.get("fav", []).includes(id);
   return `<button type="button" class="dk-star" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(t().fav)}">${on ? "★" : "☆"}</button>`;
@@ -94,7 +113,7 @@ function hadithCard(x, place) {
   const others = (x.check.narrations || []).filter((n) => n.url !== s.url).slice(0, 5)
     .map((n) => `<li lang="ar">${esc(n.scholar_ar)}: ${esc(n.grade)} · <a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.book)} (${esc(n.number)})</a></li>`).join("");
   return `<article class="dk" id="d-${esc(x.id)}">
-    <div class="dk-top">${star(x.id)}${counter(x.id + ":" + place.category, place.count)}</div>
+    <div class="dk-top"><span>${star(x.id)}${shareBtn("h:" + x.id + ":" + place.category)}</span>${counter(x.id + ":" + place.category, place.count)}</div>
     <p class="dk-text" lang="ar" dir="rtl">${esc(x.text)}</p>
     <p class="dk-src"><span class="lbl">${esc(t().source)}</span>${srcLine(s)}</p>
     <details class="dk-more"><summary>${esc(t().narration)}</summary>
@@ -110,7 +129,7 @@ function quranCard(x, place) {
   const ref = `[${esc(lang === "ar" ? x.surah_ar : x.surah_en)}: ${num(x.ayah_from)}${x.ayah_to !== x.ayah_from ? "–" + num(x.ayah_to) : ""}]`;
   const ev = place.evidence;
   return `<article class="dk dk-q" id="q-${esc(x.id)}">
-    <div class="dk-top">${star("q:" + x.id)}${counter("q:" + x.id + ":" + place.category, place.count)}</div>
+    <div class="dk-top"><span>${star("q:" + x.id)}${shareBtn("q:" + x.id + ":" + place.category)}</span>${counter("q:" + x.id + ":" + place.category, place.count)}</div>
     <p class="dk-verse quran" lang="ar" dir="rtl">${verseText(x)}</p>
     <p class="fine">${ref}</p>
     ${x.meaning ? `<p class="pl-meaning" dir="auto"><span class="lbl">${esc(t().meaning)}</span>${esc(x.meaning.text)} <span class="fine">(${esc(x.meaning.name)})</span></p>` : ""}
@@ -119,6 +138,7 @@ function quranCard(x, place) {
   </article>`;
 }
 function bindCards(root) {
+  root.querySelectorAll(".dk-share").forEach((b) => (b.onclick = () => TathShare.open(shareCard(b.dataset.share), lang)));
   root.querySelectorAll(".dk-count").forEach((b) => {
     b.onclick = () => {
       let n = Number(b.dataset.left ?? b.dataset.n);
