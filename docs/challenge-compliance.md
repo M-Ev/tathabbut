@@ -14,7 +14,7 @@
 | توثيق المصادر | ✅ | [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md)، و[docs/package-conformance.md](package-conformance.md) |
 | سجل الأدوات والتراخيص | ✅ | قسما «Model» و«AI tools used to build the project» في [SOURCES_AND_LICENSES.md](../SOURCES_AND_LICENSES.md) |
 | فيديو لا يتجاوز دقيقتين | ⏳ **لم يُسجَّل بعد** | — |
-| العرض التقديمي (PDF أو PowerPoint) بالقالب الموحد أو هوية التحدي | ⏳ **لم يُعدّ بعد** | — |
+| العرض التقديمي (PDF أو PowerPoint) بالقالب الموحد أو هوية التحدي | ✅ 15 شريحة بهوية التحدي؛ يُصدَّر PDF وPowerPoint | نصه وملاحظات المتحدث: [docs/presentation.md](presentation.md) |
 
 ## الشروط · Terms
 
@@ -37,12 +37,13 @@
 | الابتكار (15%) | جواب الفتوى المنقول بنصه المتحقق منه، وفهم الأسئلة بالعامية وبغير العربية، وMCP للوكلاء |
 | تجربة المستخدم وإمكانية الوصول (10%) | هوية التحدي، والجوال، والوضع الداكن، وتقليل الحركة، و11 لغة، واختبار 25 زائرًا من كل الأعمار ([eval/personas.json](../eval/personas.json)) |
 | التشغيل والاستمرار (10%) | تكلفة صفر، وبدائل عند التعطل، وخطة الاستمرار ([docs/operations.md](operations.md)) |
-| العرض (5%) | ⏳ العرض والفيديو |
+| العرض (5%) | العرض جاهز ([presentation.md](presentation.md))، وصور كل ميزة ([features.md](features.md)); ⏳ الفيديو |
 
 ## قبل التسليم · Before submitting
 
 - [ ] مراجعة المختصة الشرعية: `data/display_rules.json`، والأرشيف، وعرض «أقرب فتوى»، وصفحة أركان الإسلام. ثم إزالة تنبيه «لم تراجعها بعد» من الواجهة.
 - [ ] مراجعة ترجمات الواجهة من متحدثين أصليين (`static/i18n.js`، `static/i18n-more.js`، `static/pillars-i18n.js`).
 - [ ] Factory rebuild للـSpace، ثم `python3 scripts/persona_check.py` على الموقع المباشر.
-- [ ] العرض التقديمي والفيديو.
+- [x] العرض التقديمي.
+- [ ] الفيديو (دقيقتان على الأكثر).
 - [ ] تحديث الأرشيف بعد آخر إصلاحات: `python3 scripts/build_archive.py`.

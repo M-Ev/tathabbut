@@ -41,7 +41,7 @@ short_description: Traces Quran and hadith citations to their Arabic sources
 |---|---|---|
 | ![جواب من فتوى ابن باز بنصه](docs/screenshots/ask-trusted.png) | ![الصلاة خطوة خطوة برسوم متحركة](docs/screenshots/pillars-prayer.png) | ![الأرشيف العام](docs/screenshots/archive.png) |
 
-لقطات من 5 أكتوبر 2026، والنتائج فيها من الموقع المباشر.
+لقطات من 5 أكتوبر 2026، والنتائج فيها من الموقع المباشر. **كل ميزة طوّرناها بصورتها والـcommit الذي بُنيت فيه: [docs/features.md](docs/features.md)**، ونص العرض التقديمي: [docs/presentation.md](docs/presentation.md).
 
 ### حالة الدليل لكل استشهاد
 
@@ -159,6 +159,8 @@ python eval/run_eval.py     # evaluation set, live sources -> eval/report.md
 | [docs/api.md](docs/api.md) | فحص إجابة روبوت المحادثة قبل عرضها: القرار والسياسة وأمثلة Python وJavaScript |
 | [docs/api-and-keys.md](docs/api-and-keys.md) | الواجهات البرمجية التي تستدعيها الأداة، ومفاتيحها ومصدر كل مفتاح، وما يُرسل إلى كل خدمة |
 | [eval/README.md](eval/README.md) | مجموعة التقييم ومقاييسها |
+| [docs/features.md](docs/features.md) | **ما طوّرناه وبرمجناه:** كل ميزة بصورتها من الموقع والـcommit الذي بنيت فيه |
+| [docs/presentation.md](docs/presentation.md) | نص العرض التقديمي للتحكيم بشرائحه الخمس عشرة وملاحظات المتحدث |
 | [docs/team.md](docs/team.md) | الفريق وأدواره، وسجل قرارات قائد الفريق بالتاريخ والـcommit |
 | [docs/challenge-compliance.md](docs/challenge-compliance.md) | مطابقة شروط التحدي ومخرجاته ومعاييره، وما بقي قبل التسليم |
 
